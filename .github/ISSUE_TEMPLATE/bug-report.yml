@@ -1,0 +1,70 @@
+---
+name: Bug report
+description: Report a reproducible applet defect without exposing account data.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve ChatGPT Usage. For credentials, tokens, private paths or a security-boundary bypass, stop here and use [private vulnerability reporting](https://github.com/oss-singularity/cinnamon-chatgpt-usage/security/advisories/new).
+  - type: input
+    id: version
+    attributes:
+      label: Applet version or commit
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Linux Mint and Cinnamon version
+      placeholder: Linux Mint 22.x, Cinnamon 6.x
+    validations:
+      required: true
+  - type: input
+    id: codex
+    attributes:
+      label: Codex CLI version
+      description: Run `codex --version` and provide only its version output.
+      placeholder: codex-cli 0.x.y
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and its impact.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Use the smallest safe sequence that reproduces the issue.
+      placeholder: |
+        1. Add the applet to …
+        2. Change …
+        3. Observe …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Remove usernames, paths, account data, tokens and unrelated log lines.
+      render: shell
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy checks
+      options:
+        - label: I removed credentials, tokens, private paths and account-specific data from this report.
+          required: true
+        - label: I checked existing issues for the same behavior.
+          required: true

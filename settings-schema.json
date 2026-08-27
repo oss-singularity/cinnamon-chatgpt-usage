@@ -1,0 +1,125 @@
+{
+  "layout": {
+    "type": "layout",
+    "pages": ["general-page", "colors-page"],
+    "general-page": {
+      "type": "page",
+      "title": "General",
+      "sections": ["data-section", "display-section"]
+    },
+    "colors-page": {
+      "type": "page",
+      "title": "Colors",
+      "sections": ["color-section", "threshold-section"]
+    },
+    "data-section": {
+      "type": "section",
+      "title": "Usage data",
+      "keys": ["refresh-interval", "codex-path"]
+    },
+    "display-section": {
+      "type": "section",
+      "title": "Panel display",
+      "keys": [
+        "show-panel-icon",
+        "show-window-labels",
+        "show-weekly-with-five-hour",
+        "font-size",
+        "separator"
+      ]
+    },
+    "color-section": {
+      "type": "section",
+      "title": "Colors",
+      "keys": ["show-colors", "normal-color", "warning-color", "critical-color"]
+    },
+    "threshold-section": {
+      "type": "section",
+      "title": "Remaining usage thresholds",
+      "keys": ["warning-remaining", "critical-remaining"]
+    }
+  },
+  "refresh-interval": {
+    "type": "spinbutton",
+    "default": 3,
+    "min": 1,
+    "max": 60,
+    "step": 1,
+    "units": "minutes",
+    "description": "Refresh interval"
+  },
+  "codex-path": {
+    "type": "entry",
+    "default": "",
+    "description": "Codex CLI path (optional)",
+    "tooltip": "Leave empty for automatic detection. Example: /home/user/.local/bin/codex"
+  },
+  "show-panel-icon": {
+    "type": "switch",
+    "default": true,
+    "description": "Show usage icon"
+  },
+  "show-window-labels": {
+    "type": "switch",
+    "default": true,
+    "description": "Show 5h / 7d window labels"
+  },
+  "show-weekly-with-five-hour": {
+    "type": "switch",
+    "default": true,
+    "description": "Show 7d in the panel when 5h is active"
+  },
+  "font-size": {
+    "type": "spinbutton",
+    "default": 100,
+    "min": 60,
+    "max": 125,
+    "step": 5,
+    "units": "%",
+    "description": "Font size"
+  },
+  "separator": {
+    "type": "entry",
+    "default": "·",
+    "description": "Separator in horizontal panels",
+    "tooltip": "Separators are hidden automatically in vertical panels."
+  },
+  "show-colors": {
+    "type": "switch",
+    "default": true,
+    "description": "Color values by remaining usage"
+  },
+  "normal-color": {
+    "type": "colorchooser",
+    "default": "#ffffff",
+    "description": "Normal color"
+  },
+  "warning-color": {
+    "type": "colorchooser",
+    "default": "#f6d32d",
+    "description": "Warning color"
+  },
+  "critical-color": {
+    "type": "colorchooser",
+    "default": "#ed333b",
+    "description": "Critical color"
+  },
+  "warning-remaining": {
+    "type": "spinbutton",
+    "default": 25,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "units": "%",
+    "description": "Warning at or below"
+  },
+  "critical-remaining": {
+    "type": "spinbutton",
+    "default": 10,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "units": "%",
+    "description": "Critical at or below"
+  }
+}

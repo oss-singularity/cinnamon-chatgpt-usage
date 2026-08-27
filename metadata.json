@@ -1,0 +1,10 @@
+{
+  "uuid": "chatgpt-usage@oss-singularity",
+  "name": "ChatGPT Usage",
+  "description": "Live ChatGPT Work and Codex usage limits for horizontal and vertical Cinnamon panels.",
+  "version": "0.1.0",
+  "author": "OSS Singularity",
+  "max-instances": 1,
+  "cinnamon-version": ["5.8", "6.0", "6.2", "6.4", "6.6"],
+  "icon": "icon.png"
+}

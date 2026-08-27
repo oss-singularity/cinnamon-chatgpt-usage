@@ -1,0 +1,9 @@
+---
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/oss-singularity/cinnamon-chatgpt-usage/security/advisories/new
+    about: Report credential exposure or a security-boundary bypass privately.
+  - name: ChatGPT Analytics
+    url: https://chatgpt.com/codex/cloud/settings/analytics#usage
+    about: Compare the canonical account-level limits before reporting a mismatch.

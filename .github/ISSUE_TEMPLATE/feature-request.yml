@@ -1,0 +1,44 @@
+---
+name: Feature request
+description: Suggest a focused improvement to the usage applet.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What is difficult or unclear in the current applet?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the behavior and how a user would know it works.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Horizontal panel layout
+        - Vertical panel layout
+        - Usage data and refresh
+        - Settings
+        - Documentation
+        - Other focused applet behavior
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Privacy and tradeoffs
+      description: Mention effects on authentication, network requests, panel space or dependencies.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This request is specifically useful for displaying ChatGPT Work and Codex usage in Cinnamon.
+          required: true

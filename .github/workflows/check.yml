@@ -1,0 +1,60 @@
+---
+name: Checks
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - main
+  pull_request: null
+
+permissions:
+  contents: read
+
+jobs:
+  functional:
+    name: Functional checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install checks
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cjs shellcheck
+      - name: Validate repository
+        run: make check
+
+  lint:
+    name: Super-Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Lint repository
+        uses: super-linter/super-linter/slim@4ce20838b8ab83717e78138c5b3a1407148e0918 # v8.7.0
+        env:
+          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: false
+          MULTI_STATUS: false
+          SAVE_SUPER_LINTER_SUMMARY: true
+          SUPPRESS_OUTPUT_ON_SUCCESS: true
+          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_BASH: true
+          VALIDATE_BASH_EXEC: true
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_GITHUB_ACTIONS_ZIZMOR: true
+          VALIDATE_GIT_MERGE_CONFLICT_MARKERS: true
+          VALIDATE_GITLEAKS: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_JSON: true
+          VALIDATE_JSON_PRETTIER: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_MARKDOWN_PRETTIER: true
+          VALIDATE_PYTHON_RUFF: true
+          VALIDATE_PYTHON_RUFF_FORMAT: true
+          VALIDATE_YAML: true
+          VALIDATE_YAML_PRETTIER: true
