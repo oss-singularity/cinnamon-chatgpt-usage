@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="icon.png" width="96" height="96" alt="ChatGPT Usage icon">
+  <picture>
+    <img src="icon.png" width="96" height="96" alt="ChatGPT Usage icon">
+  </picture>
 </p>
 
 <h1 align="center">ChatGPT Usage for Cinnamon</h1>
@@ -20,7 +22,7 @@
 | -------------------------------------- | --------------------------------------------------------- |
 | ![Horizontal top bar](docs/topbar.png) | ![Above Adaptive System Monitor](docs/vertical-panel.png) |
 
-![Usage menu with reset time and credits](docs/usage-menu.png)
+![Usage menu beside the vertical panel applet](docs/usage-menu.png)
 
 | General settings                               | Colors and thresholds                       |
 | ---------------------------------------------- | ------------------------------------------- |
@@ -48,8 +50,9 @@ cd cinnamon-chatgpt-usage
 ```
 
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
-Requirements: Cinnamon 5.8+, Python 3 and a current Codex CLI signed in with
-ChatGPT. Version 0.1.0 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+Requirements: Cinnamon 5.8+, Python 3 and a current
+[Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
+with ChatGPT. Version 0.1.0 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
