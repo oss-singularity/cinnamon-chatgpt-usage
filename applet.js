@@ -66,6 +66,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshButtonIcon = null;
         this._refreshButtonLabel = null;
         this._refreshSpinnerLabel = null;
+        this._updatedLabel = null;
         this._refreshSpinnerFrame = 0;
         this._historySubmenus = [];
         this._actionFrame = null;
@@ -417,6 +418,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshButtonIcon = null;
         this._refreshButtonLabel = null;
         this._refreshSpinnerLabel = null;
+        this._updatedLabel = null;
         this._historySubmenus = [];
         this._actionFrame = null;
         this._actionWidthFrame = null;
@@ -492,18 +494,16 @@ class ChatGptUsageApplet extends Applet.Applet {
         title.style = "font-weight: bold;";
         text.add_child(title);
         if (this._snapshot) {
-            const updated = UsageFormat.formatTimestamp(
-                this._snapshot.updatedAt,
-                this._use24HourClock
-            );
-            const updatedLabel = new St.Label({ text: `Updated ${updated}` });
-            updatedLabel.style = [
+            this._updatedLabel = new St.Label({
+                text: `Updated ${UsageFormat.formatRelativeTime(this._snapshot.updatedAt)}`
+            });
+            this._updatedLabel.style = [
                 "padding-top: 6px",
                 "padding-left: 6px",
                 "font-size: 90%",
                 "color: rgba(255,255,255,0.68)"
             ].join("; ") + ";";
-            text.add_child(updatedLabel);
+            text.add_child(this._updatedLabel);
         }
         const row = new St.BoxLayout({
             vertical: false,
@@ -772,6 +772,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         for (const entry of this._countdownWidgets) {
             this._updateResetCountdown(entry);
         }
+    }
+
+    _updateRelativeTime() {
+        if (!this._updatedLabel || !this._snapshot) return;
+        const relativeTime = UsageFormat.formatRelativeTime(this._snapshot.updatedAt);
+        this._updatedLabel.set_text(`Updated ${relativeTime}`);
     }
 
     _addLaunchButtons() {
@@ -1575,7 +1581,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._countdownTimeoutId = 0;
         }
         this._countdownTimeoutId = Mainloop.timeout_add_seconds(1, () => {
-            if (this.menu && this.menu.isOpen) this._updateResetCountdowns();
+            if (this.menu && this.menu.isOpen) {
+                this._updateResetCountdowns();
+                this._updateRelativeTime();
+            }
             return GLib.SOURCE_CONTINUE;
         });
     }

@@ -282,6 +282,26 @@ function formatTimestamp(epochSeconds, use24Hour) {
     return dateTime.format(`%x ${timeFormat}`);
 }
 
+function formatRelativeTime(epochSeconds, nowSeconds = null) {
+    const updatedSeconds = Number(epochSeconds);
+    const currentSeconds = nowSeconds === null
+        ? GLib.get_real_time() / 1000000
+        : Number(nowSeconds);
+    if (
+        !Number.isFinite(updatedSeconds) || updatedSeconds <= 0 ||
+        !Number.isFinite(currentSeconds)
+    ) {
+        return "unknown";
+    }
+
+    const elapsedSeconds = Math.floor(Math.max(0, currentSeconds - updatedSeconds));
+    if (elapsedSeconds < 1) return "just now";
+    if (elapsedSeconds < 60) return `${elapsedSeconds}s ago`;
+    if (elapsedSeconds < 3600) return `${Math.floor(elapsedSeconds / 60)}m ago`;
+    if (elapsedSeconds < 86400) return `${Math.floor(elapsedSeconds / 3600)}h ago`;
+    return `${Math.floor(elapsedSeconds / 86400)}d ago`;
+}
+
 module.exports = {
     summarizeWindows,
     listQuotaWindows,
@@ -295,5 +315,6 @@ module.exports = {
     buildActivityChart,
     formatActivityBucketTooltip,
     formatAccessibleTooltip,
-    formatTimestamp
+    formatTimestamp,
+    formatRelativeTime
 };

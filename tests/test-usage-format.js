@@ -266,5 +266,40 @@ const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {
     throw new Error(`Expected system-local 24-hour timestamp, got ${timestamp24h}`);
 }
+assertEqual(
+    UsageFormat.formatRelativeTime(1000, 1000),
+    "just now",
+    "Current relative timestamp"
+);
+assertEqual(
+    UsageFormat.formatRelativeTime(1000, 1008.9),
+    "8s ago",
+    "Second-level relative timestamp"
+);
+assertEqual(
+    UsageFormat.formatRelativeTime(1000, 1120),
+    "2m ago",
+    "Minute-level relative timestamp"
+);
+assertEqual(
+    UsageFormat.formatRelativeTime(1000, 8200),
+    "2h ago",
+    "Hour-level relative timestamp"
+);
+assertEqual(
+    UsageFormat.formatRelativeTime(1000, 173800),
+    "2d ago",
+    "Day-level relative timestamp"
+);
+assertEqual(
+    UsageFormat.formatRelativeTime(1000, 999),
+    "just now",
+    "Future relative timestamp jitter"
+);
+assertEqual(
+    UsageFormat.formatRelativeTime(null, 1000),
+    "unknown",
+    "Invalid relative timestamp"
+);
 
 print("Usage formatting tests passed.");
