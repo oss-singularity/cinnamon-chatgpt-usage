@@ -545,12 +545,13 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         const area = new St.DrawingArea({ width: size, height: size });
         const model = UsageFormat.buildQuotaIndicator(window);
-        const badge = this._modelBadge(window);
+        const badgeText = this._modelBadge(window);
         const label = new St.Label({
-            text: `${badge ? `${badge} ` : ""}${model.durationLabel}\n${model.percentLabel}`,
+            text: `${model.durationLabel}\n${model.percentLabel}`,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER
         });
+        label.translation_x = badgeText ? 2 : 0;
         label.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
         label.style = [
             `font-size: ${size < QUOTA_RING_SIZE ? 60 : 72}%`,
@@ -568,6 +569,28 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         actor.add_child(area);
         actor.add_child(label);
+        if (badgeText) {
+            const badge = new St.Label({
+                text: badgeText,
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.START
+            });
+            badge.style = [
+                `font-size: ${size < QUOTA_RING_SIZE ? 50 : 60}%`,
+                "font-weight: bold",
+                "font-style: italic",
+                "color: #f2a15f",
+                "background-color: #25272d",
+                "border: 1px solid rgba(242,161,95,0.92)",
+                "border-radius: 8px",
+                "padding: 0 3px"
+            ].join("; ") + ";";
+            badge.translation_x = size < QUOTA_RING_SIZE ? 6 : 8;
+            badge.translation_y = size < QUOTA_RING_SIZE ? 8 : 11;
+            actor.add_child(badge);
+        }
         this._quotaWidgets.push({ area, label, window });
         area.queue_repaint();
         return actor;

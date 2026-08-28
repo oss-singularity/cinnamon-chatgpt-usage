@@ -127,19 +127,20 @@ function buildResetCountdown(window, nowSeconds = null) {
         };
     }
 
-    const remainingSeconds = clamp(
-        Math.ceil(resetsAt - currentSeconds),
-        0,
-        durationSeconds
-    );
+    const remainingPercent = Number(window && window.remainingPercent);
+    const remainingSeconds = Number.isFinite(remainingPercent) && remainingPercent >= 100
+        ? durationSeconds
+        : clamp(Math.ceil(resetsAt - currentSeconds), 0, durationSeconds);
     let primary = "now";
     let secondary = "";
     if (remainingSeconds >= 86400) {
         primary = `${Math.floor(remainingSeconds / 86400)}d`;
-        secondary = `${Math.floor((remainingSeconds % 86400) / 3600)}h`;
+        const remainingHours = Math.floor((remainingSeconds % 86400) / 3600);
+        secondary = remainingHours > 0 ? `${remainingHours}h` : "";
     } else if (remainingSeconds >= 3600) {
         primary = `${Math.floor(remainingSeconds / 3600)}h`;
-        secondary = `${Math.floor((remainingSeconds % 3600) / 60)}m`;
+        const remainingMinutes = Math.floor((remainingSeconds % 3600) / 60);
+        secondary = remainingMinutes > 0 ? `${remainingMinutes}m` : "";
     } else if (remainingSeconds >= 60) {
         primary = `${Math.floor(remainingSeconds / 60)}m`;
         secondary = `${remainingSeconds % 60}s`;

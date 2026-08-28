@@ -139,6 +139,57 @@ assertClose(
     "Reset progress starts near empty and fills toward reset"
 );
 
+const unusedFiveHourCountdown = UsageFormat.buildResetCountdown(
+    {
+        durationMinutes: 300,
+        remainingPercent: 100,
+        resetsAt: 1000 + (5 * 3600)
+    },
+    1002
+);
+assertEqual(
+    unusedFiveHourCountdown.label,
+    "5h",
+    "Unused five-hour cycle keeps its full duration"
+);
+assertEqual(
+    unusedFiveHourCountdown.fractionElapsed,
+    0,
+    "Unused five-hour cycle has no reset progress"
+);
+
+const unusedWeeklyCountdown = UsageFormat.buildResetCountdown(
+    {
+        durationMinutes: 10080,
+        remainingPercent: 100,
+        resetsAt: 1000 + (7 * 86400)
+    },
+    1002
+);
+assertEqual(
+    unusedWeeklyCountdown.label,
+    "7d",
+    "Unused weekly cycle keeps its full duration"
+);
+assertEqual(
+    unusedWeeklyCountdown.fractionElapsed,
+    0,
+    "Unused weekly cycle has no reset progress"
+);
+
+assertEqual(
+    UsageFormat.buildResetCountdown(
+        {
+            durationMinutes: 300,
+            remainingPercent: 99.9,
+            resetsAt: 1000 + (5 * 3600)
+        },
+        1002
+    ).label,
+    "4h\n59m",
+    "Started cycle keeps counting down"
+);
+
 const weeklyCountdown = UsageFormat.buildResetCountdown(
     { durationMinutes: 10080, resetsAt: 1000 + (3 * 86400) + (4 * 3600) },
     1000
