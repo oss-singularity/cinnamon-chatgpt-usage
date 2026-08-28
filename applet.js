@@ -351,7 +351,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 period => period && period.complete === false
             );
 
-            this._addInfoItem(`  ${duration} quota`, "font-weight: bold;");
+            this._addInfoItem(`  ${duration} usage`, "font-weight: bold;");
             this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`);
             this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`);
             this._addActivityChart(
