@@ -33,7 +33,7 @@
 - Mirrors the canonical limit cards from ChatGPT Analytics: remaining usage,
   reset times, credits and earned resets.
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
-  quota, with a compact 24-hour activity sparkline in the popup.
+  quota, with a compact 24-hour bar timeline in the popup.
 - Shows `5h` automatically only when that account-level Analytics window is
   active; its accompanying `7d` panel block can be hidden in settings while
   internal model-only buckets stay hidden.

@@ -4,7 +4,8 @@
 
 - Add observed consumption for the last 1h, 4h, 12h and local calendar day,
   calculated separately for every active account-level quota.
-- Add a compact 24-hour activity sparkline with unknown history shown as dots.
+- Add a compact 24-hour activity bar timeline with time axis, two-hour buckets,
+  peak scale and visually dimmed unknown history.
 - Persist only minimal credential-free samples for eight days in the user's XDG
   state directory with private file permissions.
 - Treat resets as new quota generations, ignore falling rolling-window values

@@ -72,10 +72,16 @@ assertEqual(
     "Partial observed consumption"
 );
 assertEqual(
-    UsageFormat.formatActivitySparkline([null, 0, 1, 2]),
-    "·▁▅█",
-    "Activity sparkline with unknown history"
+    UsageFormat.buildActivityChart([null, 0, 1, 2]).knownCount,
+    3,
+    "Activity chart known bucket count"
 );
+const chart = UsageFormat.buildActivityChart([null, 0, 1, 2]);
+assertEqual(chart.peakPercent, 2, "Activity chart peak");
+assertEqual(chart.bars[0].known, false, "Unknown activity bucket");
+assertEqual(chart.bars[1].intensity, 0, "Zero-consumption bucket");
+assertEqual(chart.bars[2].intensity, 4, "Relative activity intensity");
+assertEqual(chart.bars[3].intensity, 7, "Peak activity intensity");
 
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {

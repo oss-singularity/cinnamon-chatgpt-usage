@@ -64,22 +64,24 @@ function formatConsumedPercent(period) {
     return `${period.complete === false ? "~" : ""}${rounded}%`;
 }
 
-function formatActivitySparkline(values) {
-    if (!Array.isArray(values) || values.length === 0) return "";
-    const blocks = "▁▂▃▄▅▆▇█";
-    const known = values
+function buildActivityChart(values) {
+    const source = Array.isArray(values) ? values : [];
+    const known = source
+        .filter(value => value !== null && value !== undefined)
         .map(value => Number(value))
         .filter(value => Number.isFinite(value) && value >= 0);
-    const maximum = known.length > 0 ? Math.max(...known) : 0;
-    return values.map(value => {
+    const peakPercent = known.length > 0 ? Math.max(...known) : 0;
+    const bars = source.map(value => {
         if (value === null || value === undefined || !Number.isFinite(Number(value))) {
-            return "·";
+            return { known: false, consumedPercent: null, intensity: null };
         }
-        const numeric = Math.max(0, Number(value));
-        if (maximum <= 0 || numeric <= 0) return blocks[0];
-        const index = Math.max(1, Math.ceil((numeric / maximum) * (blocks.length - 1)));
-        return blocks[Math.min(blocks.length - 1, index)];
-    }).join("");
+        const consumedPercent = Math.max(0, Number(value));
+        const intensity = consumedPercent <= 0 || peakPercent <= 0
+            ? 0
+            : Math.max(1, Math.ceil((consumedPercent / peakPercent) * 7));
+        return { known: true, consumedPercent, intensity };
+    });
+    return { peakPercent, knownCount: known.length, bars };
 }
 
 function formatTimestamp(epochSeconds, use24Hour) {
@@ -96,6 +98,6 @@ module.exports = {
     formatDuration,
     formatPercent,
     formatConsumedPercent,
-    formatActivitySparkline,
+    buildActivityChart,
     formatTimestamp
 };

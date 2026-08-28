@@ -347,7 +347,6 @@ class ChatGptUsageApplet extends Applet.Applet {
             const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
             const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
             const today = UsageFormat.formatConsumedPercent(periods.today);
-            const activity = UsageFormat.formatActivitySparkline(window.activity24h);
             const hasPartialPeriod = Object.values(periods).some(
                 period => period && period.complete === false
             );
@@ -355,7 +354,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._addInfoItem(`  ${duration} quota`, "font-weight: bold;");
             this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`);
             this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`);
-            if (activity) this._addInfoItem(`    24h activity  ${activity}`);
+            this._addActivityChart(
+                window.activity24h,
+                history.activityBucketMinutes
+            );
             if (hasPartialPeriod) {
                 const trackedSince = UsageFormat.formatTimestamp(
                     window.trackedSince || history.trackedSince,
@@ -364,6 +366,82 @@ class ChatGptUsageApplet extends Applet.Applet {
                 this._addInfoItem(`    ~ collecting since ${trackedSince}`);
             }
         }
+    }
+
+    _addActivityChart(values, bucketMinutes) {
+        const model = UsageFormat.buildActivityChart(values);
+        if (model.bars.length === 0) return;
+
+        const bucketLabel = UsageFormat.formatDuration(bucketMinutes);
+        const peakLabel = model.knownCount > 0
+            ? UsageFormat.formatConsumedPercent({
+                consumedPercent: model.peakPercent,
+                complete: true
+            })
+            : "—";
+        const item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            activate: false
+        });
+        const column = new St.BoxLayout({ vertical: true });
+        column.style = "padding: 2px 0 1px 16px;";
+
+        const caption = new St.Label({
+            text: `24h activity  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
+        });
+        caption.style = "font-size: 85%;";
+        column.add_child(caption);
+
+        const slotWidth = 16;
+        const plotWidth = slotWidth * model.bars.length;
+        const plot = new St.BoxLayout({
+            vertical: false,
+            width: plotWidth,
+            height: 30
+        });
+        plot.style = "border-bottom: 1px solid rgba(255,255,255,0.28); padding-top: 2px;";
+        model.bars.forEach((bar, index) => {
+            const slot = new St.Bin({ width: slotWidth, height: 28 });
+            slot.set_alignment(St.Align.MIDDLE, St.Align.END);
+            if (index % 3 === 0) {
+                slot.style = "border-left: 1px solid rgba(255,255,255,0.10);";
+            }
+
+            let height = 2;
+            let style = "background-color: rgba(255,255,255,0.16); border-radius: 2px 2px 0 0;";
+            if (bar.known && bar.intensity === 0) {
+                style = "background-color: rgba(255,255,255,0.38); border-radius: 2px 2px 0 0;";
+            } else if (bar.known) {
+                height = 5 + bar.intensity * 3;
+                style = "background-gradient-direction: vertical; background-gradient-start: #8ed891; background-gradient-end: #5dbb73; border-radius: 2px 2px 0 0;";
+            }
+            slot.set_child(new St.Widget({ width: 10, height, style }));
+            plot.add_child(slot);
+        });
+        column.add_child(plot);
+
+        const axis = new St.BoxLayout({ vertical: false, width: plotWidth });
+        const labels = [
+            { text: "−24h", align: St.Align.START },
+            { text: "−12h", align: St.Align.MIDDLE },
+            { text: "now", align: St.Align.END }
+        ];
+        labels.forEach(labelData => {
+            const label = new St.Label({
+                text: labelData.text
+            });
+            label.style = "font-size: 75%; color: rgba(255,255,255,0.62);";
+            const segment = new St.Bin({
+                width: Math.floor(plotWidth / 3)
+            });
+            segment.set_alignment(labelData.align, St.Align.MIDDLE);
+            segment.set_child(label);
+            axis.add_child(segment);
+        });
+        column.add_child(axis);
+
+        item.addActor(column, { span: -1, expand: true });
+        this.menu.addMenuItem(item);
     }
 
     _onLayoutSettingChanged() {
