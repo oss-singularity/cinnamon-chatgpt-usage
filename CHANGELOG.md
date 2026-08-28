@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 — 2026-08-28
+
+- Replace the popup header's full update timestamp with a concise live age,
+  from `Updated just now` through seconds, minutes, hours and days ago.
+
 ## 0.2.2 — 2026-08-28
 
 - Balance the popup's right edge against its left text inset while keeping
