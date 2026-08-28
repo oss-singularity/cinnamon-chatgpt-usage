@@ -15,7 +15,7 @@
     "data-section": {
       "type": "section",
       "title": "Usage data",
-      "keys": ["refresh-interval", "codex-path"]
+      "keys": ["refresh-interval", "activity-bucket-minutes", "codex-path"]
     },
     "display-section": {
       "type": "section",
@@ -23,6 +23,7 @@
       "keys": [
         "show-panel-icon",
         "show-window-labels",
+        "show-model-limits-in-panel",
         "show-weekly-with-five-hour",
         "font-size",
         "separator"
@@ -48,6 +49,12 @@
     "units": "minutes",
     "description": "Refresh interval"
   },
+  "activity-bucket-minutes": {
+    "type": "combobox",
+    "default": "60",
+    "description": "24h activity bucket size",
+    "options": { "1 hour": "60", "2 hours": "120" }
+  },
   "codex-path": {
     "type": "entry",
     "default": "",
@@ -63,6 +70,11 @@
     "type": "switch",
     "default": true,
     "description": "Show 5h / 7d window labels"
+  },
+  "show-model-limits-in-panel": {
+    "type": "switch",
+    "default": false,
+    "description": "Show model-specific limits in the panel"
   },
   "show-weekly-with-five-hour": {
     "type": "switch",

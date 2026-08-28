@@ -25,8 +25,8 @@ CLIENT_INFO = {
 
 HISTORY_VERSION = 1
 HISTORY_RETENTION_SECONDS = 8 * 24 * 60 * 60
-ACTIVITY_BUCKET_SECONDS = 2 * 60 * 60
-ACTIVITY_BUCKET_COUNT = 12
+ACTIVITY_WINDOW_SECONDS = 24 * 60 * 60
+DEFAULT_ACTIVITY_BUCKET_MINUTES = 60
 RESET_TIMESTAMP_JITTER_SECONDS = 60
 
 
@@ -58,27 +58,27 @@ def _normalise_window(window: Any) -> dict[str, Any] | None:
 
 
 def normalise_rate_limits(result: dict[str, Any], now: int | None = None) -> dict[str, Any]:
-    """Convert the canonical Analytics-card limits into an applet snapshot."""
+    """Convert user-facing account and named model limits into an applet snapshot."""
 
     single = result.get("rateLimits")
     buckets_by_id = result.get("rateLimitsByLimitId")
-    if not isinstance(single, dict):
-        if isinstance(buckets_by_id, dict):
-            single = buckets_by_id.get("codex")
-            if not isinstance(single, dict):
-                single = next(
-                    (bucket for bucket in buckets_by_id.values() if isinstance(bucket, dict)),
-                    None,
-                )
-
-    buckets = {single.get("limitId", "codex"): single} if isinstance(single, dict) else {}
+    buckets: dict[str, dict[str, Any]] = {}
+    if isinstance(buckets_by_id, dict):
+        for bucket_id, bucket in buckets_by_id.items():
+            if not isinstance(bucket, dict):
+                continue
+            limit_id = str(bucket.get("limitId") or bucket_id)
+            if limit_id == "codex" or bucket.get("limitName"):
+                buckets[limit_id] = bucket
+    if isinstance(single, dict):
+        limit_id = str(single.get("limitId") or "codex")
+        buckets.setdefault(limit_id, single)
 
     limits = []
-    credit_details = single.get("credits") if isinstance(single, dict) else None
-    if not isinstance(credit_details, dict) and isinstance(buckets_by_id, dict):
-        codex_bucket = buckets_by_id.get("codex")
-        if isinstance(codex_bucket, dict) and isinstance(codex_bucket.get("credits"), dict):
-            credit_details = codex_bucket["credits"]
+    codex_bucket = buckets.get("codex")
+    credit_details = codex_bucket.get("credits") if isinstance(codex_bucket, dict) else None
+    if not isinstance(credit_details, dict) and isinstance(single, dict):
+        credit_details = single.get("credits")
     for bucket_id, bucket in buckets.items():
         if not isinstance(bucket, dict):
             continue
@@ -238,10 +238,16 @@ def _observed_consumption(points: list[tuple[int, dict[str, Any]]], start_at: in
     return consumed, baseline is not None
 
 
-def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]]) -> dict[str, Any]:
+def build_usage_history(
+    snapshot: dict[str, Any],
+    samples: list[dict[str, Any]],
+    bucket_minutes: int = DEFAULT_ACTIVITY_BUCKET_MINUTES,
+) -> dict[str, Any]:
     """Build observed consumption periods and a 24-hour activity timeline."""
 
     now = int(snapshot["updatedAt"])
+    bucket_seconds = int(bucket_minutes) * 60
+    bucket_count = ACTIVITY_WINDOW_SECONDS // bucket_seconds
     local_now = dt.datetime.fromtimestamp(now).astimezone()
     start_of_today = int(local_now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
     periods = (
@@ -255,6 +261,7 @@ def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]])
 
     for limit in snapshot.get("limits", []):
         limit_id = str(limit.get("id") or "codex")
+        limit_label = str(limit.get("label") or limit_id)
         for window in limit.get("windows", []):
             duration = int(_number(window.get("durationMinutes")))
             if duration <= 0:
@@ -270,10 +277,10 @@ def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]])
                 }
 
             activity = []
-            activity_start = now - ACTIVITY_BUCKET_COUNT * ACTIVITY_BUCKET_SECONDS
-            for index in range(ACTIVITY_BUCKET_COUNT):
-                bucket_start = activity_start + index * ACTIVITY_BUCKET_SECONDS
-                bucket_end = bucket_start + ACTIVITY_BUCKET_SECONDS
+            activity_start = now - ACTIVITY_WINDOW_SECONDS
+            for index in range(bucket_count):
+                bucket_start = activity_start + index * bucket_seconds
+                bucket_end = bucket_start + bucket_seconds
                 consumed, complete = _observed_consumption(points, bucket_start, bucket_end)
                 activity.append(
                     {
@@ -285,6 +292,7 @@ def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]])
             history_windows.append(
                 {
                     "id": limit_id,
+                    "label": limit_label,
                     "durationMinutes": duration,
                     "trackedSince": points[0][0] if points else now,
                     "periods": period_values,
@@ -294,12 +302,16 @@ def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]])
 
     return {
         "trackedSince": tracked_since,
-        "activityBucketMinutes": ACTIVITY_BUCKET_SECONDS // 60,
+        "activityBucketMinutes": int(bucket_minutes),
         "windows": history_windows,
     }
 
 
-def update_usage_history(snapshot: dict[str, Any], path: Path) -> dict[str, Any]:
+def update_usage_history(
+    snapshot: dict[str, Any],
+    path: Path,
+    bucket_minutes: int = DEFAULT_ACTIVITY_BUCKET_MINUTES,
+) -> dict[str, Any]:
     """Append one sample atomically and attach derived history to the snapshot."""
 
     now = int(snapshot["updatedAt"])
@@ -314,7 +326,7 @@ def update_usage_history(snapshot: dict[str, Any], path: Path) -> dict[str, Any]
     samples = sorted(samples, key=lambda sample: int(_number(sample.get("timestamp"))))
     samples = samples[-10000:]
     _write_history(path, samples)
-    snapshot["history"] = build_usage_history(snapshot, samples)
+    snapshot["history"] = build_usage_history(snapshot, samples, bucket_minutes)
     return snapshot
 
 
@@ -405,6 +417,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--codex", help="Path to the Codex CLI")
     parser.add_argument("--timeout", type=float, default=25, help="Request timeout in seconds")
     parser.add_argument("--history-file", type=Path, help="Override the local history path")
+    parser.add_argument(
+        "--activity-bucket-minutes",
+        type=int,
+        choices=(60, 120),
+        default=DEFAULT_ACTIVITY_BUCKET_MINUTES,
+        help="24-hour activity bucket size",
+    )
     parser.add_argument("--no-history", action="store_true", help="Do not read or write history")
     return parser.parse_args()
 
@@ -417,7 +436,11 @@ def main() -> int:
         snapshot = normalise_rate_limits(result)
         if not args.no_history:
             try:
-                update_usage_history(snapshot, args.history_file or default_history_path())
+                update_usage_history(
+                    snapshot,
+                    args.history_file or default_history_path(),
+                    args.activity_bucket_minutes,
+                )
             except OSError as error:
                 snapshot["history"] = {"error": f"Could not store local history: {error}"}
         print(json.dumps(snapshot, separators=(",", ":")))

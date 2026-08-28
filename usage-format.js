@@ -232,6 +232,10 @@ function formatActivityBucketTooltip(
     return `${range}\n${consumed} consumed${bar.partial ? " · partial bucket" : ""}`;
 }
 
+function formatAccessibleTooltip(text) {
+    return String(text || "").replace(/\n/g, ". ");
+}
+
 function formatTimestamp(epochSeconds, use24Hour) {
     const seconds = Number(epochSeconds);
     if (!Number.isFinite(seconds) || seconds <= 0) return "unknown";
@@ -251,5 +255,6 @@ module.exports = {
     buildQuotaIndicator,
     buildActivityChart,
     formatActivityBucketTooltip,
+    formatAccessibleTooltip,
     formatTimestamp
 };

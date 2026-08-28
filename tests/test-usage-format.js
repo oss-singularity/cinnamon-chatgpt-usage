@@ -196,6 +196,11 @@ const partialBucketTooltip = UsageFormat.formatActivityBucketTooltip(
 if (!partialBucketTooltip.includes("~4% consumed · partial bucket")) {
     throw new Error(`Expected partial activity tooltip details, got ${partialBucketTooltip}`);
 }
+assertEqual(
+    UsageFormat.formatAccessibleTooltip("First\nSecond\nThird"),
+    "First. Second. Third",
+    "All accessible tooltip line breaks"
+);
 
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {

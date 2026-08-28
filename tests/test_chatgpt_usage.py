@@ -11,7 +11,7 @@ from chatgpt_usage import build_usage_history, normalise_rate_limits, update_usa
 
 
 class NormaliseRateLimitsTests(unittest.TestCase):
-    def test_canonical_bucket_ignores_model_specific_limits(self) -> None:
+    def test_named_model_specific_limits_are_included(self) -> None:
         result = {
             "rateLimits": {
                 "limitId": "codex",
@@ -58,11 +58,36 @@ class NormaliseRateLimitsTests(unittest.TestCase):
 
         snapshot = normalise_rate_limits(result, now=123)
         self.assertEqual(snapshot["updatedAt"], 123)
-        self.assertEqual([item["id"] for item in snapshot["limits"]], ["codex"])
+        self.assertEqual(
+            [item["id"] for item in snapshot["limits"]],
+            ["codex", "codex_model"],
+        )
         self.assertEqual(snapshot["limits"][0]["label"], "Codex")
         self.assertEqual(snapshot["limits"][0]["windows"][0]["remainingPercent"], 87)
+        self.assertEqual(snapshot["limits"][1]["label"], "Model limit")
+        self.assertEqual(
+            [window["remainingPercent"] for window in snapshot["limits"][1]["windows"]],
+            [100, 95.5],
+        )
         self.assertEqual(snapshot["credits"]["balance"], "0")
         self.assertEqual(snapshot["credits"]["availableResetCount"], 2)
+
+    def test_unnamed_internal_bucket_is_ignored(self) -> None:
+        result = {
+            "rateLimitsByLimitId": {
+                "codex": {
+                    "limitId": "codex",
+                    "primary": {"usedPercent": 10, "windowDurationMins": 10080},
+                },
+                "internal": {
+                    "limitId": "internal",
+                    "primary": {"usedPercent": 20, "windowDurationMins": 300},
+                },
+            }
+        }
+
+        snapshot = normalise_rate_limits(result, now=124)
+        self.assertEqual([item["id"] for item in snapshot["limits"]], ["codex"])
 
     def test_legacy_single_bucket_and_missing_five_hour_window(self) -> None:
         result = {
@@ -146,6 +171,11 @@ class UsageHistoryTests(unittest.TestCase):
         ]
 
         history = build_usage_history(self.snapshot(now, 18), samples)
+        self.assertEqual(history["activityBucketMinutes"], 60)
+        self.assertEqual(len(history["windows"][0]["activity24h"]), 24)
+        two_hour_history = build_usage_history(self.snapshot(now, 18), samples, bucket_minutes=120)
+        self.assertEqual(two_hour_history["activityBucketMinutes"], 120)
+        self.assertEqual(len(two_hour_history["windows"][0]["activity24h"]), 12)
         periods = history["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 8)
         self.assertTrue(periods["1h"]["complete"])
@@ -258,6 +288,10 @@ class UsageHistoryTests(unittest.TestCase):
         self.assertEqual(
             [window["durationMinutes"] for window in history["windows"]],
             [300, 10080],
+        )
+        self.assertEqual(
+            [window["label"] for window in history["windows"]],
+            ["Codex", "Codex"],
         )
 
 

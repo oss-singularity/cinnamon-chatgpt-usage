@@ -7,6 +7,8 @@ const Applet = imports.ui.applet;
 const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const Tooltips = imports.ui.tooltips;
+const ModalDialog = imports.ui.modalDialog;
+const Dialog = imports.ui.dialog;
 const Mainloop = imports.mainloop;
 const Util = imports.misc.util;
 const Gio = imports.gi.Gio;
@@ -22,6 +24,8 @@ const UUID = "chatgpt-usage@oss-singularity";
 const CHATGPT_URL = "https://chatgpt.com/";
 const CODEX_CLOUD_URL = "https://chatgpt.com/codex/cloud";
 const ANALYTICS_URL = "https://chatgpt.com/codex/cloud/settings/analytics#usage";
+const CHATGPT_LINUX_INSTALL_URL = "https://learn.chatgpt.com/docs/linux/linux-app";
+const CODEX_CLI_INSTALL_URL = "https://learn.chatgpt.com/docs/codex/cli#getting-started";
 const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
@@ -42,6 +46,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._quotaWidgets = [];
         this._activityTooltips = [];
         this._refreshConfirmationTimeoutId = 0;
+        this._installHelpDialog = null;
         this._refreshConfirmed = false;
         this._busy = false;
         this._cancellable = null;
@@ -63,9 +68,11 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _setDefaults() {
         this.refreshInterval = 3;
+        this.activityBucketMinutes = "60";
         this.codexPath = "";
         this.showPanelIcon = true;
         this.showWindowLabels = true;
+        this.showModelLimitsInPanel = false;
         this.showWeeklyWithFiveHour = true;
         this.fontSize = 100;
         this.separator = "·";
@@ -87,9 +94,19 @@ class ChatGptUsageApplet extends Applet.Applet {
             "refreshInterval",
             this._onIntervalChanged.bind(this)
         );
+        this.settings.bind(
+            "activity-bucket-minutes",
+            "activityBucketMinutes",
+            this._refreshUsage.bind(this)
+        );
         this.settings.bind("codex-path", "codexPath", this._refreshUsage.bind(this));
         this.settings.bind("show-panel-icon", "showPanelIcon", layoutChanged);
         this.settings.bind("show-window-labels", "showWindowLabels", layoutChanged);
+        this.settings.bind(
+            "show-model-limits-in-panel",
+            "showModelLimitsInPanel",
+            layoutChanged
+        );
         this.settings.bind(
             "show-weekly-with-five-hour",
             "showWeeklyWithFiveHour",
@@ -158,9 +175,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._clearActor(this._root);
         const fontSize = this._panelFontSize();
 
-        const allSummaries = this._snapshot
-            ? UsageFormat.summarizeWindows(this._snapshot.limits)
-            : [];
+        let panelLimits = this._snapshot ? this._snapshot.limits : [];
+        if (!this.showModelLimitsInPanel) {
+            const accountLimits = panelLimits.filter(limit => limit.id === "codex");
+            if (accountLimits.length > 0) panelLimits = accountLimits;
+        }
+        const allSummaries = UsageFormat.summarizeWindows(panelLimits);
         const summaries = UsageFormat.selectPanelWindows(
             allSummaries,
             this.showWeeklyWithFiveHour
@@ -193,16 +213,44 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._updateTooltip(summaries);
     }
 
-    _createPanelIcon() {
+    _modelBadge(limit) {
+        if (!limit || limit.limitId === "codex" || limit.id === "codex") return null;
+        const label = String(limit.limitLabel || limit.label || "");
+        return /spark/i.test(label) ? "S" : "M";
+    }
+
+    _createPanelIcon(limit = null, size = 20) {
         const iconPath = `${this.metadata.path}/icons/chatgpt-white.png`;
         const icon = new St.Icon({
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) }),
-            icon_size: 20,
+            icon_size: size,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER
         });
         icon.style = "padding-right: 1px;";
-        return icon;
+        const badgeText = this._modelBadge(limit);
+        if (!badgeText) return icon;
+
+        const actor = new St.BoxLayout({
+            vertical: false,
+            height: size,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        const badge = new St.Label({
+            text: badgeText,
+            y_align: Clutter.ActorAlign.START
+        });
+        badge.style = [
+            "font-size: 75%",
+            "font-weight: bold",
+            "color: white",
+            "text-shadow: 0 1px 2px rgba(0,0,0,0.92)"
+        ].join("; ") + ";";
+        badge.translation_x = -2;
+        badge.translation_y = -2;
+        actor.add_child(icon);
+        actor.add_child(badge);
+        return actor;
     }
 
     _createWindowActor(summary, showIcon) {
@@ -222,7 +270,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 vertical: false,
                 x_align: Clutter.ActorAlign.CENTER
             });
-            if (showIcon) labelRow.add_child(this._createPanelIcon());
+            if (showIcon) labelRow.add_child(this._createPanelIcon(summary));
             const label = new St.Label({
                 text: UsageFormat.formatDuration(summary.durationMinutes),
                 x_align: Clutter.ActorAlign.CENTER,
@@ -233,7 +281,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             labelRow.add_child(label);
             actor.add_child(labelRow);
         } else if (showIcon) {
-            actor.add_child(this._createPanelIcon());
+            actor.add_child(this._createPanelIcon(summary));
         }
 
         const value = new St.Label({
@@ -253,12 +301,24 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _updateTooltip(summaries) {
         let text = "ChatGPT Work & Codex usage";
-        if (summaries.length > 0) {
-            const values = summaries.map(summary => {
+        if (this._snapshot && this._snapshot.limits.length > 0) {
+            const showLimitLabels = this._snapshot.limits.length > 1;
+            const values = [];
+            for (const limit of this._snapshot.limits) {
+                for (const window of limit.windows || []) {
+                    const duration = UsageFormat.formatDuration(window.durationMinutes);
+                    const prefix = showLimitLabels ? `${limit.label || limit.id} ` : "";
+                    values.push(
+                        `${prefix}${duration}: ${UsageFormat.formatPercent(window.remainingPercent)} remaining`
+                    );
+                }
+            }
+            if (values.length > 0) text = values.join("\n");
+        } else if (summaries.length > 0) {
+            text = summaries.map(summary => {
                 const duration = UsageFormat.formatDuration(summary.durationMinutes);
                 return `${duration}: ${UsageFormat.formatPercent(summary.remainingPercent)} remaining`;
-            });
-            text = values.join(" • ");
+            }).join(" • ");
         }
         if (this._lastError) text += `\n${this._lastError}`;
         this.set_applet_tooltip(text);
@@ -281,9 +341,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._addHeaderItem();
         if (this._snapshot) {
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-            for (const limit of this._snapshot.limits) {
-                this._addInfoItem("Usage limits", "font-weight: bold;");
+            const limits = this._snapshot.limits || [];
+            const usageTitle = this._addInfoItem("Usage limits", "font-weight: bold;");
+            usageTitle.actor.style = "padding-bottom: 2px;";
+            const showLimitLabels = limits.length > 1;
+            for (const limit of limits) {
+                if (showLimitLabels) {
+                    this._addLimitHeading(limit);
+                }
                 for (const window of limit.windows) {
                     this._addLimitWindowItem(window);
                 }
@@ -312,6 +377,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             vertical: true,
             y_align: Clutter.ActorAlign.CENTER
         });
+        text.x_expand = true;
         const title = new St.Label({ text: "ChatGPT Work & Codex usage" });
         title.style = "font-weight: bold;";
         text.add_child(title);
@@ -329,10 +395,20 @@ class ChatGptUsageApplet extends Applet.Applet {
             ].join("; ") + ";";
             text.add_child(updatedLabel);
         }
-        item.addActor(text);
+        const row = new St.BoxLayout({
+            vertical: false,
+            x_expand: true,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        row.add_child(text);
 
         if (this._snapshot) {
-            const summaries = UsageFormat.summarizeWindows(this._snapshot.limits);
+            const accountLimits = this._snapshot.limits.filter(
+                limit => limit.id === "codex"
+            );
+            const summaries = UsageFormat.summarizeWindows(
+                accountLimits.length > 0 ? accountLimits : this._snapshot.limits
+            );
             const rings = new St.BoxLayout({
                 vertical: false,
                 y_align: Clutter.ActorAlign.CENTER
@@ -341,12 +417,9 @@ class ChatGptUsageApplet extends Applet.Applet {
             for (const summary of summaries) {
                 rings.add_child(this._createQuotaRing(summary));
             }
-            item.addActor(rings, {
-                expand: true,
-                span: -1,
-                align: St.Align.END
-            });
+            row.add_child(rings);
         }
+        item.addActor(row, { expand: true, span: -1 });
         this.menu.addMenuItem(item);
     }
 
@@ -359,8 +432,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         const area = new St.DrawingArea({ width: size, height: size });
         const model = UsageFormat.buildQuotaIndicator(window);
+        const badge = this._modelBadge(window);
         const label = new St.Label({
-            text: `${model.durationLabel}\n${model.percentLabel}`,
+            text: `${badge ? `${badge} ` : ""}${model.durationLabel}\n${model.percentLabel}`,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER
         });
@@ -397,6 +471,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             reactive: false,
             activate: false
         });
+        item.actor.style = "padding-top: 0px;";
         const text = new St.BoxLayout({
             vertical: true,
             y_align: Clutter.ActorAlign.CENTER
@@ -419,6 +494,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             "font-weight: bold",
             `color: ${this._remainingColor(window.remainingPercent)}`
         ].join("; ") + ";";
+        remainingLabel.opacity = 220;
         headline.add_child(durationLabel);
         headline.add_child(remainingLabel);
         const resetLabel = new St.Label({
@@ -428,12 +504,35 @@ class ChatGptUsageApplet extends Applet.Applet {
         text.add_child(headline);
         text.add_child(resetLabel);
         const countdown = this._createResetCountdown(window);
-        item.addActor(text);
-        item.addActor(countdown, {
-            expand: true,
-            span: -1,
-            align: St.Align.END
+        const row = new St.BoxLayout({
+            vertical: false,
+            x_expand: true,
+            y_align: Clutter.ActorAlign.CENTER
         });
+        row.add_child(text);
+        row.add_child(countdown);
+        item.addActor(row, { expand: true, span: -1 });
+        this.menu.addMenuItem(item);
+    }
+
+    _addLimitHeading(limit) {
+        const item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            activate: false
+        });
+        const row = new St.BoxLayout({
+            vertical: false,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        row.style = "spacing: 6px;";
+        row.add_child(this._createPanelIcon(limit, 18));
+        const label = new St.Label({
+            text: limit.label || limit.id,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        label.style = "font-weight: bold;";
+        row.add_child(label);
+        item.addActor(row);
         this.menu.addMenuItem(item);
     }
 
@@ -585,14 +684,36 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._chatGptButton = this._createLaunchButton(
             "ChatGPT App",
             { iconName: "chatgpt" },
-            Boolean(chatGptApp),
-            () => this._launchChatGptApp(chatGptApp)
+            true,
+            () => {
+                if (chatGptApp) {
+                    this._launchChatGptApp(chatGptApp);
+                    return;
+                }
+                this._showInstallHelp(
+                    "Install ChatGPT App",
+                    "The ChatGPT desktop app was not found. OpenAI provides it for supported " +
+                        "Linux distributions.",
+                    CHATGPT_LINUX_INSTALL_URL
+                );
+            }
         );
         this._codexButton = this._createLaunchButton(
-            "Codex-CLI",
+            "Codex CLI",
             { fileName: "codex.png" },
-            Boolean(codexCommand),
-            () => this._launchCodexTerminal(codexCommand)
+            true,
+            () => {
+                if (codexCommand) {
+                    this._launchCodexTerminal(codexCommand);
+                    return;
+                }
+                this._showInstallHelp(
+                    "Install Codex CLI",
+                    "The Codex CLI was not found. Follow OpenAI's official getting-started " +
+                        "guide to install it, sign in, and then refresh this applet.",
+                    CODEX_CLI_INSTALL_URL
+                );
+            }
         );
         const refreshConfirmed = this._refreshConfirmed;
         const refreshButton = this._createLaunchButton(
@@ -737,6 +858,35 @@ class ChatGptUsageApplet extends Applet.Applet {
         return button;
     }
 
+    _showInstallHelp(title, description, url) {
+        if (this._installHelpDialog) this._installHelpDialog.destroy();
+
+        const dialog = new ModalDialog.ModalDialog();
+        const content = new Dialog.MessageDialogContent({ title, description });
+        dialog.contentLayout.add_child(content);
+        const close = () => {
+            dialog.destroy();
+            if (this._installHelpDialog === dialog) this._installHelpDialog = null;
+        };
+        dialog.setButtons([
+            {
+                label: "Close",
+                action: close,
+                key: Clutter.KEY_Escape
+            },
+            {
+                label: "Open installation guide",
+                action: () => {
+                    close();
+                    Util.spawn(["xdg-open", url]);
+                },
+                default: true
+            }
+        ]);
+        this._installHelpDialog = dialog;
+        dialog.open();
+    }
+
     _launchButtonStyle(state, compact = false, transparent = false) {
         const raisedColors = {
             normal: ["rgba(255,255,255,0.14)", "rgba(255,255,255,0.05)"],
@@ -811,7 +961,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         try {
             Util.spawn(command);
         } catch (error) {
-            this._reportLaunchError("Codex-CLI", error);
+            this._reportLaunchError("Codex CLI", error);
         }
     }
 
@@ -821,10 +971,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._rebuildMenu();
     }
 
-    _addInfoItem(text, style = null) {
+    _addInfoItem(text, style = null, menu = this.menu) {
         const item = new PopupMenu.PopupMenuItem(text, { reactive: false });
         if (style) item.label.style = style;
-        this.menu.addMenuItem(item);
+        menu.addMenuItem(item);
         return item;
     }
 
@@ -848,43 +998,97 @@ class ChatGptUsageApplet extends Applet.Applet {
 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._addInfoItem("Recent consumption", "font-weight: bold;");
+        const windowsByLimit = new Map();
         for (const window of history.windows) {
-            const duration = UsageFormat.formatDuration(window.durationMinutes);
-            const periods = window.periods || {};
-            const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
-            const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
-            const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
-            const today = UsageFormat.formatConsumedPercent(periods.today);
-            const hasPartialPeriod = Object.values(periods).some(
-                period => period && period.complete === false
-            );
-
-            this._addInfoItem(`  ${duration} usage`, "font-weight: bold;");
-            this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`);
-            this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`);
-            this._addActivityChart(
-                window.activity24h,
-                history.activityBucketMinutes,
-                this._snapshot.updatedAt
-            );
-            if (hasPartialPeriod) {
-                const trackedSinceSeconds = window.trackedSince || history.trackedSince;
-                const trackedSince = UsageFormat.formatTimestamp(
-                    trackedSinceSeconds,
-                    this._use24HourClock
+            const limitId = window.id || "codex";
+            if (!windowsByLimit.has(limitId)) windowsByLimit.set(limitId, []);
+            windowsByLimit.get(limitId).push(window);
+        }
+        const showLimitLabels = windowsByLimit.size > 1;
+        for (const [limitId, windows] of windowsByLimit) {
+            if (showLimitLabels && limitId !== "codex") {
+                const first = windows[0];
+                const submenu = new PopupMenu.PopupSubMenuMenuItem(
+                    ""
                 );
-                const trackedDuration = UsageFormat.formatElapsedDuration(
-                    trackedSinceSeconds,
-                    this._snapshot.updatedAt
+                submenu.removeActor(submenu.label);
+                submenu.label.destroy();
+                const submenuTitle = new St.BoxLayout({
+                    vertical: false,
+                    y_align: Clutter.ActorAlign.CENTER
+                });
+                submenuTitle.style = "spacing: 6px;";
+                submenuTitle.add_child(
+                    this._createPanelIcon({ id: limitId, label: first.label }, 18)
                 );
-                this._addInfoItem(
-                    `    ~ collecting since ${trackedSince} (${trackedDuration})`
-                );
+                const submenuLabel = new St.Label({
+                    text: first.label || first.id,
+                    y_align: Clutter.ActorAlign.CENTER
+                });
+                submenuLabel.style = "font-weight: bold;";
+                submenuTitle.add_child(submenuLabel);
+                submenu.addActor(submenuTitle, { position: 0 });
+                submenu.label = submenuLabel;
+                submenu.actor.label_actor = submenuLabel;
+                this.menu.addMenuItem(submenu);
+                windows.forEach((window, index) => {
+                    if (index > 0) {
+                        submenu.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+                    }
+                    this._addHistoryWindow(window, history, submenu.menu, false);
+                });
+                continue;
+            }
+            for (const window of windows) {
+                this._addHistoryWindow(window, history, this.menu, showLimitLabels);
             }
         }
     }
 
-    _addActivityChart(values, bucketMinutes, endAt) {
+    _addHistoryWindow(window, history, menu, showLimitLabel) {
+        const duration = UsageFormat.formatDuration(window.durationMinutes);
+        const periods = window.periods || {};
+        const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
+        const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
+        const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
+        const today = UsageFormat.formatConsumedPercent(periods.today);
+        const hasPartialPeriod = Object.values(periods).some(
+            period => period && period.complete === false
+        );
+        const labelPrefix = showLimitLabel ? `${window.label || window.id} · ` : "";
+
+        this._addInfoItem(
+            `  ${labelPrefix}${duration} usage`,
+            "font-weight: bold;",
+            menu
+        );
+        this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`, null, menu);
+        this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`, null, menu);
+        this._addActivityChart(
+            window.activity24h,
+            history.activityBucketMinutes,
+            this._snapshot.updatedAt,
+            menu
+        );
+        if (hasPartialPeriod) {
+            const trackedSinceSeconds = window.trackedSince || history.trackedSince;
+            const trackedSince = UsageFormat.formatTimestamp(
+                trackedSinceSeconds,
+                this._use24HourClock
+            );
+            const trackedDuration = UsageFormat.formatElapsedDuration(
+                trackedSinceSeconds,
+                this._snapshot.updatedAt
+            );
+            this._addInfoItem(
+                `    ~ collecting since ${trackedSince} (${trackedDuration})`,
+                null,
+                menu
+            );
+        }
+    }
+
+    _addActivityChart(values, bucketMinutes, endAt, menu = this.menu) {
         const model = UsageFormat.buildActivityChart(values);
         if (model.bars.length === 0) return;
 
@@ -899,7 +1103,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             reactive: false,
             activate: false
         });
-        const column = new St.BoxLayout({ vertical: true });
+        const column = new St.BoxLayout({ vertical: true, x_expand: true });
         column.style = "padding: 2px 0 1px 0;";
 
         const caption = new St.BoxLayout({
@@ -914,23 +1118,21 @@ class ChatGptUsageApplet extends Applet.Applet {
         caption.add_child(captionDetails);
         column.add_child(caption);
 
-        const chart = new St.BoxLayout({ vertical: true });
+        const chart = new St.BoxLayout({ vertical: true, x_expand: true });
         chart.style = "padding-left: 10px;";
 
-        const slotWidth = 16;
-        const plotWidth = slotWidth * model.bars.length;
-        const plot = new St.BoxLayout({
-            vertical: false,
-            width: plotWidth,
-            height: 30
+        const plot = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true }),
+            height: 30,
+            x_expand: true
         });
         plot.style = "border-bottom: 1px solid rgba(255,255,255,0.28); padding-top: 2px;";
         model.bars.forEach((bar, index) => {
             const slot = new St.Bin({
-                width: slotWidth,
                 height: 28,
                 reactive: true,
-                track_hover: true
+                track_hover: true,
+                x_expand: true
             });
             slot.set_alignment(St.Align.MIDDLE, St.Align.END);
             if (index % 3 === 0) {
@@ -945,7 +1147,8 @@ class ChatGptUsageApplet extends Applet.Applet {
                 height = 5 + bar.intensity * 3;
                 style = "background-gradient-direction: vertical; background-gradient-start: #8ed891; background-gradient-end: #5dbb73; border-radius: 2px 2px 0 0;";
             }
-            const barActor = new St.Widget({ width: 10, height, style });
+            const barWidth = model.bars.length >= 24 ? 8 : 14;
+            const barActor = new St.Widget({ width: barWidth, height, style });
             if (bar.partial) barActor.opacity = 155;
             slot.set_child(barActor);
             const tooltipText = UsageFormat.formatActivityBucketTooltip(
@@ -956,7 +1159,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 endAt,
                 this._use24HourClock
             );
-            slot.accessible_name = tooltipText.replace("\n", ". ");
+            slot.accessible_name = UsageFormat.formatAccessibleTooltip(tooltipText);
             this._activityTooltips.push(
                 this._createActivityTooltip(slot, tooltipText)
             );
@@ -964,29 +1167,33 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         chart.add_child(plot);
 
-        const axis = new St.BoxLayout({ vertical: false, width: plotWidth });
-        const labels = [
-            { text: "−24h", align: St.Align.START },
-            { text: "−12h", align: St.Align.MIDDLE },
-            { text: "now", align: St.Align.END }
-        ];
-        labels.forEach(labelData => {
-            const label = new St.Label({
-                text: labelData.text
-            });
-            label.style = "font-size: 75%; color: rgba(255,255,255,0.62);";
-            const segment = new St.Bin({
-                width: Math.floor(plotWidth / 3)
-            });
-            segment.set_alignment(labelData.align, St.Align.MIDDLE);
-            segment.set_child(label);
-            axis.add_child(segment);
+        const axis = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true }),
+            x_expand: true
         });
+        const labelsByAxisSlot = new Map([
+            [0, "−24h"],
+            [3, "−18h"],
+            [6, "−12h"],
+            [9, "−6h"],
+            [11, "now"]
+        ]);
+        for (let index = 0; index < 12; index++) {
+            const segment = new St.Bin({ x_expand: true });
+            segment.set_alignment(St.Align.MIDDLE, St.Align.MIDDLE);
+            const labelText = labelsByAxisSlot.get(index);
+            if (labelText) {
+                const label = new St.Label({ text: labelText });
+                label.style = "font-size: 75%; color: rgba(255,255,255,0.62);";
+                segment.set_child(label);
+            }
+            axis.add_child(segment);
+        }
         chart.add_child(axis);
         column.add_child(chart);
 
         item.addActor(column, { span: -1, expand: true });
-        this.menu.addMenuItem(item);
+        menu.addMenuItem(item);
     }
 
     _createActivityTooltip(slot, text) {
@@ -1081,7 +1288,16 @@ class ChatGptUsageApplet extends Applet.Applet {
 
         try {
             const process = new Gio.Subprocess({
-                argv: [python, helper, "--codex", codex, "--timeout", "25"],
+                argv: [
+                    python,
+                    helper,
+                    "--codex",
+                    codex,
+                    "--timeout",
+                    "25",
+                    "--activity-bucket-minutes",
+                    String(this.activityBucketMinutes) === "120" ? "120" : "60"
+                ],
                 flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
             });
             process.init(null);
@@ -1204,6 +1420,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._cancellable) {
             this._cancellable.cancel();
             this._cancellable = null;
+        }
+        if (this._installHelpDialog) {
+            this._installHelpDialog.destroy();
+            this._installHelpDialog = null;
         }
         if (this._clockSettings && this._clockChangedId) {
             this._clockSettings.disconnect(this._clockChangedId);
