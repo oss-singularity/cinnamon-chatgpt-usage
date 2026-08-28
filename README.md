@@ -22,7 +22,9 @@
 | -------------------------------------- | --------------------------------------------------------- |
 | ![Horizontal top bar](docs/topbar.png) | ![Above Adaptive System Monitor](docs/vertical-panel.png) |
 
-![Usage menu beside the vertical panel applet](docs/usage-menu.png)
+| Full 24-hour usage overview                                        | Spark histories expanded                                              |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| ![Usage menu with a full hourly demo history](docs/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories](docs/usage-menu-spark.png) |
 
 | General settings                               | Colors and thresholds                       |
 | ---------------------------------------------- | ------------------------------------------- |
@@ -30,15 +32,24 @@
 
 ## Highlights
 
-- Mirrors the canonical limit cards from ChatGPT Analytics: remaining usage,
-  reset times, credits and earned resets.
+- Mirrors account-level and named model-specific limits exposed by ChatGPT:
+  remaining usage, reset times, credits and earned resets.
+- Detects dedicated GPT-5.3-Codex-Spark 5h and 7d quotas automatically when
+  they are enabled for the signed-in account; model-specific limits stay in
+  the popup by default and can optionally be added to the panel.
+- Shows paired circular available-quota and reset-countdown indicators for
+  every active 5h and 7d window without polling the API more often.
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
-  quota, with a compact 24-hour bar timeline in the popup.
-- Launches an installed ChatGPT desktop app or Codex terminal directly and
-  links to ChatGPT, Codex Cloud and ChatGPT Analytics.
-- Shows `5h` automatically only when that account-level Analytics window is
-  active; its accompanying `7d` panel block can be hidden in settings while
-  internal model-only buckets stay hidden.
+  quota, with a compact hourly 24-hour bar timeline and per-bucket hover details in
+  the popup; two-hour buckets remain selectable in settings, and model-specific
+  histories stay in native expandable sections.
+- Launches an installed ChatGPT desktop app or Codex CLI directly; when either
+  is missing, the same active button explains the requirement and opens its
+  official installation guide. Web shortcuts cover ChatGPT, Codex Cloud and
+  ChatGPT Analytics.
+- Shows `5h` automatically only when an active API limit exposes that window;
+  an accompanying `7d` panel block can be hidden in settings while unnamed
+  internal buckets stay hidden.
 - Adapts from a compact horizontal row to a real 40 px vertical stack.
 - Uses the original ChatGPT knot as a transparent white panel glyph.
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.

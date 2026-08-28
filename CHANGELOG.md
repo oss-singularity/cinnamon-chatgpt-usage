@@ -1,11 +1,26 @@
 # Changelog
 
-## 0.2.0 — Unreleased
+## 0.2.0 — 2026-08-28
 
+- Discover every named usage bucket exposed by the Codex app-server, including
+  dedicated GPT-5.3-Codex-Spark 5h and 7d limits when enabled for the account,
+  while keeping unnamed internal buckets hidden.
+- Group account and model-specific limits and their observed histories clearly
+  in the popup while retaining a compact account-only panel by default, with
+  an option to add model-specific limits to the panel. Model histories use
+  native expandable Cinnamon submenus with overlay scrollbars to keep the
+  default popup compact and its width stable.
+- Add paired circular indicators for every active 5h and 7d window: available
+  quota in a cyan popup-header ring and green reset progress in its usage row,
+  with no additional API requests.
+- Add native Cinnamon hover details to every one-hour activity bucket with its
+  local time range, observed consumption and partial/unknown state, using a
+  responsive 120 ms reveal delay.
+- Show the elapsed collection duration beside the absolute history start time.
 - Add observed consumption for the last 1h, 4h, 12h and local calendar day,
-  calculated separately for every active account-level quota.
-- Add a compact 24-hour activity bar timeline with time axis, two-hour buckets,
-  peak scale and visually dimmed unknown history.
+  calculated separately for every active account or named model quota.
+- Add a compact 24-hour activity bar timeline with time axis, configurable
+  one-hour or two-hour buckets, peak scale and visually dimmed unknown history.
 - Show safely observed consumption immediately in incomplete buckets as dimmed
   partial bars with an approximate (`~`) peak instead of hiding the activity.
 - Persist only minimal credential-free samples for eight days in the user's XDG
@@ -14,10 +29,12 @@
   and mark incomplete observation periods with `~`.
 - Ignore one-minute reset-timestamp jitter so transient API rounding cannot
   create phantom consumption spikes.
-- Add availability-aware ChatGPT App and Codex Terminal launch buttons plus
-  direct links to ChatGPT, Codex Cloud and ChatGPT Analytics.
+- Add availability-aware ChatGPT App and Codex CLI launch buttons that open
+  native installation guidance instead of becoming inactive when software is
+  missing, plus direct links to ChatGPT, Codex Cloud and ChatGPT Analytics.
 - Keep the popup open while `Refresh now` updates the displayed usage values
-  and briefly confirm successful updates in green.
+  with a click-blocking activity spinner, then briefly confirm successful
+  updates in green.
 - Enrich the native Cinnamon About dialog with a short project note and credits.
 
 ## 0.1.0 — 2026-08-27
