@@ -29,6 +29,13 @@ def image_magick() -> list[str]:
     return [executable]
 
 
+def rsvg_convert() -> str:
+    executable = shutil.which("rsvg-convert")
+    if not executable:
+        raise SystemExit("librsvg2-bin is required (rsvg-convert).")
+    return executable
+
+
 def main() -> int:
     source_dir = Path(__file__).resolve().parent
     repo_dir = source_dir.parents[1]
@@ -49,6 +56,7 @@ def main() -> int:
         overlay_text = overlay_text.replace(marker, value)
 
     command = image_magick()
+    svg_renderer = rsvg_convert()
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="chatgpt-usage-social-preview-") as temporary:
@@ -60,7 +68,7 @@ def main() -> int:
         overlay_svg.write_text(overlay_text, encoding="utf-8")
 
         subprocess.run(
-            command + ["-background", "none", str(overlay_svg), str(overlay_png)],
+            [svg_renderer, "--output", str(overlay_png), str(overlay_svg)],
             check=True,
         )
         subprocess.run(
