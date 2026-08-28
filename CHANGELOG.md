@@ -6,6 +6,8 @@
   calculated separately for every active account-level quota.
 - Add a compact 24-hour activity bar timeline with time axis, two-hour buckets,
   peak scale and visually dimmed unknown history.
+- Show safely observed consumption immediately in incomplete buckets as dimmed
+  partial bars with an approximate (`~`) peak instead of hiding the activity.
 - Persist only minimal credential-free samples for eight days in the user's XDG
   state directory with private file permissions.
 - Treat resets as new quota generations, ignore falling rolling-window values

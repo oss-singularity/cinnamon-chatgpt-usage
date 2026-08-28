@@ -376,7 +376,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const peakLabel = model.knownCount > 0
             ? UsageFormat.formatConsumedPercent({
                 consumedPercent: model.peakPercent,
-                complete: true
+                complete: model.peakComplete
             })
             : "—";
         const item = new PopupMenu.PopupBaseMenuItem({
@@ -415,7 +415,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 height = 5 + bar.intensity * 3;
                 style = "background-gradient-direction: vertical; background-gradient-start: #8ed891; background-gradient-end: #5dbb73; border-radius: 2px 2px 0 0;";
             }
-            slot.set_child(new St.Widget({ width: 10, height, style }));
+            const barActor = new St.Widget({ width: 10, height, style });
+            if (bar.partial) barActor.opacity = 155;
+            slot.set_child(barActor);
             plot.add_child(slot);
         });
         column.add_child(plot);

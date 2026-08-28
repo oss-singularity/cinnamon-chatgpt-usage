@@ -237,7 +237,7 @@ def _observed_consumption(points: list[tuple[int, dict[str, Any]]], start_at: in
 
 
 def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]]) -> dict[str, Any]:
-    """Build observed consumption periods and a 24-hour activity sparkline."""
+    """Build observed consumption periods and a 24-hour activity timeline."""
 
     now = int(snapshot["updatedAt"])
     local_now = dt.datetime.fromtimestamp(now).astimezone()
@@ -273,7 +273,12 @@ def build_usage_history(snapshot: dict[str, Any], samples: list[dict[str, Any]])
                 bucket_start = activity_start + index * ACTIVITY_BUCKET_SECONDS
                 bucket_end = bucket_start + ACTIVITY_BUCKET_SECONDS
                 consumed, complete = _observed_consumption(points, bucket_start, bucket_end)
-                activity.append(round(consumed, 2) if complete else None)
+                activity.append(
+                    {
+                        "consumedPercent": round(consumed, 2),
+                        "complete": complete,
+                    }
+                )
 
             history_windows.append(
                 {

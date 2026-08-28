@@ -175,15 +175,36 @@ class UsageHistoryTests(unittest.TestCase):
         periods = build_usage_history(self.snapshot(now, 14), samples)["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 7)
 
-    def test_partial_history_is_marked_and_unknown_activity_is_null(self) -> None:
+    def test_partial_history_keeps_observed_activity(self) -> None:
         now = 1_800_000_000
         samples = [self.sample(now - 1800, 10), self.sample(now, 15)]
 
         window = build_usage_history(self.snapshot(now, 15), samples)["windows"][0]
         self.assertFalse(window["periods"]["1h"]["complete"])
         self.assertEqual(window["periods"]["1h"]["consumedPercent"], 5)
-        self.assertIsNone(window["activity24h"][0])
+        self.assertEqual(
+            window["activity24h"][0],
+            {"consumedPercent": 0, "complete": False},
+        )
+        self.assertEqual(
+            window["activity24h"][-1],
+            {"consumedPercent": 5, "complete": False},
+        )
         self.assertEqual(window["trackedSince"], now - 1800)
+
+    def test_complete_activity_bucket_keeps_its_baseline(self) -> None:
+        now = 1_800_000_000
+        samples = [
+            self.sample(now - 9000, 10),
+            self.sample(now - 1800, 12),
+            self.sample(now, 15),
+        ]
+
+        activity = build_usage_history(self.snapshot(now, 15), samples)["windows"][0]["activity24h"]
+        self.assertEqual(
+            activity[-1],
+            {"consumedPercent": 5, "complete": True},
+        )
 
     def test_history_file_contains_only_minimal_samples_and_is_private(self) -> None:
         now = 1_800_000_000

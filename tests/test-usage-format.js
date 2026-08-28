@@ -83,6 +83,16 @@ assertEqual(chart.bars[1].intensity, 0, "Zero-consumption bucket");
 assertEqual(chart.bars[2].intensity, 4, "Relative activity intensity");
 assertEqual(chart.bars[3].intensity, 7, "Peak activity intensity");
 
+const partialChart = UsageFormat.buildActivityChart([
+    { consumedPercent: 0, complete: false },
+    { consumedPercent: 4, complete: false }
+]);
+assertEqual(partialChart.knownCount, 1, "Partial zero remains unknown");
+assertEqual(partialChart.bars[0].known, false, "Unknown partial zero bucket");
+assertEqual(partialChart.bars[1].partial, true, "Observed partial activity bucket");
+assertEqual(partialChart.bars[1].intensity, 7, "Partial peak intensity");
+assertEqual(partialChart.peakComplete, false, "Partial peak marker");
+
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {
     throw new Error(`Expected system-local 24-hour timestamp, got ${timestamp24h}`);

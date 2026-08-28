@@ -66,22 +66,44 @@ function formatConsumedPercent(period) {
 
 function buildActivityChart(values) {
     const source = Array.isArray(values) ? values : [];
-    const known = source
-        .filter(value => value !== null && value !== undefined)
-        .map(value => Number(value))
-        .filter(value => Number.isFinite(value) && value >= 0);
-    const peakPercent = known.length > 0 ? Math.max(...known) : 0;
     const bars = source.map(value => {
-        if (value === null || value === undefined || !Number.isFinite(Number(value))) {
-            return { known: false, consumedPercent: null, intensity: null };
+        const structured = value !== null && typeof value === "object";
+        const numeric = structured ? Number(value.consumedPercent) : Number(value);
+        if (value === null || value === undefined || !Number.isFinite(numeric)) {
+            return {
+                known: false,
+                complete: false,
+                partial: false,
+                consumedPercent: null,
+                intensity: null
+            };
         }
-        const consumedPercent = Math.max(0, Number(value));
-        const intensity = consumedPercent <= 0 || peakPercent <= 0
-            ? 0
-            : Math.max(1, Math.ceil((consumedPercent / peakPercent) * 7));
-        return { known: true, consumedPercent, intensity };
+        const consumedPercent = Math.max(0, numeric);
+        const complete = structured ? value.complete !== false : true;
+        const partial = !complete && consumedPercent > 0;
+        return {
+            known: complete || partial,
+            complete,
+            partial,
+            consumedPercent,
+            intensity: null
+        };
     });
-    return { peakPercent, knownCount: known.length, bars };
+    const known = bars.filter(bar => bar.known);
+    const peakPercent = known.length > 0
+        ? Math.max(...known.map(bar => bar.consumedPercent))
+        : 0;
+    bars.forEach(bar => {
+        if (!bar.known) return;
+        const intensity = bar.consumedPercent <= 0 || peakPercent <= 0
+            ? 0
+            : Math.max(1, Math.ceil((bar.consumedPercent / peakPercent) * 7));
+        bar.intensity = intensity;
+    });
+    const peakComplete = known.some(
+        bar => bar.consumedPercent === peakPercent && bar.complete
+    );
+    return { peakPercent, peakComplete, knownCount: known.length, bars };
 }
 
 function formatTimestamp(epochSeconds, use24Hour) {
