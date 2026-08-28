@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.2 — 2026-08-28
+
+- Balance the popup's right edge against its left text inset while keeping
+  usage rings, activity charts and the Spark disclosure arrow clear of a
+  vertical Cinnamon panel.
+- Show a blue quota ring for every available account and model-specific usage
+  window without collapsing equal 5h or 7d durations.
+- Keep the refresh button's content at a stable height across Refresh now,
+  Updating and Updated states.
+- Align one-hour and two-hour activity buckets to local wall-clock boundaries
+  and keep the current running bucket visually partial without a redundant
+  tooltip suffix.
+- Clamp activity tooltips to the active monitor and keep popup, charts,
+  disclosure arrow and action grid perfectly stable while Spark details open.
+- Use concise ChatGPT and Codex Cloud labels for the web shortcut buttons.
+
 ## 0.2.1 — 2026-08-28
 
 - Keep quota and reset-progress rings plus 24-hour charts fully inside the

@@ -225,7 +225,11 @@ def _positive_delta(previous: dict[str, Any], current: dict[str, Any]) -> float:
     return max(0.0, current_used - _number(previous.get("usedPercent")))
 
 
-def _observed_consumption(points: list[tuple[int, dict[str, Any]]], start_at: int, end_at: int) -> tuple[float, bool]:
+def _observed_consumption(
+    points: list[tuple[int, dict[str, Any]]],
+    start_at: int,
+    end_at: int,
+) -> tuple[float, bool, bool]:
     baseline = None
     after_start = []
     for point in points:
@@ -235,7 +239,16 @@ def _observed_consumption(points: list[tuple[int, dict[str, Any]]], start_at: in
             after_start.append(point)
     selected = ([baseline] if baseline else []) + after_start
     consumed = sum(_positive_delta(previous[1], current[1]) for previous, current in zip(selected, selected[1:]))
-    return consumed, baseline is not None
+    return consumed, baseline is not None, len(selected) >= 2
+
+
+def _aligned_bucket_end(now: int, bucket_seconds: int) -> int:
+    """Return the next local wall-clock bucket boundary, including an exact boundary."""
+
+    local_now = dt.datetime.fromtimestamp(now).astimezone()
+    offset_seconds = int((local_now.utcoffset() or dt.timedelta()).total_seconds())
+    local_epoch = now + offset_seconds
+    return ((local_epoch + bucket_seconds - 1) // bucket_seconds) * bucket_seconds - offset_seconds
 
 
 def build_usage_history(
@@ -248,6 +261,7 @@ def build_usage_history(
     now = int(snapshot["updatedAt"])
     bucket_seconds = int(bucket_minutes) * 60
     bucket_count = ACTIVITY_WINDOW_SECONDS // bucket_seconds
+    activity_end = _aligned_bucket_end(now, bucket_seconds)
     local_now = dt.datetime.fromtimestamp(now).astimezone()
     start_of_today = int(local_now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
     periods = (
@@ -270,22 +284,27 @@ def build_usage_history(
             points = _window_points(samples, key, now)
             period_values = {}
             for period_key, start_at in periods:
-                consumed, complete = _observed_consumption(points, start_at, now)
+                consumed, complete, _ = _observed_consumption(points, start_at, now)
                 period_values[period_key] = {
                     "consumedPercent": round(consumed, 2),
                     "complete": complete,
                 }
 
             activity = []
-            activity_start = now - ACTIVITY_WINDOW_SECONDS
+            activity_start = activity_end - ACTIVITY_WINDOW_SECONDS
             for index in range(bucket_count):
                 bucket_start = activity_start + index * bucket_seconds
                 bucket_end = bucket_start + bucket_seconds
-                consumed, complete = _observed_consumption(points, bucket_start, bucket_end)
+                consumed, has_baseline, observed = _observed_consumption(
+                    points,
+                    bucket_start,
+                    bucket_end,
+                )
                 activity.append(
                     {
                         "consumedPercent": round(consumed, 2),
-                        "complete": complete,
+                        "complete": has_baseline and bucket_end <= now,
+                        "observed": observed,
                     }
                 )
 
@@ -303,6 +322,7 @@ def build_usage_history(
     return {
         "trackedSince": tracked_since,
         "activityBucketMinutes": int(bucket_minutes),
+        "activityEndAt": activity_end,
         "windows": history_windows,
     }
 
