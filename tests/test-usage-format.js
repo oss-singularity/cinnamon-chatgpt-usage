@@ -237,6 +237,8 @@ assertEqual(
 );
 const chart = UsageFormat.buildActivityChart([null, 0, 1, 2]);
 assertEqual(chart.peakPercent, 2, "Activity chart peak");
+assertEqual(chart.totalPercent, 3, "Activity chart rolling total");
+assertEqual(chart.totalComplete, false, "Unknown bucket makes total partial");
 assertEqual(chart.bars[0].known, false, "Unknown activity bucket");
 assertEqual(chart.bars[1].intensity, 0, "Zero-consumption bucket");
 assertEqual(chart.bars[2].intensity, 4, "Relative activity intensity");
@@ -251,6 +253,12 @@ assertEqual(partialChart.bars[0].known, false, "Unknown partial zero bucket");
 assertEqual(partialChart.bars[1].partial, true, "Observed partial activity bucket");
 assertEqual(partialChart.bars[1].intensity, 7, "Partial peak intensity");
 assertEqual(partialChart.peakComplete, false, "Partial peak marker");
+assertEqual(partialChart.totalPercent, 4, "Partial activity total");
+assertEqual(partialChart.totalComplete, false, "Partial bucket makes total partial");
+
+const completeChart = UsageFormat.buildActivityChart([0, 1, 2]);
+assertEqual(completeChart.totalPercent, 3, "Complete activity total");
+assertEqual(completeChart.totalComplete, true, "Fully observed total is complete");
 
 const observedZeroChart = UsageFormat.buildActivityChart([
     { consumedPercent: 0, complete: false, observed: true }

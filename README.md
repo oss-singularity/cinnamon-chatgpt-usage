@@ -52,9 +52,9 @@
   every active 5h and 7d window without polling the API more often. Untouched
   100%-remaining cycles stay at their exact full duration until usage begins.
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
-  quota, with a compact hourly 24-hour bar timeline and per-bucket hover
-  details in the popup. Two-hour buckets remain selectable in settings, and
-  model-specific histories stay in native expandable sections.
+  quota, with a rolling total, compact bar timeline and per-bucket hover
+  details for the last 24 hours. Two-hour buckets remain selectable in
+  settings, and model-specific histories stay in native expandable sections.
 - Launches an installed ChatGPT desktop app or Codex CLI directly, with native
   installation guidance when either is missing. Web shortcuts cover ChatGPT,
   Codex Cloud and ChatGPT Analytics.
@@ -78,7 +78,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.2.5 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.2.6 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.

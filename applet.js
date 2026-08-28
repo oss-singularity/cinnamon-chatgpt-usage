@@ -309,7 +309,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const iconPath = `${this.metadata.path}/icons/chatgpt-white.png`;
         const icon = new St.Icon({
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) }),
-            icon_size: size,
+            icon_size: limit ? size + 2 : size,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER
         });
@@ -317,7 +317,6 @@ class ChatGptUsageApplet extends Applet.Applet {
         const badgeText = this._modelBadge(limit);
         if (!badgeText) return icon;
 
-        icon.icon_size = size + 2;
         const actor = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
             width: size + 6,
@@ -1379,6 +1378,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 complete: model.peakComplete
             })
             : "—";
+        const totalLabel = model.knownCount > 0
+            ? UsageFormat.formatPercent(model.totalPercent)
+            : "—";
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
             activate: false
@@ -1392,7 +1394,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const captionTitle = new St.Label({ text: "  24h Activity" });
         captionTitle.style = "font-weight: bold;";
         const captionDetails = new St.Label({
-            text: `  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
+            text: `  ·  ${totalLabel}  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
         });
         caption.add_child(captionTitle);
         caption.add_child(captionDetails);
