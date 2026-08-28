@@ -39,6 +39,7 @@ const POPUP_EXPANDED_RIGHT_INSET = 10;
 const POPUP_EXPANDED_ARROW_INSET = 25;
 const QUOTA_RING_SIZE = 52;
 const COMPACT_QUOTA_RING_SIZE = 40;
+const SPARK_BADGE_COLOR = "#f2a15f";
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -291,6 +292,19 @@ class ChatGptUsageApplet extends Applet.Applet {
         return /spark/i.test(label) ? "S" : "M";
     }
 
+    _modelBadgeStyle(fontPercent) {
+        return [
+            `font-size: ${fontPercent}%`,
+            "font-weight: bold",
+            "font-style: italic",
+            `color: ${SPARK_BADGE_COLOR}`,
+            "background-color: #25272d",
+            "border: 1px solid rgba(242,161,95,0.92)",
+            "border-radius: 8px",
+            "padding: 0 3px"
+        ].join("; ") + ";";
+    }
+
     _createPanelIcon(limit = null, size = 20) {
         const iconPath = `${this.metadata.path}/icons/chatgpt-white.png`;
         const icon = new St.Icon({
@@ -303,23 +317,21 @@ class ChatGptUsageApplet extends Applet.Applet {
         const badgeText = this._modelBadge(limit);
         if (!badgeText) return icon;
 
-        const actor = new St.BoxLayout({
-            vertical: false,
-            height: size,
-            y_align: Clutter.ActorAlign.CENTER
+        icon.icon_size = size + 2;
+        const actor = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            width: size + 6,
+            height: size + 2
         });
         const badge = new St.Label({
             text: badgeText,
+            x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.END,
             y_align: Clutter.ActorAlign.START
         });
-        badge.style = [
-            "font-size: 75%",
-            "font-weight: bold",
-            "color: white",
-            "text-shadow: 0 1px 2px rgba(0,0,0,0.92)"
-        ].join("; ") + ";";
+        badge.style = this._modelBadgeStyle(45);
         badge.translation_x = -2;
-        badge.translation_y = -2;
         actor.add_child(icon);
         actor.add_child(badge);
         return actor;
@@ -577,16 +589,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 x_align: Clutter.ActorAlign.START,
                 y_align: Clutter.ActorAlign.START
             });
-            badge.style = [
-                `font-size: ${size < QUOTA_RING_SIZE ? 50 : 60}%`,
-                "font-weight: bold",
-                "font-style: italic",
-                "color: #f2a15f",
-                "background-color: #25272d",
-                "border: 1px solid rgba(242,161,95,0.92)",
-                "border-radius: 8px",
-                "padding: 0 3px"
-            ].join("; ") + ";";
+            badge.style = this._modelBadgeStyle(
+                size < QUOTA_RING_SIZE ? 50 : 60
+            );
             badge.translation_x = size < QUOTA_RING_SIZE ? 6 : 8;
             badge.translation_y = size < QUOTA_RING_SIZE ? 8 : 11;
             actor.add_child(badge);

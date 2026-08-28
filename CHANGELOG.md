@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5 — 2026-08-29
+
+- Use the same outlined, italic amber Spark badge beside panel and popup labels
+  as in the quota rings, replacing the remaining white `S` markers.
+
 ## 0.2.4 — 2026-08-29
 
 - Keep untouched 100%-remaining reset cycles at their exact full `5h` or `7d`
