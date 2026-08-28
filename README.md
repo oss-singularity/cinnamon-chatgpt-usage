@@ -18,6 +18,8 @@
   <img alt="Codex app-server" src="https://img.shields.io/badge/data-Codex%20app--server-111111">
 </p>
 
+![ChatGPT Usage for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
+
 | Horizontal top bar                     | 40 px vertical panel                                      |
 | -------------------------------------- | --------------------------------------------------------- |
 | ![Horizontal top bar](docs/topbar.png) | ![Above Adaptive System Monitor](docs/vertical-panel.png) |
