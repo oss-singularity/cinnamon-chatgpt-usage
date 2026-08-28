@@ -55,6 +55,33 @@ function formatPercent(value) {
     return Number.isFinite(number) ? `${Math.round(clamp(number, 0, 100))}%` : "--";
 }
 
+function formatConsumedPercent(period) {
+    if (!period || !Number.isFinite(Number(period.consumedPercent))) return "--";
+    const value = Math.max(0, Number(period.consumedPercent));
+    const rounded = value < 10 && Math.abs(value - Math.round(value)) >= 0.05
+        ? value.toFixed(1)
+        : String(Math.round(value));
+    return `${period.complete === false ? "~" : ""}${rounded}%`;
+}
+
+function formatActivitySparkline(values) {
+    if (!Array.isArray(values) || values.length === 0) return "";
+    const blocks = "▁▂▃▄▅▆▇█";
+    const known = values
+        .map(value => Number(value))
+        .filter(value => Number.isFinite(value) && value >= 0);
+    const maximum = known.length > 0 ? Math.max(...known) : 0;
+    return values.map(value => {
+        if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+            return "·";
+        }
+        const numeric = Math.max(0, Number(value));
+        if (maximum <= 0 || numeric <= 0) return blocks[0];
+        const index = Math.max(1, Math.ceil((numeric / maximum) * (blocks.length - 1)));
+        return blocks[Math.min(blocks.length - 1, index)];
+    }).join("");
+}
+
 function formatTimestamp(epochSeconds, use24Hour) {
     const seconds = Number(epochSeconds);
     if (!Number.isFinite(seconds) || seconds <= 0) return "unknown";
@@ -68,5 +95,7 @@ module.exports = {
     selectPanelWindows,
     formatDuration,
     formatPercent,
+    formatConsumedPercent,
+    formatActivitySparkline,
     formatTimestamp
 };

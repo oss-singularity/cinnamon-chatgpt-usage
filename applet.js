@@ -285,6 +285,8 @@ class ChatGptUsageApplet extends Applet.Applet {
                 }
             }
 
+            this._addHistoryItems();
+
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             for (const line of this._creditLines()) this._addInfoItem(line);
         } else {
@@ -324,6 +326,44 @@ class ChatGptUsageApplet extends Applet.Applet {
         let balance = credits.balance === null ? "unavailable" : credits.balance;
         if (credits.unlimited) balance = "unlimited";
         return [`Credits: ${balance}`, `Rate-limit resets: ${credits.availableResetCount}`];
+    }
+
+    _addHistoryItems() {
+        const history = this._snapshot ? this._snapshot.history : null;
+        if (!history || !Array.isArray(history.windows) || history.windows.length === 0) {
+            if (history && history.error) {
+                this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+                this._addInfoItem(`Usage history unavailable: ${history.error}`);
+            }
+            return;
+        }
+
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this._addInfoItem("Recent consumption", "font-weight: bold;");
+        for (const window of history.windows) {
+            const duration = UsageFormat.formatDuration(window.durationMinutes);
+            const periods = window.periods || {};
+            const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
+            const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
+            const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
+            const today = UsageFormat.formatConsumedPercent(periods.today);
+            const activity = UsageFormat.formatActivitySparkline(window.activity24h);
+            const hasPartialPeriod = Object.values(periods).some(
+                period => period && period.complete === false
+            );
+
+            this._addInfoItem(`  ${duration} quota`, "font-weight: bold;");
+            this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`);
+            this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`);
+            if (activity) this._addInfoItem(`    24h activity  ${activity}`);
+            if (hasPartialPeriod) {
+                const trackedSince = UsageFormat.formatTimestamp(
+                    window.trackedSince || history.trackedSince,
+                    this._use24HourClock
+                );
+                this._addInfoItem(`    ~ collecting since ${trackedSince}`);
+            }
+        }
     }
 
     _onLayoutSettingChanged() {

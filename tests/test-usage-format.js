@@ -61,6 +61,21 @@ assertEqual(UsageFormat.formatDuration(10080), "7d", "Weekly label");
 assertEqual(UsageFormat.formatDuration(90), "90m", "Non-integral hour label");
 assertEqual(UsageFormat.formatPercent(99.6), "100%", "Percentage rounding");
 assertEqual(UsageFormat.formatPercent(-2), "0%", "Percentage lower clamp");
+assertEqual(
+    UsageFormat.formatConsumedPercent({ consumedPercent: 2.25, complete: true }),
+    "2.3%",
+    "Precise observed consumption"
+);
+assertEqual(
+    UsageFormat.formatConsumedPercent({ consumedPercent: 2, complete: false }),
+    "~2%",
+    "Partial observed consumption"
+);
+assertEqual(
+    UsageFormat.formatActivitySparkline([null, 0, 1, 2]),
+    "·▁▅█",
+    "Activity sparkline with unknown history"
+);
 
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {
