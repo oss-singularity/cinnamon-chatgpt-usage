@@ -337,7 +337,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         );
         const refreshButton = this._createLaunchButton(
             "Refresh now",
-            { iconName: "view-refresh-symbolic", symbolic: true, compact: true },
+            {
+                iconName: "view-refresh-symbolic",
+                symbolic: true,
+                compact: true,
+                keepMenuOpen: true
+            },
             true,
             () => this._refreshUsage()
         );
@@ -457,7 +462,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 );
             });
             button.connect("clicked", () => {
-                this.menu.close(false);
+                if (!iconSpec.keepMenuOpen) this.menu.close(false);
                 action();
             });
         }

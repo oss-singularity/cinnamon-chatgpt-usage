@@ -16,6 +16,8 @@
   create phantom consumption spikes.
 - Add availability-aware ChatGPT App and Codex Terminal launch buttons plus
   direct links to ChatGPT, Codex Cloud and ChatGPT Analytics.
+- Keep the popup open while `Refresh now` updates the displayed usage values.
+- Enrich the native Cinnamon About dialog with a short project note and credits.
 
 ## 0.1.0 — 2026-08-27
 
