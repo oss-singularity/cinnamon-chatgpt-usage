@@ -619,14 +619,22 @@ class ChatGptUsageApplet extends Applet.Applet {
             activate: false
         });
         const column = new St.BoxLayout({ vertical: true });
-        column.style = "padding: 2px 0 1px 10px;";
+        column.style = "padding: 2px 0 1px 0;";
 
-        const caption = new St.Label();
-        caption.clutter_text.set_markup(
-            `<b>24h activity  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}</b>`
-        );
-        caption.style = "font-size: 85%;";
+        const caption = new St.BoxLayout({
+            vertical: false
+        });
+        const captionTitle = new St.Label({ text: "  24h Activity" });
+        captionTitle.style = "font-weight: bold;";
+        const captionDetails = new St.Label({
+            text: `  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
+        });
+        caption.add_child(captionTitle);
+        caption.add_child(captionDetails);
         column.add_child(caption);
+
+        const chart = new St.BoxLayout({ vertical: true });
+        chart.style = "padding-left: 10px;";
 
         const slotWidth = 16;
         const plotWidth = slotWidth * model.bars.length;
@@ -656,7 +664,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             slot.set_child(barActor);
             plot.add_child(slot);
         });
-        column.add_child(plot);
+        chart.add_child(plot);
 
         const axis = new St.BoxLayout({ vertical: false, width: plotWidth });
         const labels = [
@@ -676,7 +684,8 @@ class ChatGptUsageApplet extends Applet.Applet {
             segment.set_child(label);
             axis.add_child(segment);
         });
-        column.add_child(axis);
+        chart.add_child(axis);
+        column.add_child(chart);
 
         item.addActor(column, { span: -1, expand: true });
         this.menu.addMenuItem(item);
