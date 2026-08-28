@@ -55,6 +55,57 @@ function formatPercent(value) {
     return Number.isFinite(number) ? `${Math.round(clamp(number, 0, 100))}%` : "--";
 }
 
+function formatConsumedPercent(period) {
+    if (!period || !Number.isFinite(Number(period.consumedPercent))) return "--";
+    const value = Math.max(0, Number(period.consumedPercent));
+    const rounded = value < 10 && Math.abs(value - Math.round(value)) >= 0.05
+        ? value.toFixed(1)
+        : String(Math.round(value));
+    return `${period.complete === false ? "~" : ""}${rounded}%`;
+}
+
+function buildActivityChart(values) {
+    const source = Array.isArray(values) ? values : [];
+    const bars = source.map(value => {
+        const structured = value !== null && typeof value === "object";
+        const numeric = structured ? Number(value.consumedPercent) : Number(value);
+        if (value === null || value === undefined || !Number.isFinite(numeric)) {
+            return {
+                known: false,
+                complete: false,
+                partial: false,
+                consumedPercent: null,
+                intensity: null
+            };
+        }
+        const consumedPercent = Math.max(0, numeric);
+        const complete = structured ? value.complete !== false : true;
+        const partial = !complete && consumedPercent > 0;
+        return {
+            known: complete || partial,
+            complete,
+            partial,
+            consumedPercent,
+            intensity: null
+        };
+    });
+    const known = bars.filter(bar => bar.known);
+    const peakPercent = known.length > 0
+        ? Math.max(...known.map(bar => bar.consumedPercent))
+        : 0;
+    bars.forEach(bar => {
+        if (!bar.known) return;
+        const intensity = bar.consumedPercent <= 0 || peakPercent <= 0
+            ? 0
+            : Math.max(1, Math.ceil((bar.consumedPercent / peakPercent) * 7));
+        bar.intensity = intensity;
+    });
+    const peakComplete = known.some(
+        bar => bar.consumedPercent === peakPercent && bar.complete
+    );
+    return { peakPercent, peakComplete, knownCount: known.length, bars };
+}
+
 function formatTimestamp(epochSeconds, use24Hour) {
     const seconds = Number(epochSeconds);
     if (!Number.isFinite(seconds) || seconds <= 0) return "unknown";
@@ -68,5 +119,7 @@ module.exports = {
     selectPanelWindows,
     formatDuration,
     formatPercent,
+    formatConsumedPercent,
+    buildActivityChart,
     formatTimestamp
 };

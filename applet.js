@@ -17,6 +17,8 @@ const Pango = imports.gi.Pango;
 const UsageFormat = require("./usage-format");
 
 const UUID = "chatgpt-usage@oss-singularity";
+const CHATGPT_URL = "https://chatgpt.com/";
+const CODEX_CLOUD_URL = "https://chatgpt.com/codex/cloud";
 const ANALYTICS_URL = "https://chatgpt.com/codex/cloud/settings/analytics#usage";
 const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
@@ -32,6 +34,8 @@ class ChatGptUsageApplet extends Applet.Applet {
 
         this._destroyed = false;
         this._timeoutId = 0;
+        this._refreshConfirmationTimeoutId = 0;
+        this._refreshConfirmed = false;
         this._busy = false;
         this._cancellable = null;
         this._snapshot = null;
@@ -285,6 +289,8 @@ class ChatGptUsageApplet extends Applet.Applet {
                 }
             }
 
+            this._addHistoryItems();
+
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             for (const line of this._creditLines()) this._addInfoItem(line);
         } else {
@@ -294,21 +300,268 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._lastError) this._addInfoItem(`Last refresh failed: ${this._lastError}`);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        const refreshItem = new PopupMenu.PopupIconMenuItem(
-            "Refresh now",
-            "view-refresh-symbolic",
-            St.IconType.SYMBOLIC
-        );
-        refreshItem.connect("activate", () => this._refreshUsage());
-        this.menu.addMenuItem(refreshItem);
+        this._addLaunchButtons();
+    }
 
-        const analyticsItem = new PopupMenu.PopupIconMenuItem(
-            "Open ChatGPT analytics",
-            "web-browser-symbolic",
-            St.IconType.SYMBOLIC
+    _addLaunchButtons() {
+        const chatGptApp = this._chatGptAppInfo();
+        const codexCommand = this._codexTerminalCommand();
+        const item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            activate: false
+        });
+        const column = new St.BoxLayout({ vertical: true });
+        column.style = "spacing: 8px; padding: 2px 0;";
+        const launchRow = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
+            x_expand: true
+        });
+        const utilityRow = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
+            x_expand: true
+        });
+        const webRow = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
+            x_expand: true
+        });
+
+        this._chatGptButton = this._createLaunchButton(
+            "ChatGPT App",
+            { iconName: "chatgpt" },
+            Boolean(chatGptApp),
+            () => this._launchChatGptApp(chatGptApp)
         );
-        analyticsItem.connect("activate", () => Util.spawn(["xdg-open", ANALYTICS_URL]));
-        this.menu.addMenuItem(analyticsItem);
+        this._codexButton = this._createLaunchButton(
+            "Codex Terminal",
+            { fileName: "codex.png" },
+            Boolean(codexCommand),
+            () => this._launchCodexTerminal(codexCommand)
+        );
+        const refreshConfirmed = this._refreshConfirmed;
+        const refreshButton = this._createLaunchButton(
+            refreshConfirmed ? "Updated" : "Refresh now",
+            {
+                iconName: refreshConfirmed
+                    ? "emblem-ok-symbolic"
+                    : "view-refresh-symbolic",
+                symbolic: true,
+                compact: true,
+                keepMenuOpen: true,
+                success: refreshConfirmed
+            },
+            true,
+            () => this._refreshUsage(true)
+        );
+        const analyticsButton = this._createLaunchButton(
+            "Analytics",
+            {
+                iconName: "utilities-system-monitor-symbolic",
+                symbolic: true,
+                compact: true
+            },
+            true,
+            () => Util.spawn(["xdg-open", ANALYTICS_URL])
+        );
+        const chatGptWebButton = this._createLaunchButton(
+            "Open ChatGPT",
+            {
+                iconName: "web-browser-symbolic",
+                symbolic: true,
+                compact: true,
+                transparent: true
+            },
+            true,
+            () => Util.spawn(["xdg-open", CHATGPT_URL])
+        );
+        const codexCloudButton = this._createLaunchButton(
+            "Open Codex Cloud",
+            {
+                iconName: "web-browser-symbolic",
+                symbolic: true,
+                compact: true,
+                transparent: true
+            },
+            true,
+            () => Util.spawn(["xdg-open", CODEX_CLOUD_URL])
+        );
+        launchRow.add_child(this._chatGptButton);
+        launchRow.add_child(this._codexButton);
+        utilityRow.add_child(refreshButton);
+        utilityRow.add_child(analyticsButton);
+        webRow.add_child(chatGptWebButton);
+        webRow.add_child(codexCloudButton);
+        column.add_child(launchRow);
+        column.add_child(utilityRow);
+        column.add_child(webRow);
+        item.addActor(column, { span: -1, expand: true });
+        this.menu.addMenuItem(item);
+    }
+
+    _createLaunchButton(label, iconSpec, available, action) {
+        const content = new St.BoxLayout({
+            vertical: false,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        content.style = "spacing: 6px;";
+        const iconProperties = { icon_size: iconSpec.compact ? 18 : 28 };
+        if (iconSpec.fileName) {
+            const iconPath = `${this.metadata.path}/icons/${iconSpec.fileName}`;
+            iconProperties.gicon = new Gio.FileIcon({
+                file: Gio.File.new_for_path(iconPath)
+            });
+        } else {
+            iconProperties.icon_name = iconSpec.iconName;
+            iconProperties.icon_type = iconSpec.symbolic
+                ? St.IconType.SYMBOLIC
+                : St.IconType.FULLCOLOR;
+        }
+        const icon = new St.Icon(iconProperties);
+        icon.y_align = Clutter.ActorAlign.CENTER;
+        content.add_child(icon);
+        const buttonLabel = new St.Label({
+            text: label,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        if (iconSpec.success) {
+            icon.style = "color: #8ed891;";
+            buttonLabel.style = "color: #8ed891; font-weight: bold;";
+        }
+        content.add_child(buttonLabel);
+
+        const button = new St.Button({
+            child: content,
+            style_class: "notification-button",
+            reactive: available,
+            can_focus: available,
+            x_expand: true
+        });
+        button.style = this._launchButtonStyle(
+            available ? "normal" : "disabled",
+            iconSpec.compact,
+            iconSpec.transparent
+        );
+        if (!available) {
+            button.opacity = 100;
+            button.add_style_pseudo_class("insensitive");
+        } else {
+            button.connect("enter-event", () => {
+                button.style = this._launchButtonStyle(
+                    "hover",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("leave-event", () => {
+                button.style = this._launchButtonStyle(
+                    "normal",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("button-press-event", () => {
+                button.style = this._launchButtonStyle(
+                    "pressed",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("button-release-event", () => {
+                button.style = this._launchButtonStyle(
+                    "hover",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("clicked", () => {
+                if (!iconSpec.keepMenuOpen) this.menu.close(false);
+                action();
+            });
+        }
+        return button;
+    }
+
+    _launchButtonStyle(state, compact = false, transparent = false) {
+        const raisedColors = {
+            normal: ["rgba(255,255,255,0.14)", "rgba(255,255,255,0.05)"],
+            hover: ["rgba(255,255,255,0.22)", "rgba(255,255,255,0.09)"],
+            pressed: ["rgba(255,255,255,0.06)", "rgba(255,255,255,0.16)"],
+            disabled: ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]
+        };
+        const transparentColors = {
+            normal: ["rgba(255,255,255,0.035)", "rgba(255,255,255,0.01)"],
+            hover: ["rgba(255,255,255,0.13)", "rgba(255,255,255,0.04)"],
+            pressed: ["rgba(255,255,255,0.025)", "rgba(255,255,255,0.10)"],
+            disabled: ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.005)"]
+        };
+        const colors = transparent ? transparentColors : raisedColors;
+        const [top, bottom] = colors[state] || colors.normal;
+        return [
+            `padding: ${compact ? (transparent ? 3 : 4) : 7}px 10px`,
+            "border-radius: 6px",
+            `border: 1px solid rgba(255,255,255,${transparent ? 0.09 : 0.16})`,
+            "background-gradient-direction: vertical",
+            `background-gradient-start: ${top}`,
+            `background-gradient-end: ${bottom}`,
+            `box-shadow: inset 0 1px 2px rgba(255,255,255,${transparent ? 0.04 : 0.12})`
+        ].join("; ") + ";";
+    }
+
+    _chatGptAppInfo() {
+        try {
+            return Gio.DesktopAppInfo.new("chatgpt.desktop");
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect ChatGPT desktop app: ${error}`);
+            return null;
+        }
+    }
+
+    _codexTerminalCommand() {
+        const codex = this._resolveCodexPath();
+        if (!codex) return null;
+        try {
+            const terminalSettings = new Gio.Settings({
+                schema_id: "org.cinnamon.desktop.default-applications.terminal"
+            });
+            const terminal = terminalSettings.get_string("exec").trim();
+            const terminalArgument = terminalSettings.get_string("exec-arg").trim();
+            const [terminalOk, terminalArgv] = GLib.shell_parse_argv(terminal);
+            if (!terminalOk || terminalArgv.length === 0) return null;
+            const executable = GLib.find_program_in_path(terminalArgv[0]);
+            if (!executable) return null;
+            terminalArgv[0] = executable;
+            if (terminalArgument) {
+                const [argumentOk, argumentArgv] = GLib.shell_parse_argv(terminalArgument);
+                if (!argumentOk) return null;
+                terminalArgv.push(...argumentArgv);
+            }
+            terminalArgv.push(codex);
+            return terminalArgv;
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect the default terminal: ${error}`);
+            return null;
+        }
+    }
+
+    _launchChatGptApp(appInfo) {
+        try {
+            appInfo.launch([], null);
+        } catch (error) {
+            this._reportLaunchError("ChatGPT App", error);
+        }
+    }
+
+    _launchCodexTerminal(command) {
+        try {
+            Util.spawn(command);
+        } catch (error) {
+            this._reportLaunchError("Codex Terminal", error);
+        }
+    }
+
+    _reportLaunchError(target, error) {
+        this._lastError = `Could not open ${target}`;
+        global.logError(`${UUID}: ${this._lastError}: ${error}`);
+        this._rebuildMenu();
     }
 
     _addInfoItem(text, style = null) {
@@ -324,6 +577,134 @@ class ChatGptUsageApplet extends Applet.Applet {
         let balance = credits.balance === null ? "unavailable" : credits.balance;
         if (credits.unlimited) balance = "unlimited";
         return [`Credits: ${balance}`, `Rate-limit resets: ${credits.availableResetCount}`];
+    }
+
+    _addHistoryItems() {
+        const history = this._snapshot ? this._snapshot.history : null;
+        if (!history || !Array.isArray(history.windows) || history.windows.length === 0) {
+            if (history && history.error) {
+                this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+                this._addInfoItem(`Usage history unavailable: ${history.error}`);
+            }
+            return;
+        }
+
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this._addInfoItem("Recent consumption", "font-weight: bold;");
+        for (const window of history.windows) {
+            const duration = UsageFormat.formatDuration(window.durationMinutes);
+            const periods = window.periods || {};
+            const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
+            const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
+            const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
+            const today = UsageFormat.formatConsumedPercent(periods.today);
+            const hasPartialPeriod = Object.values(periods).some(
+                period => period && period.complete === false
+            );
+
+            this._addInfoItem(`  ${duration} usage`, "font-weight: bold;");
+            this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`);
+            this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`);
+            this._addActivityChart(
+                window.activity24h,
+                history.activityBucketMinutes
+            );
+            if (hasPartialPeriod) {
+                const trackedSince = UsageFormat.formatTimestamp(
+                    window.trackedSince || history.trackedSince,
+                    this._use24HourClock
+                );
+                this._addInfoItem(`    ~ collecting since ${trackedSince}`);
+            }
+        }
+    }
+
+    _addActivityChart(values, bucketMinutes) {
+        const model = UsageFormat.buildActivityChart(values);
+        if (model.bars.length === 0) return;
+
+        const bucketLabel = UsageFormat.formatDuration(bucketMinutes);
+        const peakLabel = model.knownCount > 0
+            ? UsageFormat.formatConsumedPercent({
+                consumedPercent: model.peakPercent,
+                complete: model.peakComplete
+            })
+            : "—";
+        const item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            activate: false
+        });
+        const column = new St.BoxLayout({ vertical: true });
+        column.style = "padding: 2px 0 1px 0;";
+
+        const caption = new St.BoxLayout({
+            vertical: false
+        });
+        const captionTitle = new St.Label({ text: "  24h Activity" });
+        captionTitle.style = "font-weight: bold;";
+        const captionDetails = new St.Label({
+            text: `  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
+        });
+        caption.add_child(captionTitle);
+        caption.add_child(captionDetails);
+        column.add_child(caption);
+
+        const chart = new St.BoxLayout({ vertical: true });
+        chart.style = "padding-left: 10px;";
+
+        const slotWidth = 16;
+        const plotWidth = slotWidth * model.bars.length;
+        const plot = new St.BoxLayout({
+            vertical: false,
+            width: plotWidth,
+            height: 30
+        });
+        plot.style = "border-bottom: 1px solid rgba(255,255,255,0.28); padding-top: 2px;";
+        model.bars.forEach((bar, index) => {
+            const slot = new St.Bin({ width: slotWidth, height: 28 });
+            slot.set_alignment(St.Align.MIDDLE, St.Align.END);
+            if (index % 3 === 0) {
+                slot.style = "border-left: 1px solid rgba(255,255,255,0.10);";
+            }
+
+            let height = 2;
+            let style = "background-color: rgba(255,255,255,0.16); border-radius: 2px 2px 0 0;";
+            if (bar.known && bar.intensity === 0) {
+                style = "background-color: rgba(255,255,255,0.38); border-radius: 2px 2px 0 0;";
+            } else if (bar.known) {
+                height = 5 + bar.intensity * 3;
+                style = "background-gradient-direction: vertical; background-gradient-start: #8ed891; background-gradient-end: #5dbb73; border-radius: 2px 2px 0 0;";
+            }
+            const barActor = new St.Widget({ width: 10, height, style });
+            if (bar.partial) barActor.opacity = 155;
+            slot.set_child(barActor);
+            plot.add_child(slot);
+        });
+        chart.add_child(plot);
+
+        const axis = new St.BoxLayout({ vertical: false, width: plotWidth });
+        const labels = [
+            { text: "−24h", align: St.Align.START },
+            { text: "−12h", align: St.Align.MIDDLE },
+            { text: "now", align: St.Align.END }
+        ];
+        labels.forEach(labelData => {
+            const label = new St.Label({
+                text: labelData.text
+            });
+            label.style = "font-size: 75%; color: rgba(255,255,255,0.62);";
+            const segment = new St.Bin({
+                width: Math.floor(plotWidth / 3)
+            });
+            segment.set_alignment(labelData.align, St.Align.MIDDLE);
+            segment.set_child(label);
+            axis.add_child(segment);
+        });
+        chart.add_child(axis);
+        column.add_child(chart);
+
+        item.addActor(column, { span: -1, expand: true });
+        this.menu.addMenuItem(item);
     }
 
     _onLayoutSettingChanged() {
@@ -350,7 +731,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
     }
 
-    _refreshUsage() {
+    _refreshUsage(showConfirmation = false) {
         if (this._destroyed || this._busy) return;
 
         const python = GLib.find_program_in_path("python3");
@@ -379,6 +760,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             process.communicate_utf8_async(null, this._cancellable, (source, result) => {
                 this._busy = false;
                 this._cancellable = null;
+                let succeeded = false;
 
                 try {
                     const [ok, stdout, stderr] = source.communicate_utf8_finish(result);
@@ -391,6 +773,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                     }
                     this._snapshot = snapshot;
                     this._lastError = null;
+                    succeeded = true;
                 } catch (error) {
                     const cancelled = error.matches &&
                         error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED);
@@ -401,6 +784,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 }
 
                 if (!this._destroyed) {
+                    if (showConfirmation && succeeded) this._showRefreshConfirmation();
                     this._rebuildPanel();
                     this._rebuildMenu();
                 }
@@ -413,6 +797,19 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._rebuildPanel();
             this._rebuildMenu();
         }
+    }
+
+    _showRefreshConfirmation() {
+        this._refreshConfirmed = true;
+        if (this._refreshConfirmationTimeoutId) {
+            Mainloop.source_remove(this._refreshConfirmationTimeoutId);
+        }
+        this._refreshConfirmationTimeoutId = Mainloop.timeout_add(1800, () => {
+            this._refreshConfirmationTimeoutId = 0;
+            this._refreshConfirmed = false;
+            if (!this._destroyed) this._rebuildMenu();
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _resolveCodexPath() {
@@ -467,6 +864,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._timeoutId) {
             Mainloop.source_remove(this._timeoutId);
             this._timeoutId = 0;
+        }
+        if (this._refreshConfirmationTimeoutId) {
+            Mainloop.source_remove(this._refreshConfirmationTimeoutId);
+            this._refreshConfirmationTimeoutId = 0;
         }
         if (this._cancellable) {
             this._cancellable.cancel();

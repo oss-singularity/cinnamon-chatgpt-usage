@@ -61,6 +61,37 @@ assertEqual(UsageFormat.formatDuration(10080), "7d", "Weekly label");
 assertEqual(UsageFormat.formatDuration(90), "90m", "Non-integral hour label");
 assertEqual(UsageFormat.formatPercent(99.6), "100%", "Percentage rounding");
 assertEqual(UsageFormat.formatPercent(-2), "0%", "Percentage lower clamp");
+assertEqual(
+    UsageFormat.formatConsumedPercent({ consumedPercent: 2.25, complete: true }),
+    "2.3%",
+    "Precise observed consumption"
+);
+assertEqual(
+    UsageFormat.formatConsumedPercent({ consumedPercent: 2, complete: false }),
+    "~2%",
+    "Partial observed consumption"
+);
+assertEqual(
+    UsageFormat.buildActivityChart([null, 0, 1, 2]).knownCount,
+    3,
+    "Activity chart known bucket count"
+);
+const chart = UsageFormat.buildActivityChart([null, 0, 1, 2]);
+assertEqual(chart.peakPercent, 2, "Activity chart peak");
+assertEqual(chart.bars[0].known, false, "Unknown activity bucket");
+assertEqual(chart.bars[1].intensity, 0, "Zero-consumption bucket");
+assertEqual(chart.bars[2].intensity, 4, "Relative activity intensity");
+assertEqual(chart.bars[3].intensity, 7, "Peak activity intensity");
+
+const partialChart = UsageFormat.buildActivityChart([
+    { consumedPercent: 0, complete: false },
+    { consumedPercent: 4, complete: false }
+]);
+assertEqual(partialChart.knownCount, 1, "Partial zero remains unknown");
+assertEqual(partialChart.bars[0].known, false, "Unknown partial zero bucket");
+assertEqual(partialChart.bars[1].partial, true, "Observed partial activity bucket");
+assertEqual(partialChart.bars[1].intensity, 7, "Partial peak intensity");
+assertEqual(partialChart.peakComplete, false, "Partial peak marker");
 
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {

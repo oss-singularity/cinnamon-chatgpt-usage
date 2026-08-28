@@ -32,6 +32,10 @@
 
 - Mirrors the canonical limit cards from ChatGPT Analytics: remaining usage,
   reset times, credits and earned resets.
+- Tracks observed consumption for the last 1h, 4h, 12h and today per active
+  quota, with a compact 24-hour bar timeline in the popup.
+- Launches an installed ChatGPT desktop app or Codex terminal directly and
+  links to ChatGPT, Codex Cloud and ChatGPT Analytics.
 - Shows `5h` automatically only when that account-level Analytics window is
   active; its accompanying `7d` panel block can be hidden in settings while
   internal model-only buckets stay hidden.
@@ -52,7 +56,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.1.0 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.2.0 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
@@ -61,9 +65,13 @@ retaining its settings.
 
 The helper makes one read-only `account/rateLimits/read` request through the
 official local Codex app-server and exits. There is no HTML scraping, API key,
-browser access, background daemon, local usage database or reset-credit write.
-Project code never reads Codex credential files; authentication and networking
-remain the Codex CLI's responsibility.
+browser access, background daemon or reset-credit write. To calculate recent
+consumption, it stores only timestamps, window durations, percentages and reset
+IDs for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
+(normally `~/.local/state/...`, mode `0600`). No prompts, credit details or
+credentials are recorded. A leading `~` marks periods that started before local
+tracking began. Project code never reads Codex credential files; authentication
+and networking remain the Codex CLI's responsibility.
 
 ## Development
 
