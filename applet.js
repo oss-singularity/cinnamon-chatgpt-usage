@@ -30,9 +30,9 @@ const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const POPUP_ACTION_GRID_WIDTH = 352;
-const POPUP_RIGHT_INSET = 15;
-const POPUP_CHART_RIGHT_INSET = 25;
-const POPUP_SUBMENU_ARROW_OFFSET = -15;
+const POPUP_RIGHT_INSET = 9;
+const POPUP_CHART_RIGHT_INSET = 6;
+const POPUP_SUBMENU_ARROW_OFFSET = -25;
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
