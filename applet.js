@@ -29,6 +29,7 @@ const CODEX_CLI_INSTALL_URL = "https://learn.chatgpt.com/docs/codex/cli#getting-
 const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
+const POPUP_RING_RIGHT_INSET = 15;
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -489,6 +490,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
+        row.style = `padding-right: ${POPUP_RING_RIGHT_INSET}px;`;
         row.add_child(text);
 
         if (this._snapshot) {
@@ -598,6 +600,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
+        row.style = `padding-right: ${POPUP_RING_RIGHT_INSET}px;`;
         row.add_child(text);
         row.add_child(countdown);
         item.addActor(row, { expand: true, span: -1 });

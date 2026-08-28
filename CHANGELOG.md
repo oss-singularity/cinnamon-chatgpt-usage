@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Keep quota and reset-progress rings fully inside the popup when Cinnamon's
+  native model-history submenu adds its scrollbar allocation.
+
 ## 0.2.0 — 2026-08-28
 
 - Discover every named usage bucket exposed by the Codex app-server, including
