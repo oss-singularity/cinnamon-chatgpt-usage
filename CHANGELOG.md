@@ -1,9 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 — 2026-08-28
 
-- Keep quota and reset-progress rings fully inside the popup when Cinnamon's
-  native model-history submenu adds its scrollbar allocation.
+- Keep quota and reset-progress rings plus 24-hour charts fully inside the
+  popup when Cinnamon's native model-history submenu adds its scrollbar
+  allocation.
+- Keep the action-button grid exactly centered with stable button widths
+  throughout native submenu animations.
 
 ## 0.2.0 — 2026-08-28
 

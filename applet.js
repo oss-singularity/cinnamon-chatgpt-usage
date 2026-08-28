@@ -29,7 +29,10 @@ const CODEX_CLI_INSTALL_URL = "https://learn.chatgpt.com/docs/codex/cli#getting-
 const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
-const POPUP_RING_RIGHT_INSET = 15;
+const POPUP_ACTION_GRID_WIDTH = 352;
+const POPUP_RIGHT_INSET = 15;
+const POPUP_CHART_RIGHT_INSET = 25;
+const POPUP_SUBMENU_ARROW_OFFSET = -15;
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -49,7 +52,6 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
         this._menuRebuildTimeoutId = 0;
-        this._actionWidthLockTimeoutId = 0;
         this._refreshButton = null;
         this._refreshButtonIcon = null;
         this._refreshButtonLabel = null;
@@ -59,7 +61,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._actionFrame = null;
         this._actionWidthFrame = null;
         this._actionColumn = null;
-        this._actionColumnWidth = 0;
+        this._actionColumnWidth = POPUP_ACTION_GRID_WIDTH;
         this._installHelpDialog = null;
         this._refreshConfirmed = false;
         this._busy = false;
@@ -178,25 +180,8 @@ class ChatGptUsageApplet extends Applet.Applet {
             if (open) {
                 const width = Math.ceil(menu.actor.get_width());
                 if (width > 0) menu.actor.set_width(width);
-                this._actionWidthLockTimeoutId = Mainloop.idle_add(() => {
-                    this._actionWidthLockTimeoutId = 0;
-                    if (menu.isOpen && this._actionWidthFrame && this._actionFrame) {
-                        const actionWidth = Math.ceil(this._actionFrame.get_width());
-                        if (actionWidth > 0) {
-                            this._actionColumnWidth = actionWidth;
-                            this._setActionColumnWidth(actionWidth);
-                        }
-                    }
-                    return GLib.SOURCE_REMOVE;
-                });
             } else {
                 menu.actor.set_width(-1);
-                if (this._actionWidthLockTimeoutId) {
-                    Mainloop.source_remove(this._actionWidthLockTimeoutId);
-                    this._actionWidthLockTimeoutId = 0;
-                }
-                this._setActionColumnWidth(0);
-                this._actionColumnWidth = 0;
             }
         });
         this._rebuildMenu();
@@ -213,6 +198,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (!this._actionWidthFrame) return;
         if (width > 0) {
             this._actionWidthFrame.set_width(width);
+            if (this._actionColumn) this._actionColumn.set_width(width);
             this._actionWidthFrame.min_width = width;
             this._actionWidthFrame.natural_width = width;
             this._actionWidthFrame.min_width_set = true;
@@ -220,8 +206,25 @@ class ChatGptUsageApplet extends Applet.Applet {
             return;
         }
         this._actionWidthFrame.set_width(-1);
+        if (this._actionColumn) this._actionColumn.set_width(-1);
         this._actionWidthFrame.min_width_set = false;
         this._actionWidthFrame.natural_width_set = false;
+    }
+
+    _syncActionColumnCentering() {
+        if (
+            !this.menu ||
+            !this._actionWidthFrame ||
+            !this._actionWidthFrame.get_stage()
+        ) return;
+        this._actionWidthFrame.translation_x = 0;
+        const [menuX] = this.menu.actor.get_transformed_position();
+        const [menuWidth] = this.menu.actor.get_transformed_size();
+        const [gridX] = this._actionWidthFrame.get_transformed_position();
+        const [gridWidth] = this._actionWidthFrame.get_transformed_size();
+        const menuCenter = menuX + menuWidth / 2;
+        const gridCenter = gridX + gridWidth / 2;
+        this._actionWidthFrame.translation_x = Math.round(menuCenter - gridCenter);
     }
 
     _rebuildPanel() {
@@ -490,7 +493,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
-        row.style = `padding-right: ${POPUP_RING_RIGHT_INSET}px;`;
+        row.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
         row.add_child(text);
 
         if (this._snapshot) {
@@ -600,7 +603,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
-        row.style = `padding-right: ${POPUP_RING_RIGHT_INSET}px;`;
+        row.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
         row.add_child(text);
         row.add_child(countdown);
         item.addActor(row, { expand: true, span: -1 });
@@ -758,13 +761,14 @@ class ChatGptUsageApplet extends Applet.Applet {
             reactive: false,
             activate: false
         });
+        item.actor.style = "padding-left: 0px; padding-right: 0px;";
         const column = new St.BoxLayout({ vertical: true });
         column.style = "spacing: 8px; padding: 2px 0;";
         column.x_expand = true;
         column.x_align = Clutter.ActorAlign.FILL;
         const actionWidthFrame = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
-            x_align: Clutter.ActorAlign.START
+            x_align: Clutter.ActorAlign.CENTER
         });
         actionWidthFrame.add_child(column);
         const actionFrame = new St.Widget({
@@ -775,6 +779,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._actionFrame = actionFrame;
         this._actionWidthFrame = actionWidthFrame;
         this._actionColumn = column;
+        actionFrame.connect(
+            "notify::allocation",
+            () => this._syncActionColumnCentering()
+        );
         if (this._actionColumnWidth > 0) {
             this._setActionColumnWidth(this._actionColumnWidth);
         }
@@ -1212,6 +1220,8 @@ class ChatGptUsageApplet extends Applet.Applet {
                 const submenu = new PopupMenu.PopupSubMenuMenuItem(
                     ""
                 );
+                submenu.actor.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
+                submenu._triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
                 if ("overlay_scrollbars" in submenu.menu.actor) {
                     submenu.menu.actor.overlay_scrollbars = true;
                 }
@@ -1324,7 +1334,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         column.add_child(caption);
 
         const chart = new St.BoxLayout({ vertical: true, x_expand: true });
-        chart.style = "padding-left: 10px;";
+        chart.style = [
+            "padding-left: 10px",
+            `padding-right: ${POPUP_CHART_RIGHT_INSET}px`
+        ].join("; ") + ";";
 
         const plot = new St.Widget({
             layout_manager: new Clutter.BoxLayout({ homogeneous: true }),
@@ -1630,10 +1643,6 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._menuRebuildTimeoutId) {
             Mainloop.source_remove(this._menuRebuildTimeoutId);
             this._menuRebuildTimeoutId = 0;
-        }
-        if (this._actionWidthLockTimeoutId) {
-            Mainloop.source_remove(this._actionWidthLockTimeoutId);
-            this._actionWidthLockTimeoutId = 0;
         }
         this._stopRefreshSpinner();
         if (this._cancellable) {
