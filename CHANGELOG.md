@@ -8,10 +8,11 @@
 - Group account and model-specific limits and their observed histories clearly
   in the popup while retaining a compact account-only panel by default, with
   an option to add model-specific limits to the panel. Model histories use
-  native expandable Cinnamon submenus to keep the default popup compact.
+  native expandable Cinnamon submenus with overlay scrollbars to keep the
+  default popup compact and its width stable.
 - Add paired circular indicators for every active 5h and 7d window: available
-  quota in the popup header and a live reset countdown in its usage row, with
-  no additional API requests.
+  quota in a cyan popup-header ring and green reset progress in its usage row,
+  with no additional API requests.
 - Add native Cinnamon hover details to every one-hour activity bucket with its
   local time range, observed consumption and partial/unknown state, using a
   responsive 120 ms reveal delay.
@@ -32,7 +33,8 @@
   native installation guidance instead of becoming inactive when software is
   missing, plus direct links to ChatGPT, Codex Cloud and ChatGPT Analytics.
 - Keep the popup open while `Refresh now` updates the displayed usage values
-  and briefly confirm successful updates in green.
+  with a click-blocking activity spinner, then briefly confirm successful
+  updates in green.
 - Enrich the native Cinnamon About dialog with a short project note and credits.
 
 ## 0.1.0 — 2026-08-27

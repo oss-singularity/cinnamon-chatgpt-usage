@@ -46,6 +46,19 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._quotaWidgets = [];
         this._activityTooltips = [];
         this._refreshConfirmationTimeoutId = 0;
+        this._refreshSpinnerTimeoutId = 0;
+        this._menuRebuildTimeoutId = 0;
+        this._actionWidthLockTimeoutId = 0;
+        this._refreshButton = null;
+        this._refreshButtonIcon = null;
+        this._refreshButtonLabel = null;
+        this._refreshSpinnerLabel = null;
+        this._refreshSpinnerFrame = 0;
+        this._historySubmenus = [];
+        this._actionFrame = null;
+        this._actionWidthFrame = null;
+        this._actionColumn = null;
+        this._actionColumnWidth = 0;
         this._installHelpDialog = null;
         this._refreshConfirmed = false;
         this._busy = false;
@@ -160,6 +173,31 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
+        this.menu.connect("open-state-changed", (menu, open) => {
+            if (open) {
+                const width = Math.ceil(menu.actor.get_width());
+                if (width > 0) menu.actor.set_width(width);
+                this._actionWidthLockTimeoutId = Mainloop.idle_add(() => {
+                    this._actionWidthLockTimeoutId = 0;
+                    if (menu.isOpen && this._actionWidthFrame && this._actionFrame) {
+                        const actionWidth = Math.ceil(this._actionFrame.get_width());
+                        if (actionWidth > 0) {
+                            this._actionColumnWidth = actionWidth;
+                            this._setActionColumnWidth(actionWidth);
+                        }
+                    }
+                    return GLib.SOURCE_REMOVE;
+                });
+            } else {
+                menu.actor.set_width(-1);
+                if (this._actionWidthLockTimeoutId) {
+                    Mainloop.source_remove(this._actionWidthLockTimeoutId);
+                    this._actionWidthLockTimeoutId = 0;
+                }
+                this._setActionColumnWidth(0);
+                this._actionColumnWidth = 0;
+            }
+        });
         this._rebuildMenu();
     }
 
@@ -168,6 +206,21 @@ class ChatGptUsageApplet extends Applet.Applet {
             actor.remove_child(child);
             child.destroy();
         }
+    }
+
+    _setActionColumnWidth(width) {
+        if (!this._actionWidthFrame) return;
+        if (width > 0) {
+            this._actionWidthFrame.set_width(width);
+            this._actionWidthFrame.min_width = width;
+            this._actionWidthFrame.natural_width = width;
+            this._actionWidthFrame.min_width_set = true;
+            this._actionWidthFrame.natural_width_set = true;
+            return;
+        }
+        this._actionWidthFrame.set_width(-1);
+        this._actionWidthFrame.min_width_set = false;
+        this._actionWidthFrame.natural_width_set = false;
     }
 
     _rebuildPanel() {
@@ -333,6 +386,23 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _rebuildMenu() {
         if (!this.menu) return;
+        const wasOpen = this.menu.isOpen;
+        const expandedSubmenus = new Set();
+        if (wasOpen) this.actor.grab_key_focus();
+        for (const entry of this._historySubmenus) {
+            if (!entry.submenu.menu.isOpen) continue;
+            expandedSubmenus.add(entry.id);
+            entry.submenu.menu.close(false);
+        }
+        this._stopRefreshSpinner();
+        this._refreshButton = null;
+        this._refreshButtonIcon = null;
+        this._refreshButtonLabel = null;
+        this._refreshSpinnerLabel = null;
+        this._historySubmenus = [];
+        this._actionFrame = null;
+        this._actionWidthFrame = null;
+        this._actionColumn = null;
         this._countdownWidgets = [];
         this._quotaWidgets = [];
         this._activityTooltips = [];
@@ -366,6 +436,25 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         this._addLaunchButtons();
+
+        if (wasOpen) {
+            for (const entry of this._historySubmenus) {
+                if (expandedSubmenus.has(entry.id)) entry.submenu.menu.open(false);
+            }
+        }
+    }
+
+    _scheduleMenuRebuild() {
+        if (this._destroyed || this._menuRebuildTimeoutId) return;
+        this._menuRebuildTimeoutId = Mainloop.timeout_add(60, () => {
+            const [, , modifiers] = global.get_pointer();
+            if (modifiers & Clutter.ModifierType.BUTTON1_MASK) {
+                return GLib.SOURCE_CONTINUE;
+            }
+            this._menuRebuildTimeoutId = 0;
+            this._rebuildMenu();
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _addHeaderItem() {
@@ -569,7 +658,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const model = UsageFormat.buildResetCountdown(window);
         this._paintCircularProgress(
             area,
-            model.valid ? model.fractionRemaining : 0,
+            model.valid ? model.fractionElapsed : 0,
             new Clutter.Color({
                 red: 101,
                 green: 214,
@@ -597,7 +686,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (!this.showColors || !Number.isFinite(remaining)) return this.normalColor;
         if (remaining <= this.criticalRemaining) return this.criticalColor;
         if (remaining <= this.warningRemaining) return this.warningColor;
-        return "#65d68b";
+        return "#62c7f5";
     }
 
     _paintCircularProgress(area, fraction, progressColor) {
@@ -668,6 +757,24 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         const column = new St.BoxLayout({ vertical: true });
         column.style = "spacing: 8px; padding: 2px 0;";
+        column.x_expand = true;
+        column.x_align = Clutter.ActorAlign.FILL;
+        const actionWidthFrame = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            x_align: Clutter.ActorAlign.START
+        });
+        actionWidthFrame.add_child(column);
+        const actionFrame = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            x_expand: true
+        });
+        actionFrame.add_child(actionWidthFrame);
+        this._actionFrame = actionFrame;
+        this._actionWidthFrame = actionWidthFrame;
+        this._actionColumn = column;
+        if (this._actionColumnWidth > 0) {
+            this._setActionColumnWidth(this._actionColumnWidth);
+        }
         const launchRow = new St.Widget({
             layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
             x_expand: true
@@ -716,7 +823,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             }
         );
         const refreshConfirmed = this._refreshConfirmed;
-        const refreshButton = this._createLaunchButton(
+        this._refreshButton = this._createLaunchButton(
             refreshConfirmed ? "Updated" : "Refresh now",
             {
                 iconName: refreshConfirmed
@@ -730,6 +837,19 @@ class ChatGptUsageApplet extends Applet.Applet {
             true,
             () => this._refreshUsage(true)
         );
+        this._refreshButtonIcon = this._refreshButton._usageIcon;
+        this._refreshButtonLabel = this._refreshButton._usageLabel;
+        this._refreshSpinnerLabel = new St.Label({
+            text: "◐",
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        this._refreshSpinnerLabel.style = "font-size: 18px;";
+        this._refreshSpinnerLabel.hide();
+        this._refreshButton._usageContent.insert_child_at_index(
+            this._refreshSpinnerLabel,
+            0
+        );
+        this._syncRefreshButtonState();
         const analyticsButton = this._createLaunchButton(
             "Analytics",
             {
@@ -764,14 +884,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         );
         launchRow.add_child(this._chatGptButton);
         launchRow.add_child(this._codexButton);
-        utilityRow.add_child(refreshButton);
+        utilityRow.add_child(this._refreshButton);
         utilityRow.add_child(analyticsButton);
         webRow.add_child(chatGptWebButton);
         webRow.add_child(codexCloudButton);
         column.add_child(launchRow);
         column.add_child(utilityRow);
         column.add_child(webRow);
-        item.addActor(column, { span: -1, expand: true });
+        item.addActor(actionFrame, { span: -1, expand: true });
         this.menu.addMenuItem(item);
     }
 
@@ -813,6 +933,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             can_focus: available,
             x_expand: true
         });
+        button._usageIcon = icon;
+        button._usageLabel = buttonLabel;
+        button._usageContent = content;
+        button._usageBusy = false;
         button.style = this._launchButtonStyle(
             available ? "normal" : "disabled",
             iconSpec.compact,
@@ -823,39 +947,113 @@ class ChatGptUsageApplet extends Applet.Applet {
             button.add_style_pseudo_class("insensitive");
         } else {
             button.connect("enter-event", () => {
+                if (button._usageBusy) return Clutter.EVENT_PROPAGATE;
                 button.style = this._launchButtonStyle(
                     "hover",
                     iconSpec.compact,
                     iconSpec.transparent
                 );
+                return Clutter.EVENT_PROPAGATE;
             });
             button.connect("leave-event", () => {
+                if (button._usageBusy) return Clutter.EVENT_PROPAGATE;
                 button.style = this._launchButtonStyle(
                     "normal",
                     iconSpec.compact,
                     iconSpec.transparent
                 );
+                return Clutter.EVENT_PROPAGATE;
             });
             button.connect("button-press-event", () => {
+                if (button._usageBusy) return Clutter.EVENT_PROPAGATE;
                 button.style = this._launchButtonStyle(
                     "pressed",
                     iconSpec.compact,
                     iconSpec.transparent
                 );
+                return Clutter.EVENT_PROPAGATE;
             });
             button.connect("button-release-event", () => {
+                if (button._usageBusy) return Clutter.EVENT_PROPAGATE;
                 button.style = this._launchButtonStyle(
                     "hover",
                     iconSpec.compact,
                     iconSpec.transparent
                 );
+                return Clutter.EVENT_PROPAGATE;
             });
             button.connect("clicked", () => {
+                if (button._usageBusy) return;
                 if (!iconSpec.keepMenuOpen) this.menu.close(false);
                 action();
             });
         }
         return button;
+    }
+
+    _syncRefreshButtonState() {
+        const button = this._refreshButton;
+        const icon = this._refreshButtonIcon;
+        const label = this._refreshButtonLabel;
+        const spinner = this._refreshSpinnerLabel;
+        if (!button || !icon || !label || !spinner) return;
+
+        if (this._busy) {
+            label.set_text("Updating…");
+            label.style = null;
+            icon.hide();
+            spinner.show();
+            button._usageBusy = true;
+            button.reactive = true;
+            button.can_focus = false;
+            button.opacity = 255;
+            button.add_style_pseudo_class("insensitive");
+            button.style = this._launchButtonStyle("disabled", true, false);
+            this._startRefreshSpinner(spinner);
+            return;
+        }
+
+        this._stopRefreshSpinner();
+        spinner.hide();
+        icon.show();
+        icon.icon_name = this._refreshConfirmed
+            ? "emblem-ok-symbolic"
+            : "view-refresh-symbolic";
+        icon.icon_type = St.IconType.SYMBOLIC;
+        label.set_text(this._refreshConfirmed ? "Updated" : "Refresh now");
+        const successStyle = this._refreshConfirmed
+            ? "color: #8ed891; font-weight: bold;"
+            : "";
+        icon.style = this._refreshConfirmed ? "color: #8ed891;" : null;
+        label.style = successStyle || null;
+        button._usageBusy = this._refreshConfirmed;
+        button.reactive = true;
+        button.can_focus = !this._refreshConfirmed;
+        button.opacity = 255;
+        button.remove_style_pseudo_class("insensitive");
+        button.style = this._launchButtonStyle("normal", true, false);
+    }
+
+    _startRefreshSpinner(spinner) {
+        this._stopRefreshSpinner();
+        const frames = ["◐", "◓", "◑", "◒"];
+        this._refreshSpinnerFrame = 0;
+        spinner.set_text(frames[0]);
+        this._refreshSpinnerTimeoutId = Mainloop.timeout_add(120, () => {
+            if (this._destroyed || spinner.is_finalized()) {
+                this._refreshSpinnerTimeoutId = 0;
+                return GLib.SOURCE_REMOVE;
+            }
+            this._refreshSpinnerFrame = (this._refreshSpinnerFrame + 1) % frames.length;
+            spinner.set_text(frames[this._refreshSpinnerFrame]);
+            return GLib.SOURCE_CONTINUE;
+        });
+    }
+
+    _stopRefreshSpinner() {
+        if (!this._refreshSpinnerTimeoutId) return;
+        Mainloop.source_remove(this._refreshSpinnerTimeoutId);
+        this._refreshSpinnerTimeoutId = 0;
     }
 
     _showInstallHelp(title, description, url) {
@@ -1011,6 +1209,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 const submenu = new PopupMenu.PopupSubMenuMenuItem(
                     ""
                 );
+                if ("overlay_scrollbars" in submenu.menu.actor) {
+                    submenu.menu.actor.overlay_scrollbars = true;
+                }
                 submenu.removeActor(submenu.label);
                 submenu.label.destroy();
                 const submenuTitle = new St.BoxLayout({
@@ -1031,6 +1232,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 submenu.label = submenuLabel;
                 submenu.actor.label_actor = submenuLabel;
                 this.menu.addMenuItem(submenu);
+                this._historySubmenus.push({ id: limitId, submenu });
                 windows.forEach((window, index) => {
                     if (index > 0) {
                         submenu.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -1277,13 +1479,14 @@ class ChatGptUsageApplet extends Applet.Applet {
                 ? "python3 was not found"
                 : "Codex CLI was not found; configure its path in the applet settings";
             this._rebuildPanel();
-            this._rebuildMenu();
+            this._scheduleMenuRebuild();
             return;
         }
 
         this._busy = true;
         this._lastError = null;
         this._cancellable = new Gio.Cancellable();
+        this._syncRefreshButtonState();
         if (!this._snapshot) this._rebuildPanel();
 
         try {
@@ -1304,6 +1507,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             process.communicate_utf8_async(null, this._cancellable, (source, result) => {
                 this._busy = false;
                 this._cancellable = null;
+                this._stopRefreshSpinner();
                 let succeeded = false;
 
                 try {
@@ -1330,16 +1534,17 @@ class ChatGptUsageApplet extends Applet.Applet {
                 if (!this._destroyed) {
                     if (showConfirmation && succeeded) this._showRefreshConfirmation();
                     this._rebuildPanel();
-                    this._rebuildMenu();
+                    this._scheduleMenuRebuild();
                 }
             });
         } catch (error) {
             this._busy = false;
             this._cancellable = null;
+            this._stopRefreshSpinner();
             this._lastError = String(error.message || error).slice(0, 180);
             global.logError(`${UUID}: could not start usage helper: ${error}`);
             this._rebuildPanel();
-            this._rebuildMenu();
+            this._scheduleMenuRebuild();
         }
     }
 
@@ -1348,10 +1553,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._refreshConfirmationTimeoutId) {
             Mainloop.source_remove(this._refreshConfirmationTimeoutId);
         }
+        this._stopRefreshSpinner();
+        this._syncRefreshButtonState();
         this._refreshConfirmationTimeoutId = Mainloop.timeout_add(1800, () => {
             this._refreshConfirmationTimeoutId = 0;
             this._refreshConfirmed = false;
-            if (!this._destroyed) this._rebuildMenu();
+            if (!this._destroyed) this._syncRefreshButtonState();
             return GLib.SOURCE_REMOVE;
         });
     }
@@ -1417,6 +1624,15 @@ class ChatGptUsageApplet extends Applet.Applet {
             Mainloop.source_remove(this._refreshConfirmationTimeoutId);
             this._refreshConfirmationTimeoutId = 0;
         }
+        if (this._menuRebuildTimeoutId) {
+            Mainloop.source_remove(this._menuRebuildTimeoutId);
+            this._menuRebuildTimeoutId = 0;
+        }
+        if (this._actionWidthLockTimeoutId) {
+            Mainloop.source_remove(this._actionWidthLockTimeoutId);
+            this._actionWidthLockTimeoutId = 0;
+        }
+        this._stopRefreshSpinner();
         if (this._cancellable) {
             this._cancellable.cancel();
             this._cancellable = null;

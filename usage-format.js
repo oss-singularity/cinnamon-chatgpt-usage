@@ -90,6 +90,7 @@ function buildResetCountdown(window, nowSeconds = null) {
         return {
             valid: false,
             fractionRemaining: 0,
+            fractionElapsed: 0,
             remainingSeconds: null,
             primary: "--",
             secondary: "",
@@ -117,9 +118,11 @@ function buildResetCountdown(window, nowSeconds = null) {
         primary = `${remainingSeconds}s`;
     }
 
+    const fractionRemaining = remainingSeconds / durationSeconds;
     return {
         valid: true,
-        fractionRemaining: remainingSeconds / durationSeconds,
+        fractionRemaining,
+        fractionElapsed: 1 - fractionRemaining,
         remainingSeconds,
         primary,
         secondary,

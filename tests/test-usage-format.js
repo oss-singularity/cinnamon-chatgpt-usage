@@ -19,6 +19,12 @@ function assertEqual(actual, expected, message) {
     }
 }
 
+function assertClose(actual, expected, message, tolerance = 1e-9) {
+    if (Math.abs(actual - expected) > tolerance) {
+        throw new Error(`${message}: expected ${expected}, got ${actual}`);
+    }
+}
+
 const summaries = UsageFormat.summarizeWindows([
     {
         id: "codex",
@@ -99,7 +105,18 @@ const fiveHourCountdown = UsageFormat.buildResetCountdown(
 assertEqual(fiveHourCountdown.valid, true, "Five-hour countdown validity");
 assertEqual(fiveHourCountdown.remainingSeconds, 9000, "Five-hour seconds remaining");
 assertEqual(fiveHourCountdown.fractionRemaining, 0.5, "Five-hour ring fraction");
+assertEqual(fiveHourCountdown.fractionElapsed, 0.5, "Five-hour elapsed fraction");
 assertEqual(fiveHourCountdown.label, "2h\n30m", "Five-hour countdown label");
+
+const earlyFiveHourCountdown = UsageFormat.buildResetCountdown(
+    { durationMinutes: 300, resetsAt: 1000 + (4 * 3600) },
+    1000
+);
+assertClose(
+    earlyFiveHourCountdown.fractionElapsed,
+    0.2,
+    "Reset progress starts near empty and fills toward reset"
+);
 
 const weeklyCountdown = UsageFormat.buildResetCountdown(
     { durationMinutes: 10080, resetsAt: 1000 + (3 * 86400) + (4 * 3600) },
