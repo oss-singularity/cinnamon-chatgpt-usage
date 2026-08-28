@@ -12,6 +12,8 @@
   state directory with private file permissions.
 - Treat resets as new quota generations, ignore falling rolling-window values
   and mark incomplete observation periods with `~`.
+- Ignore one-minute reset-timestamp jitter so transient API rounding cannot
+  create phantom consumption spikes.
 
 ## 0.1.0 — 2026-08-27
 

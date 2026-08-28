@@ -27,6 +27,7 @@ HISTORY_VERSION = 1
 HISTORY_RETENTION_SECONDS = 8 * 24 * 60 * 60
 ACTIVITY_BUCKET_SECONDS = 2 * 60 * 60
 ACTIVITY_BUCKET_COUNT = 12
+RESET_TIMESTAMP_JITTER_SECONDS = 60
 
 
 class UsageError(RuntimeError):
@@ -218,7 +219,8 @@ def _positive_delta(previous: dict[str, Any], current: dict[str, Any]) -> float:
     previous_reset = previous.get("resetsAt")
     current_reset = current.get("resetsAt")
     current_used = _number(current.get("usedPercent"))
-    if previous_reset and current_reset and previous_reset != current_reset:
+    reset_shift = abs(_number(current_reset) - _number(previous_reset))
+    if previous_reset and current_reset and reset_shift > RESET_TIMESTAMP_JITTER_SECONDS:
         return max(0.0, current_used)
     return max(0.0, current_used - _number(previous.get("usedPercent")))
 

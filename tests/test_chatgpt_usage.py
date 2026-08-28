@@ -163,6 +163,19 @@ class UsageHistoryTests(unittest.TestCase):
         periods = build_usage_history(self.snapshot(now, 5, 200), samples)["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 5)
 
+    def test_reset_timestamp_jitter_does_not_create_phantom_usage(self) -> None:
+        now = 1_800_000_000
+        samples = [
+            self.sample(now - 3700, 25, 1000),
+            self.sample(now - 1800, 29, 1001),
+            self.sample(now, 29, 1000),
+        ]
+
+        history = build_usage_history(self.snapshot(now, 29, 1000), samples)
+        periods = history["windows"][0]["periods"]
+        self.assertEqual(periods["1h"]["consumedPercent"], 4)
+        self.assertEqual(periods["4h"]["consumedPercent"], 4)
+
     def test_falling_rolling_value_is_ignored_before_new_consumption(self) -> None:
         now = 1_800_000_000
         samples = [
