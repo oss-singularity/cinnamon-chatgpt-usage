@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4 — 2026-08-29
+
+- Keep untouched 100%-remaining reset cycles at their exact full `5h` or `7d`
+  label and empty progress ring until usage actually begins.
+- Separate model markers from quota values with a distinct amber ring badge,
+  making Spark's `S` unmistakable without reading it as part of `5h` or `7d`.
+
 ## 0.2.3 — 2026-08-28
 
 - Replace the popup header's full update timestamp with a concise live age,

@@ -46,9 +46,11 @@
   remaining usage, reset times, credits and earned resets.
 - Detects dedicated GPT-5.3-Codex-Spark 5h and 7d quotas automatically when
   they are enabled for the signed-in account; model-specific limits stay in
-  the popup by default and can optionally be added to the panel.
+  the popup by default, carry a distinct ring badge and can optionally be added
+  to the panel.
 - Shows paired circular available-quota and reset-countdown indicators for
-  every active 5h and 7d window without polling the API more often.
+  every active 5h and 7d window without polling the API more often. Untouched
+  100%-remaining cycles stay at their exact full duration until usage begins.
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
   quota, with a compact hourly 24-hour bar timeline and per-bucket hover
   details in the popup. Two-hour buckets remain selectable in settings, and
@@ -76,7 +78,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.2.3 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.2.4 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
