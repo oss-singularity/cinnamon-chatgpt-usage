@@ -7,6 +7,7 @@ const Applet = imports.ui.applet;
 const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const Tooltips = imports.ui.tooltips;
+const Main = imports.ui.main;
 const ModalDialog = imports.ui.modalDialog;
 const Dialog = imports.ui.dialog;
 const Mainloop = imports.mainloop;
@@ -30,9 +31,14 @@ const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const POPUP_ACTION_GRID_WIDTH = 352;
-const POPUP_RIGHT_INSET = 9;
-const POPUP_CHART_RIGHT_INSET = 6;
-const POPUP_SUBMENU_ARROW_OFFSET = -25;
+const POPUP_WIDTH_TRIM = 5;
+const POPUP_RIGHT_INSET = 4;
+const POPUP_CHART_RIGHT_INSET = 14;
+const POPUP_SUBMENU_ARROW_OFFSET = -35;
+const POPUP_EXPANDED_RIGHT_INSET = 10;
+const POPUP_EXPANDED_ARROW_INSET = 25;
+const QUOTA_RING_SIZE = 52;
+const COMPACT_QUOTA_RING_SIZE = 40;
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -49,6 +55,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._countdownWidgets = [];
         this._quotaWidgets = [];
         this._activityTooltips = [];
+        this._popupRightInsetRows = [];
+        this._activityCharts = [];
+        this._submenuTriangles = [];
+        this._popupOpenWidth = 0;
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
         this._menuRebuildTimeoutId = 0;
@@ -178,9 +188,13 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menuManager.addMenu(this.menu);
         this.menu.connect("open-state-changed", (menu, open) => {
             if (open) {
-                const width = Math.ceil(menu.actor.get_width());
-                if (width > 0) menu.actor.set_width(width);
+                const width = Math.ceil(menu.actor.get_width()) - POPUP_WIDTH_TRIM;
+                if (width > 0) {
+                    this._popupOpenWidth = width;
+                    menu.actor.set_width(width);
+                }
             } else {
+                this._popupOpenWidth = 0;
                 menu.actor.set_width(-1);
             }
         });
@@ -410,6 +424,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._countdownWidgets = [];
         this._quotaWidgets = [];
         this._activityTooltips = [];
+        this._popupRightInsetRows = [];
+        this._activityCharts = [];
+        this._submenuTriangles = [];
         this.menu.removeAll();
 
         this._addHeaderItem();
@@ -494,22 +511,25 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         row.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
+        this._popupRightInsetRows.push(row);
         row.add_child(text);
 
         if (this._snapshot) {
-            const accountLimits = this._snapshot.limits.filter(
-                limit => limit.id === "codex"
-            );
-            const summaries = UsageFormat.summarizeWindows(
-                accountLimits.length > 0 ? accountLimits : this._snapshot.limits
-            );
+            const summaries = UsageFormat.listQuotaWindows(this._snapshot.limits);
+            const compact = summaries.length >= 4;
             const rings = new St.BoxLayout({
                 vertical: false,
+                x_align: Clutter.ActorAlign.END,
                 y_align: Clutter.ActorAlign.CENTER
             });
-            rings.style = "spacing: 8px;";
+            rings.style = `spacing: ${compact ? 2 : 8}px;`;
             for (const summary of summaries) {
-                rings.add_child(this._createQuotaRing(summary));
+                rings.add_child(
+                    this._createQuotaRing(
+                        summary,
+                        compact ? COMPACT_QUOTA_RING_SIZE : QUOTA_RING_SIZE
+                    )
+                );
             }
             row.add_child(rings);
         }
@@ -517,8 +537,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.addMenuItem(item);
     }
 
-    _createQuotaRing(window) {
-        const size = 52;
+    _createQuotaRing(window, size = QUOTA_RING_SIZE) {
         const actor = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
             width: size,
@@ -534,7 +553,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         label.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
         label.style = [
-            "font-size: 72%",
+            `font-size: ${size < QUOTA_RING_SIZE ? 60 : 72}%`,
             "font-weight: bold",
             "color: rgba(255,255,255,0.96)",
             "text-align: center"
@@ -588,7 +607,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             "font-weight: bold",
             `color: ${this._remainingColor(window.remainingPercent)}`
         ].join("; ") + ";";
-        remainingLabel.opacity = 220;
+        remainingLabel.opacity = 195;
         headline.add_child(durationLabel);
         headline.add_child(remainingLabel);
         const resetLabel = new St.Label({
@@ -604,6 +623,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         row.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
+        this._popupRightInsetRows.push(row);
         row.add_child(text);
         row.add_child(countdown);
         item.addActor(row, { expand: true, span: -1 });
@@ -852,9 +872,15 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshButtonLabel = this._refreshButton._usageLabel;
         this._refreshSpinnerLabel = new St.Label({
             text: "◐",
+            width: 18,
+            height: 18,
+            x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER
         });
-        this._refreshSpinnerLabel.style = "font-size: 18px;";
+        this._refreshSpinnerLabel.style = "font-size: 16px; text-align: center;";
+        this._refreshSpinnerLabel.clutter_text.set_line_alignment(
+            Pango.Alignment.CENTER
+        );
         this._refreshSpinnerLabel.hide();
         this._refreshButton._usageContent.insert_child_at_index(
             this._refreshSpinnerLabel,
@@ -872,7 +898,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             () => Util.spawn(["xdg-open", ANALYTICS_URL])
         );
         const chatGptWebButton = this._createLaunchButton(
-            "Open ChatGPT",
+            "ChatGPT",
             {
                 iconName: "web-browser-symbolic",
                 symbolic: true,
@@ -883,7 +909,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             () => Util.spawn(["xdg-open", CHATGPT_URL])
         );
         const codexCloudButton = this._createLaunchButton(
-            "Open Codex Cloud",
+            "Codex Cloud",
             {
                 iconName: "web-browser-symbolic",
                 symbolic: true,
@@ -1222,6 +1248,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 );
                 submenu.actor.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
                 submenu._triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
+                this._submenuTriangles.push(submenu._triangle);
                 if ("overlay_scrollbars" in submenu.menu.actor) {
                     submenu.menu.actor.overlay_scrollbars = true;
                 }
@@ -1240,12 +1267,16 @@ class ChatGptUsageApplet extends Applet.Applet {
                     y_align: Clutter.ActorAlign.CENTER
                 });
                 submenuLabel.style = "font-weight: bold;";
+                submenuLabel.opacity = 128;
                 submenuTitle.add_child(submenuLabel);
                 submenu.addActor(submenuTitle, { position: 0 });
                 submenu.label = submenuLabel;
                 submenu.actor.label_actor = submenuLabel;
                 this.menu.addMenuItem(submenu);
                 this._historySubmenus.push({ id: limitId, submenu });
+                submenu.menu.connect("open-state-changed", () => {
+                    this._syncPopupRightInsets();
+                });
                 windows.forEach((window, index) => {
                     if (index > 0) {
                         submenu.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -1282,7 +1313,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._addActivityChart(
             window.activity24h,
             history.activityBucketMinutes,
-            this._snapshot.updatedAt,
+            history.activityEndAt || this._snapshot.updatedAt,
             menu
         );
         if (hasPartialPeriod) {
@@ -1338,6 +1369,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             "padding-left: 10px",
             `padding-right: ${POPUP_CHART_RIGHT_INSET}px`
         ].join("; ") + ";";
+        this._activityCharts.push({
+            chart,
+            nested: menu !== this.menu
+        });
 
         const plot = new St.Widget({
             layout_manager: new Clutter.BoxLayout({ homogeneous: true }),
@@ -1414,8 +1449,69 @@ class ChatGptUsageApplet extends Applet.Applet {
         menu.addMenuItem(item);
     }
 
+    _syncPopupRightInsets() {
+        if (this.menu.isOpen && this._popupOpenWidth > 0) {
+            this.menu.actor.set_width(this._popupOpenWidth);
+        }
+        const expanded = this._historySubmenus.some(
+            entry => entry.submenu.menu.isOpen
+        );
+        const extra = expanded ? POPUP_EXPANDED_RIGHT_INSET : 0;
+        for (const row of this._popupRightInsetRows) {
+            row.style = `padding-right: ${POPUP_RIGHT_INSET + extra}px;`;
+        }
+        for (const entry of this._activityCharts) {
+            const nestedExtra = expanded && entry.nested
+                ? POPUP_EXPANDED_RIGHT_INSET
+                : 0;
+            entry.chart.style = [
+                "padding-left: 10px",
+                `padding-right: ${POPUP_CHART_RIGHT_INSET + extra + nestedExtra}px`
+            ].join("; ") + ";";
+        }
+        for (const triangle of this._submenuTriangles) {
+            triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET - (
+                expanded ? POPUP_EXPANDED_ARROW_INSET : 0
+            );
+        }
+    }
+
     _createActivityTooltip(slot, text) {
         const tooltip = new Tooltips.Tooltip(slot, text);
+        tooltip.set_text(text);
+        const nativeShow = tooltip.show.bind(tooltip);
+        tooltip.show = () => {
+            nativeShow();
+            if (!tooltip.visible || !tooltip.mousePosition) return;
+
+            const monitor = Main.layoutManager.findMonitorForActor(slot);
+            const [, naturalWidth] = tooltip._tooltip.get_preferred_width(-1);
+            const [, naturalHeight] = tooltip._tooltip.get_preferred_height(
+                naturalWidth
+            );
+            const cursorSize = tooltip.desktop_settings.get_int("cursor-size");
+            const preferredLeft = tooltip.mousePosition[0] + Math.round(
+                cursorSize / 2
+            );
+            const preferredTop = tooltip.mousePosition[1] + Math.round(
+                cursorSize / 1.5
+            );
+            const left = Math.max(
+                monitor.x,
+                Math.min(
+                    preferredLeft,
+                    monitor.x + monitor.width - naturalWidth
+                )
+            );
+            const top = Math.max(
+                monitor.y,
+                Math.min(
+                    preferredTop,
+                    monitor.y + monitor.height - naturalHeight
+                )
+            );
+            tooltip._tooltip.set_position(Math.floor(left), Math.floor(top));
+        };
         tooltip._fastShowTimeoutId = 0;
         const cancelFastShow = () => {
             if (!tooltip._fastShowTimeoutId) return;

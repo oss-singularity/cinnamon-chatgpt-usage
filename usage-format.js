@@ -35,6 +35,35 @@ function summarizeWindows(limits) {
     );
 }
 
+function listQuotaWindows(limits) {
+    const windows = [];
+    const sourceLimits = Array.from(limits || []);
+    const orderedLimits = sourceLimits
+        .filter(limit => limit.id !== "codex")
+        .concat(sourceLimits.filter(limit => limit.id === "codex"));
+
+    for (const limit of orderedLimits) {
+        const limitWindows = [];
+        for (const window of limit.windows || []) {
+            const duration = Number(window.durationMinutes);
+            const remaining = Number(window.remainingPercent);
+            if (!Number.isFinite(duration) || !Number.isFinite(remaining)) continue;
+
+            limitWindows.push({
+                durationMinutes: duration,
+                remainingPercent: clamp(remaining, 0, 100),
+                resetsAt: Number(window.resetsAt) || null,
+                limitId: limit.id,
+                limitLabel: limit.label
+            });
+        }
+        limitWindows.sort((left, right) => left.durationMinutes - right.durationMinutes);
+        windows.push(...limitWindows);
+    }
+
+    return windows;
+}
+
 function selectPanelWindows(summaries, showWeeklyWithFiveHour) {
     const windows = Array.from(summaries || []);
     const hasFiveHour = windows.some(window => window.durationMinutes === 300);
@@ -169,9 +198,12 @@ function buildActivityChart(values) {
         }
         const consumedPercent = Math.max(0, numeric);
         const complete = structured ? value.complete !== false : true;
-        const partial = !complete && consumedPercent > 0;
+        const observed = structured && typeof value.observed === "boolean"
+            ? value.observed
+            : complete || consumedPercent > 0;
+        const partial = !complete && observed;
         return {
-            known: complete || partial,
+            known: observed,
             complete,
             partial,
             consumedPercent,
@@ -232,7 +264,10 @@ function formatActivityBucketTooltip(
         consumedPercent: bar.consumedPercent,
         complete: bar.complete
     });
-    return `${range}\n${consumed} consumed${bar.partial ? " · partial bucket" : ""}`;
+    const partialSuffix = bar.partial && position < count - 1
+        ? " · partial bucket"
+        : "";
+    return `${range}\n${consumed} consumed${partialSuffix}`;
 }
 
 function formatAccessibleTooltip(text) {
@@ -249,6 +284,7 @@ function formatTimestamp(epochSeconds, use24Hour) {
 
 module.exports = {
     summarizeWindows,
+    listQuotaWindows,
     selectPanelWindows,
     formatDuration,
     formatElapsedDuration,

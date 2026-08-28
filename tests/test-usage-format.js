@@ -47,6 +47,27 @@ assertEqual(summaries.length, 2, "Summary window count");
 assertEqual(summaries[0].durationMinutes, 300, "Shortest window first");
 assertEqual(summaries[0].remainingPercent, 100, "Five-hour remaining usage");
 assertEqual(summaries[1].remainingPercent, 87, "Most constrained weekly bucket");
+const quotaWindows = UsageFormat.listQuotaWindows([
+    {
+        id: "codex",
+        label: "Codex",
+        windows: [
+            { durationMinutes: 10080, remainingPercent: 87, resetsAt: 100 }
+        ]
+    },
+    {
+        id: "codex_model",
+        label: "Model",
+        windows: [
+            { durationMinutes: 10080, remainingPercent: 92, resetsAt: 300 },
+            { durationMinutes: 300, remainingPercent: 100, resetsAt: 200 }
+        ]
+    }
+]);
+assertEqual(quotaWindows.length, 3, "Keep quota windows from every limit");
+assertEqual(quotaWindows[0].durationMinutes, 300, "Sort model windows shortest first");
+assertEqual(quotaWindows[1].limitId, "codex_model", "Keep duplicate durations");
+assertEqual(quotaWindows[2].limitId, "codex", "Place account limits after models");
 assertEqual(
     UsageFormat.selectPanelWindows(summaries, false).length,
     1,
@@ -180,6 +201,12 @@ assertEqual(partialChart.bars[1].partial, true, "Observed partial activity bucke
 assertEqual(partialChart.bars[1].intensity, 7, "Partial peak intensity");
 assertEqual(partialChart.peakComplete, false, "Partial peak marker");
 
+const observedZeroChart = UsageFormat.buildActivityChart([
+    { consumedPercent: 0, complete: false, observed: true }
+]);
+assertEqual(observedZeroChart.bars[0].known, true, "Observed zero bucket is known");
+assertEqual(observedZeroChart.bars[0].partial, true, "Observed running bucket is partial");
+
 const knownBucketTooltip = UsageFormat.formatActivityBucketTooltip(
     chart.bars[3],
     3,
@@ -210,8 +237,24 @@ const partialBucketTooltip = UsageFormat.formatActivityBucketTooltip(
     1700000000,
     false
 );
-if (!partialBucketTooltip.includes("~4% consumed · partial bucket")) {
+if (
+    !partialBucketTooltip.includes("~4% consumed") ||
+    partialBucketTooltip.includes("partial bucket")
+) {
     throw new Error(`Expected partial activity tooltip details, got ${partialBucketTooltip}`);
+}
+const historicalPartialTooltip = UsageFormat.formatActivityBucketTooltip(
+    partialChart.bars[1],
+    0,
+    2,
+    120,
+    1700000000,
+    false
+);
+if (!historicalPartialTooltip.includes("~4% consumed · partial bucket")) {
+    throw new Error(
+        `Expected historical partial bucket details, got ${historicalPartialTooltip}`
+    );
 }
 assertEqual(
     UsageFormat.formatAccessibleTooltip("First\nSecond\nThird"),

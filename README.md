@@ -26,6 +26,14 @@
 | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
 | ![Usage menu with a full hourly demo history](docs/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories](docs/usage-menu-spark.png) |
 
+| Precise hourly bucket details                           | Every active quota at a glance                         |
+| ------------------------------------------------------- | ------------------------------------------------------ |
+| ![Hourly bucket hover details](docs/bucket-tooltip.png) | ![Compact panel hover summary](docs/panel-tooltip.png) |
+
+| ChatGPT desktop app guidance                               | Codex CLI guidance                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------ |
+| ![ChatGPT App installation help](docs/install-chatgpt.png) | ![Codex CLI installation help](docs/install-codex.png) |
+
 | General settings                               | Colors and thresholds                       |
 | ---------------------------------------------- | ------------------------------------------- |
 | ![General settings](docs/settings-general.png) | ![Color settings](docs/settings-colors.png) |
@@ -40,13 +48,12 @@
 - Shows paired circular available-quota and reset-countdown indicators for
   every active 5h and 7d window without polling the API more often.
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
-  quota, with a compact hourly 24-hour bar timeline and per-bucket hover details in
-  the popup; two-hour buckets remain selectable in settings, and model-specific
-  histories stay in native expandable sections.
-- Launches an installed ChatGPT desktop app or Codex CLI directly; when either
-  is missing, the same active button explains the requirement and opens its
-  official installation guide. Web shortcuts cover ChatGPT, Codex Cloud and
-  ChatGPT Analytics.
+  quota, with a compact hourly 24-hour bar timeline and per-bucket hover
+  details in the popup. Two-hour buckets remain selectable in settings, and
+  model-specific histories stay in native expandable sections.
+- Launches an installed ChatGPT desktop app or Codex CLI directly, with native
+  installation guidance when either is missing. Web shortcuts cover ChatGPT,
+  Codex Cloud and ChatGPT Analytics.
 - Shows `5h` automatically only when an active API limit exposes that window;
   an accompanying `7d` panel block can be hidden in settings while unnamed
   internal buckets stay hidden.
@@ -67,7 +74,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.2.1 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.2.2 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.

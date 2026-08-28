@@ -3,11 +3,16 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from chatgpt_usage import build_usage_history, normalise_rate_limits, update_usage_history
+from chatgpt_usage import (
+    build_usage_history,
+    normalise_rate_limits,
+    update_usage_history,
+)
 
 
 class NormaliseRateLimitsTests(unittest.TestCase):
@@ -173,9 +178,13 @@ class UsageHistoryTests(unittest.TestCase):
         history = build_usage_history(self.snapshot(now, 18), samples)
         self.assertEqual(history["activityBucketMinutes"], 60)
         self.assertEqual(len(history["windows"][0]["activity24h"]), 24)
+        one_hour_end = dt.datetime.fromtimestamp(history["activityEndAt"]).astimezone()
+        self.assertEqual((one_hour_end.minute, one_hour_end.second), (0, 0))
         two_hour_history = build_usage_history(self.snapshot(now, 18), samples, bucket_minutes=120)
         self.assertEqual(two_hour_history["activityBucketMinutes"], 120)
         self.assertEqual(len(two_hour_history["windows"][0]["activity24h"]), 12)
+        two_hour_end = dt.datetime.fromtimestamp(two_hour_history["activityEndAt"]).astimezone()
+        self.assertEqual((two_hour_end.hour % 2, two_hour_end.minute), (0, 0))
         periods = history["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 8)
         self.assertTrue(periods["1h"]["complete"])
@@ -227,11 +236,11 @@ class UsageHistoryTests(unittest.TestCase):
         self.assertEqual(window["periods"]["1h"]["consumedPercent"], 5)
         self.assertEqual(
             window["activity24h"][0],
-            {"consumedPercent": 0, "complete": False},
+            {"consumedPercent": 0, "complete": False, "observed": False},
         )
         self.assertEqual(
             window["activity24h"][-1],
-            {"consumedPercent": 5, "complete": False},
+            {"consumedPercent": 5, "complete": False, "observed": True},
         )
         self.assertEqual(window["trackedSince"], now - 1800)
 
@@ -246,7 +255,7 @@ class UsageHistoryTests(unittest.TestCase):
         activity = build_usage_history(self.snapshot(now, 15), samples)["windows"][0]["activity24h"]
         self.assertEqual(
             activity[-1],
-            {"consumedPercent": 5, "complete": True},
+            {"consumedPercent": 5, "complete": True, "observed": True},
         )
 
     def test_history_file_contains_only_minimal_samples_and_is_private(self) -> None:
