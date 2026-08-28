@@ -17,6 +17,8 @@ const Pango = imports.gi.Pango;
 const UsageFormat = require("./usage-format");
 
 const UUID = "chatgpt-usage@oss-singularity";
+const CHATGPT_URL = "https://chatgpt.com/";
+const CODEX_CLOUD_URL = "https://chatgpt.com/codex/cloud";
 const ANALYTICS_URL = "https://chatgpt.com/codex/cloud/settings/analytics#usage";
 const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
@@ -296,21 +298,254 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._lastError) this._addInfoItem(`Last refresh failed: ${this._lastError}`);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        const refreshItem = new PopupMenu.PopupIconMenuItem(
-            "Refresh now",
-            "view-refresh-symbolic",
-            St.IconType.SYMBOLIC
-        );
-        refreshItem.connect("activate", () => this._refreshUsage());
-        this.menu.addMenuItem(refreshItem);
+        this._addLaunchButtons();
+    }
 
-        const analyticsItem = new PopupMenu.PopupIconMenuItem(
-            "Open ChatGPT analytics",
-            "web-browser-symbolic",
-            St.IconType.SYMBOLIC
+    _addLaunchButtons() {
+        const chatGptApp = this._chatGptAppInfo();
+        const codexCommand = this._codexTerminalCommand();
+        const item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            activate: false
+        });
+        const column = new St.BoxLayout({ vertical: true });
+        column.style = "spacing: 8px; padding: 2px 0;";
+        const launchRow = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
+            x_expand: true
+        });
+        const utilityRow = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
+            x_expand: true
+        });
+        const webRow = new St.Widget({
+            layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
+            x_expand: true
+        });
+
+        this._chatGptButton = this._createLaunchButton(
+            "ChatGPT App",
+            { iconName: "chatgpt" },
+            Boolean(chatGptApp),
+            () => this._launchChatGptApp(chatGptApp)
         );
-        analyticsItem.connect("activate", () => Util.spawn(["xdg-open", ANALYTICS_URL]));
-        this.menu.addMenuItem(analyticsItem);
+        this._codexButton = this._createLaunchButton(
+            "Codex Terminal",
+            { fileName: "codex.png" },
+            Boolean(codexCommand),
+            () => this._launchCodexTerminal(codexCommand)
+        );
+        const refreshButton = this._createLaunchButton(
+            "Refresh now",
+            { iconName: "view-refresh-symbolic", symbolic: true, compact: true },
+            true,
+            () => this._refreshUsage()
+        );
+        const analyticsButton = this._createLaunchButton(
+            "Analytics",
+            {
+                iconName: "utilities-system-monitor-symbolic",
+                symbolic: true,
+                compact: true
+            },
+            true,
+            () => Util.spawn(["xdg-open", ANALYTICS_URL])
+        );
+        const chatGptWebButton = this._createLaunchButton(
+            "Open ChatGPT",
+            {
+                iconName: "web-browser-symbolic",
+                symbolic: true,
+                compact: true,
+                transparent: true
+            },
+            true,
+            () => Util.spawn(["xdg-open", CHATGPT_URL])
+        );
+        const codexCloudButton = this._createLaunchButton(
+            "Open Codex Cloud",
+            {
+                iconName: "web-browser-symbolic",
+                symbolic: true,
+                compact: true,
+                transparent: true
+            },
+            true,
+            () => Util.spawn(["xdg-open", CODEX_CLOUD_URL])
+        );
+        launchRow.add_child(this._chatGptButton);
+        launchRow.add_child(this._codexButton);
+        utilityRow.add_child(refreshButton);
+        utilityRow.add_child(analyticsButton);
+        webRow.add_child(chatGptWebButton);
+        webRow.add_child(codexCloudButton);
+        column.add_child(launchRow);
+        column.add_child(utilityRow);
+        column.add_child(webRow);
+        item.addActor(column, { span: -1, expand: true });
+        this.menu.addMenuItem(item);
+    }
+
+    _createLaunchButton(label, iconSpec, available, action) {
+        const content = new St.BoxLayout({
+            vertical: false,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        content.style = "spacing: 6px;";
+        const iconProperties = { icon_size: iconSpec.compact ? 18 : 28 };
+        if (iconSpec.fileName) {
+            const iconPath = `${this.metadata.path}/icons/${iconSpec.fileName}`;
+            iconProperties.gicon = new Gio.FileIcon({
+                file: Gio.File.new_for_path(iconPath)
+            });
+        } else {
+            iconProperties.icon_name = iconSpec.iconName;
+            iconProperties.icon_type = iconSpec.symbolic
+                ? St.IconType.SYMBOLIC
+                : St.IconType.FULLCOLOR;
+        }
+        const icon = new St.Icon(iconProperties);
+        icon.y_align = Clutter.ActorAlign.CENTER;
+        content.add_child(icon);
+        content.add_child(new St.Label({
+            text: label,
+            y_align: Clutter.ActorAlign.CENTER
+        }));
+
+        const button = new St.Button({
+            child: content,
+            style_class: "notification-button",
+            reactive: available,
+            can_focus: available,
+            x_expand: true
+        });
+        button.style = this._launchButtonStyle(
+            available ? "normal" : "disabled",
+            iconSpec.compact,
+            iconSpec.transparent
+        );
+        if (!available) {
+            button.opacity = 100;
+            button.add_style_pseudo_class("insensitive");
+        } else {
+            button.connect("enter-event", () => {
+                button.style = this._launchButtonStyle(
+                    "hover",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("leave-event", () => {
+                button.style = this._launchButtonStyle(
+                    "normal",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("button-press-event", () => {
+                button.style = this._launchButtonStyle(
+                    "pressed",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("button-release-event", () => {
+                button.style = this._launchButtonStyle(
+                    "hover",
+                    iconSpec.compact,
+                    iconSpec.transparent
+                );
+            });
+            button.connect("clicked", () => {
+                this.menu.close(false);
+                action();
+            });
+        }
+        return button;
+    }
+
+    _launchButtonStyle(state, compact = false, transparent = false) {
+        const raisedColors = {
+            normal: ["rgba(255,255,255,0.14)", "rgba(255,255,255,0.05)"],
+            hover: ["rgba(255,255,255,0.22)", "rgba(255,255,255,0.09)"],
+            pressed: ["rgba(255,255,255,0.06)", "rgba(255,255,255,0.16)"],
+            disabled: ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]
+        };
+        const transparentColors = {
+            normal: ["rgba(255,255,255,0.035)", "rgba(255,255,255,0.01)"],
+            hover: ["rgba(255,255,255,0.13)", "rgba(255,255,255,0.04)"],
+            pressed: ["rgba(255,255,255,0.025)", "rgba(255,255,255,0.10)"],
+            disabled: ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.005)"]
+        };
+        const colors = transparent ? transparentColors : raisedColors;
+        const [top, bottom] = colors[state] || colors.normal;
+        return [
+            `padding: ${compact ? (transparent ? 3 : 4) : 7}px 10px`,
+            "border-radius: 6px",
+            `border: 1px solid rgba(255,255,255,${transparent ? 0.09 : 0.16})`,
+            "background-gradient-direction: vertical",
+            `background-gradient-start: ${top}`,
+            `background-gradient-end: ${bottom}`,
+            `box-shadow: inset 0 1px 2px rgba(255,255,255,${transparent ? 0.04 : 0.12})`
+        ].join("; ") + ";";
+    }
+
+    _chatGptAppInfo() {
+        try {
+            return Gio.DesktopAppInfo.new("chatgpt.desktop");
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect ChatGPT desktop app: ${error}`);
+            return null;
+        }
+    }
+
+    _codexTerminalCommand() {
+        const codex = this._resolveCodexPath();
+        if (!codex) return null;
+        try {
+            const terminalSettings = new Gio.Settings({
+                schema_id: "org.cinnamon.desktop.default-applications.terminal"
+            });
+            const terminal = terminalSettings.get_string("exec").trim();
+            const terminalArgument = terminalSettings.get_string("exec-arg").trim();
+            const [terminalOk, terminalArgv] = GLib.shell_parse_argv(terminal);
+            if (!terminalOk || terminalArgv.length === 0) return null;
+            const executable = GLib.find_program_in_path(terminalArgv[0]);
+            if (!executable) return null;
+            terminalArgv[0] = executable;
+            if (terminalArgument) {
+                const [argumentOk, argumentArgv] = GLib.shell_parse_argv(terminalArgument);
+                if (!argumentOk) return null;
+                terminalArgv.push(...argumentArgv);
+            }
+            terminalArgv.push(codex);
+            return terminalArgv;
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect the default terminal: ${error}`);
+            return null;
+        }
+    }
+
+    _launchChatGptApp(appInfo) {
+        try {
+            appInfo.launch([], null);
+        } catch (error) {
+            this._reportLaunchError("ChatGPT App", error);
+        }
+    }
+
+    _launchCodexTerminal(command) {
+        try {
+            Util.spawn(command);
+        } catch (error) {
+            this._reportLaunchError("Codex Terminal", error);
+        }
+    }
+
+    _reportLaunchError(target, error) {
+        this._lastError = `Could not open ${target}`;
+        global.logError(`${UUID}: ${this._lastError}: ${error}`);
+        this._rebuildMenu();
     }
 
     _addInfoItem(text, style = null) {
@@ -384,11 +619,12 @@ class ChatGptUsageApplet extends Applet.Applet {
             activate: false
         });
         const column = new St.BoxLayout({ vertical: true });
-        column.style = "padding: 2px 0 1px 16px;";
+        column.style = "padding: 2px 0 1px 10px;";
 
-        const caption = new St.Label({
-            text: `24h activity  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
-        });
+        const caption = new St.Label();
+        caption.clutter_text.set_markup(
+            `<b>24h activity  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}</b>`
+        );
         caption.style = "font-size: 85%;";
         column.add_child(caption);
 

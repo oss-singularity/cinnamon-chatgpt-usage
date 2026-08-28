@@ -14,6 +14,8 @@
   and mark incomplete observation periods with `~`.
 - Ignore one-minute reset-timestamp jitter so transient API rounding cannot
   create phantom consumption spikes.
+- Add availability-aware ChatGPT App and Codex Terminal launch buttons plus
+  direct links to ChatGPT, Codex Cloud and ChatGPT Analytics.
 
 ## 0.1.0 — 2026-08-27
 

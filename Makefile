@@ -6,7 +6,7 @@ check:
 	python3 -m unittest tests/test_chatgpt_usage.py
 	python3 -m json.tool metadata.json >/dev/null
 	python3 -m json.tool settings-schema.json >/dev/null
-	python3 tests/check-png.py icon.png icons/chatgpt-white.png
+	python3 tests/check-png.py icon.png icons/chatgpt-white.png icons/codex.png
 	shellcheck install.sh uninstall.sh
 
 verify:
