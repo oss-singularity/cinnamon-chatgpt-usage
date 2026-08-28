@@ -59,6 +59,26 @@ assertEqual(
 assertEqual(UsageFormat.formatDuration(300), "5h", "Five-hour label");
 assertEqual(UsageFormat.formatDuration(10080), "7d", "Weekly label");
 assertEqual(UsageFormat.formatDuration(90), "90m", "Non-integral hour label");
+assertEqual(
+    UsageFormat.formatElapsedDuration(1000, 1000 + (8 * 3600) + (31 * 60)),
+    "8h 31m",
+    "Elapsed collection duration"
+);
+assertEqual(
+    UsageFormat.formatElapsedDuration(1000, 1000 + (42 * 60)),
+    "42m",
+    "Sub-hour collection duration"
+);
+assertEqual(
+    UsageFormat.formatElapsedDuration(1000, 1000 + (26 * 3600)),
+    "26h",
+    "Multi-day collection duration in hours"
+);
+assertEqual(
+    UsageFormat.formatElapsedDuration(2000, 1000),
+    "?",
+    "Invalid collection duration"
+);
 assertEqual(UsageFormat.formatPercent(99.6), "100%", "Percentage rounding");
 assertEqual(UsageFormat.formatPercent(-2), "0%", "Percentage lower clamp");
 assertEqual(
@@ -70,6 +90,56 @@ assertEqual(
     UsageFormat.formatConsumedPercent({ consumedPercent: 2, complete: false }),
     "~2%",
     "Partial observed consumption"
+);
+
+const fiveHourCountdown = UsageFormat.buildResetCountdown(
+    { durationMinutes: 300, resetsAt: 10000 },
+    1000
+);
+assertEqual(fiveHourCountdown.valid, true, "Five-hour countdown validity");
+assertEqual(fiveHourCountdown.remainingSeconds, 9000, "Five-hour seconds remaining");
+assertEqual(fiveHourCountdown.fractionRemaining, 0.5, "Five-hour ring fraction");
+assertEqual(fiveHourCountdown.label, "2h\n30m", "Five-hour countdown label");
+
+const weeklyCountdown = UsageFormat.buildResetCountdown(
+    { durationMinutes: 10080, resetsAt: 1000 + (3 * 86400) + (4 * 3600) },
+    1000
+);
+assertEqual(weeklyCountdown.label, "3d\n4h", "Weekly countdown label");
+assertEqual(
+    UsageFormat.buildResetCountdown(
+        { durationMinutes: 300, resetsAt: 1000 + (42 * 60) + 7 },
+        1000
+    ).label,
+    "42m\n7s",
+    "Minute countdown label"
+);
+assertEqual(
+    UsageFormat.buildResetCountdown(
+        { durationMinutes: 300, resetsAt: 999 },
+        1000
+    ).label,
+    "now",
+    "Expired countdown label"
+);
+assertEqual(
+    UsageFormat.buildResetCountdown({ durationMinutes: 300, resetsAt: null }, 1000).valid,
+    false,
+    "Missing reset countdown"
+);
+const weeklyQuota = UsageFormat.buildQuotaIndicator({
+    durationMinutes: 10080,
+    remainingPercent: 60
+});
+assertEqual(weeklyQuota.valid, true, "Weekly quota ring validity");
+assertEqual(weeklyQuota.durationLabel, "7d", "Weekly quota ring duration");
+assertEqual(weeklyQuota.percentLabel, "60%", "Weekly quota ring percentage");
+assertEqual(weeklyQuota.fractionRemaining, 0.6, "Weekly quota ring fraction");
+assertEqual(
+    UsageFormat.buildQuotaIndicator({ durationMinutes: 300, remainingPercent: 120 })
+        .fractionRemaining,
+    1,
+    "Quota ring upper clamp"
 );
 assertEqual(
     UsageFormat.buildActivityChart([null, 0, 1, 2]).knownCount,
@@ -92,6 +162,40 @@ assertEqual(partialChart.bars[0].known, false, "Unknown partial zero bucket");
 assertEqual(partialChart.bars[1].partial, true, "Observed partial activity bucket");
 assertEqual(partialChart.bars[1].intensity, 7, "Partial peak intensity");
 assertEqual(partialChart.peakComplete, false, "Partial peak marker");
+
+const knownBucketTooltip = UsageFormat.formatActivityBucketTooltip(
+    chart.bars[3],
+    3,
+    4,
+    120,
+    1700000000,
+    true
+);
+if (!knownBucketTooltip.includes("2% consumed") || !knownBucketTooltip.includes("\n")) {
+    throw new Error(`Expected known activity tooltip details, got ${knownBucketTooltip}`);
+}
+const unknownBucketTooltip = UsageFormat.formatActivityBucketTooltip(
+    chart.bars[0],
+    0,
+    4,
+    120,
+    1700000000,
+    true
+);
+if (!unknownBucketTooltip.endsWith("No observed data")) {
+    throw new Error(`Expected unknown activity tooltip details, got ${unknownBucketTooltip}`);
+}
+const partialBucketTooltip = UsageFormat.formatActivityBucketTooltip(
+    partialChart.bars[1],
+    1,
+    2,
+    120,
+    1700000000,
+    false
+);
+if (!partialBucketTooltip.includes("~4% consumed · partial bucket")) {
+    throw new Error(`Expected partial activity tooltip details, got ${partialBucketTooltip}`);
+}
 
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
 if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {

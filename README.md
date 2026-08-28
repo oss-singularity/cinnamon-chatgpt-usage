@@ -22,7 +22,7 @@
 | -------------------------------------- | --------------------------------------------------------- |
 | ![Horizontal top bar](docs/topbar.png) | ![Above Adaptive System Monitor](docs/vertical-panel.png) |
 
-![Usage menu beside the vertical panel applet](docs/usage-menu.png)
+![Usage menu with a full 24-hour demo history beside the vertical panel applet](docs/usage-menu.png)
 
 | General settings                               | Colors and thresholds                       |
 | ---------------------------------------------- | ------------------------------------------- |
@@ -32,9 +32,12 @@
 
 - Mirrors the canonical limit cards from ChatGPT Analytics: remaining usage,
   reset times, credits and earned resets.
+- Shows paired circular available-quota and reset-countdown indicators for
+  every active 5h and 7d window without polling the API more often.
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
-  quota, with a compact 24-hour bar timeline in the popup.
-- Launches an installed ChatGPT desktop app or Codex terminal directly and
+  quota, with a compact 24-hour bar timeline and per-bucket hover details in
+  the popup.
+- Launches an installed ChatGPT desktop app or Codex CLI directly and
   links to ChatGPT, Codex Cloud and ChatGPT Analytics.
 - Shows `5h` automatically only when that account-level Analytics window is
   active; its accompanying `7d` panel block can be hidden in settings while
