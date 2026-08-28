@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.6 — 2026-08-29
+
+- Add the rolling consumed total directly to each `24h Activity` chart heading,
+  while keeping `Today` as the separate local-calendar-day value.
+- Keep account and model ChatGPT knots at one consistent size beside popup and
+  history headings.
+
 ## 0.2.5 — 2026-08-29
 
 - Use the same outlined, italic amber Spark badge beside panel and popup labels

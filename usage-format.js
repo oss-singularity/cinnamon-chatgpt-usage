@@ -225,7 +225,21 @@ function buildActivityChart(values) {
     const peakComplete = known.some(
         bar => bar.consumedPercent === peakPercent && bar.complete
     );
-    return { peakPercent, peakComplete, knownCount: known.length, bars };
+    const totalPercent = known.reduce(
+        (total, bar) => total + bar.consumedPercent,
+        0
+    );
+    const totalComplete = bars.length > 0 && bars.every(
+        bar => bar.known && bar.complete
+    );
+    return {
+        peakPercent,
+        peakComplete,
+        totalPercent,
+        totalComplete,
+        knownCount: known.length,
+        bars
+    };
 }
 
 function formatActivityBucketTooltip(
