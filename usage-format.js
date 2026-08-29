@@ -289,6 +289,22 @@ function formatAccessibleTooltip(text) {
     return String(text || "").replace(/\n/g, ". ");
 }
 
+function formatWholeNumber(value) {
+    if (value === null || value === undefined || value === "") return "unavailable";
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? String(Math.round(numeric)) : String(value);
+}
+
+function hasRecentActivity(activity24h) {
+    if (!Array.isArray(activity24h)) return false;
+    return activity24h.some(bucket => {
+        const consumed = typeof bucket === "object" && bucket !== null
+            ? Number(bucket.consumedPercent)
+            : Number(bucket);
+        return Number.isFinite(consumed) && consumed > 0;
+    });
+}
+
 function formatTimestamp(epochSeconds, use24Hour) {
     const seconds = Number(epochSeconds);
     if (!Number.isFinite(seconds) || seconds <= 0) return "unknown";
@@ -328,6 +344,8 @@ module.exports = {
     buildResetCountdown,
     buildQuotaIndicator,
     buildActivityChart,
+    formatWholeNumber,
+    hasRecentActivity,
     formatActivityBucketTooltip,
     formatAccessibleTooltip,
     formatTimestamp,

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.8 — 2026-08-29
+
+- Keep expanded Spark history compact by sharing one 24-hour activity chart
+  between its 5h and 7d summaries and opening the section automatically when
+  Spark activity was observed during the last 24 hours.
+- Hold the complete popup and its nested Spark content at a balanced 420 px
+  from the first rendered frame, without a scrollbar, panel overlap, edge gap
+  or late jump when the action buttons appear.
+- Align the quota and reset-progress rings to one right edge, retain balanced
+  chart margins and keep four-ring headers compact.
+- Keep credit balances and reset counts compact by rounding them to whole
+  numbers.
+
 ## 0.2.7 — 2026-08-29
 
 - Keep the right-panel popup flush with its transparent panel throughout a

@@ -265,6 +265,52 @@ const observedZeroChart = UsageFormat.buildActivityChart([
 ]);
 assertEqual(observedZeroChart.bars[0].known, true, "Observed zero bucket is known");
 assertEqual(observedZeroChart.bars[0].partial, true, "Observed running bucket is partial");
+assertEqual(
+    UsageFormat.hasRecentActivity([
+        { consumedPercent: 0, complete: true, observed: true },
+        { consumedPercent: 2, complete: false, observed: true }
+    ]),
+    true,
+    "Positive activity opens recent details"
+);
+assertEqual(
+    UsageFormat.hasRecentActivity([
+        null,
+        { consumedPercent: 0, complete: true, observed: true }
+    ]),
+    false,
+    "Observed zero activity keeps recent details closed"
+);
+assertEqual(
+    UsageFormat.hasRecentActivity(null),
+    false,
+    "Missing activity keeps recent details closed"
+);
+assertEqual(
+    UsageFormat.formatWholeNumber("250.0000000000"),
+    "250",
+    "Whole credit balance omits decimal zeroes"
+);
+assertEqual(
+    UsageFormat.formatWholeNumber("239.071181"),
+    "239",
+    "Fractional credit balance rounds to a whole number"
+);
+assertEqual(
+    UsageFormat.formatWholeNumber("239.8"),
+    "240",
+    "Credit balance uses conventional whole-number rounding"
+);
+assertEqual(
+    UsageFormat.formatWholeNumber(null),
+    "unavailable",
+    "Missing credit balance stays unavailable"
+);
+assertEqual(
+    UsageFormat.formatWholeNumber("3.0000000000"),
+    "3",
+    "Whole reset count omits decimal zeroes"
+);
 
 const knownBucketTooltip = UsageFormat.formatActivityBucketTooltip(
     chart.bars[3],

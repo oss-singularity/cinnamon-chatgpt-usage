@@ -24,9 +24,9 @@
 | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | ![Spark and Codex limits in a horizontal top bar](docs/model-limits/topbar.png) | ![Spark and Codex limits below Adaptive System Monitor](docs/model-limits/vertical-panel.png) |
 
-| Full 24-hour usage overview                                                                           | Spark histories expanded                                                                                  |
-| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| ![Usage menu with both panel blocks and a full hourly demo history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories with both panel blocks](docs/model-limits/usage-menu-spark.png) |
+| Full 24-hour usage overview                                                                           | Compact Spark histories                                                                                       |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| ![Usage menu with both panel blocks and a full hourly demo history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories sharing one activity chart](docs/model-limits/usage-menu-spark.png) |
 
 | Precise hourly bucket details                                                                 | Every active quota at a glance                                                               |
 | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -54,7 +54,8 @@
 - Tracks observed consumption for the last 1h, 4h, 12h and today per active
   quota, with a rolling total, compact bar timeline and per-bucket hover
   details for the last 24 hours. Two-hour buckets remain selectable in
-  settings, and model-specific histories stay in native expandable sections.
+  settings, and Spark's 5h and 7d summaries share one chart in their native
+  expandable section, which opens automatically after recent Spark activity.
 - Launches an installed ChatGPT desktop app or Codex CLI directly, with native
   installation guidance when either is missing. Web shortcuts cover ChatGPT,
   Codex Cloud and ChatGPT Analytics.
@@ -78,7 +79,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.2.6 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.2.8 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
