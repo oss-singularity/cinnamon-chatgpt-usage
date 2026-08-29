@@ -31,15 +31,20 @@ const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const POPUP_ACTION_GRID_WIDTH = 352;
-const POPUP_RIGHT_PANEL_WIDTH_BUMP = 5;
+// Cinnamon's one-pixel menu edge brings the visible popup width to 420 px.
+const POPUP_RIGHT_PANEL_WIDTH = 419;
 const POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM = 1;
-const POPUP_RIGHT_INSET = 4;
-const POPUP_CHART_RIGHT_INSET = 14;
+const POPUP_RIGHT_INSET = 17;
+const POPUP_CHART_RIGHT_INSET = 39;
+const POPUP_NESTED_CHART_LEFT_SHIFT = 5;
+const POPUP_NESTED_CHART_RIGHT_BALANCE = 11;
 const POPUP_SUBMENU_ARROW_OFFSET = -35;
 const POPUP_EXPANDED_RIGHT_INSET = 10;
 const POPUP_EXPANDED_ARROW_INSET = 25;
 const QUOTA_RING_SIZE = 52;
 const COMPACT_QUOTA_RING_SIZE = 40;
+const POPUP_HEADER_RING_LEFT_SHIFT = 13;
+const POPUP_RESET_RING_LEFT_SHIFT = 14;
 const SPARK_BADGE_COLOR = "#f2a15f";
 
 class ChatGptUsageApplet extends Applet.Applet {
@@ -63,6 +68,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._isRightPanel = this._orientationIsRight(orientation);
         this._rightPanelPopupCloseInProgress = false;
         this._rightPanelPopupCloseSeq = 0;
+        this._rightPanelPopupLockedWidth = 0;
         this._rightPanelMenuBaseMarginRight = 0;
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
@@ -200,12 +206,19 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._menuOpenOriginal = this.menu.open.bind(this.menu);
         this._menuCloseOriginal = this.menu.close.bind(this.menu);
         this.menu.open = animate => {
-            if (this._isRightPanel) this._applyRightPanelPopupWidth();
             if (this._isRightPanel) {
+                this._applyRightPanelPopupWidth();
+                this._rightPanelPopupLockedWidth = POPUP_RIGHT_PANEL_WIDTH;
+                this.menu.actor.set_width(this._rightPanelPopupLockedWidth);
                 this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
                 this.menu.actor.translation_x = 0;
             }
-            return this._menuOpenOriginal(animate);
+            this._openActiveSparkHistory();
+            const result = this._menuOpenOriginal(animate);
+            if (this._isRightPanel) {
+                this._lockRightPanelPopupLayoutWidth();
+            }
+            return result;
         };
         this.menu.close = animate => {
             if (this._isRightPanel && this.menu.isOpen) {
@@ -273,6 +286,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                     this._rightPanelPopupCloseSeq++;
                     this._rightPanelPopupCloseInProgress = false;
                 }
+                if (!open) this._rightPanelPopupLockedWidth = 0;
                 if (!open && !this._rightPanelPopupCloseInProgress) {
                     this._normalizeRightPanelPopupCloseWidth();
                 }
@@ -660,6 +674,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 y_align: Clutter.ActorAlign.CENTER
             });
             rings.style = `spacing: ${compact ? 2 : 8}px;`;
+            rings.translation_x = compact
+                ? -(POPUP_HEADER_RING_LEFT_SHIFT - 6)
+                : -POPUP_HEADER_RING_LEFT_SHIFT;
             for (const summary of summaries) {
                 rings.add_child(
                     this._createQuotaRing(
@@ -811,6 +828,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             width: size,
             height: size
         });
+        actor.translation_x = -POPUP_RESET_RING_LEFT_SHIFT;
         const area = new St.DrawingArea({ width: size, height: size });
         const label = new St.Label({
             x_align: Clutter.ActorAlign.CENTER,
@@ -1375,9 +1393,12 @@ class ChatGptUsageApplet extends Applet.Applet {
     _creditLines() {
         const credits = this._snapshot ? this._snapshot.credits : null;
         if (!credits) return ["Credits: unavailable", "Rate-limit resets: unavailable"];
-        let balance = credits.balance === null ? "unavailable" : credits.balance;
+        let balance = UsageFormat.formatWholeNumber(credits.balance);
         if (credits.unlimited) balance = "unlimited";
-        return [`Credits: ${balance}`, `Rate-limit resets: ${credits.availableResetCount}`];
+        const resetCount = UsageFormat.formatWholeNumber(
+            credits.availableResetCount
+        );
+        return [`Credits: ${balance}`, `Rate-limit resets: ${resetCount}`];
     }
 
     _addHistoryItems() {
@@ -1436,11 +1457,21 @@ class ChatGptUsageApplet extends Applet.Applet {
                 submenu.menu.connect("open-state-changed", () => {
                     this._syncPopupRightInsets();
                 });
+                const shareSparkActivityChart = this._modelBadge({
+                    id: limitId,
+                    label: first.label
+                }) === "S" && windows.length > 1;
                 windows.forEach((window, index) => {
                     if (index > 0) {
                         submenu.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
                     }
-                    this._addHistoryWindow(window, history, submenu.menu, false);
+                    this._addHistoryWindow(
+                        window,
+                        history,
+                        submenu.menu,
+                        false,
+                        !shareSparkActivityChart || index === windows.length - 1
+                    );
                 });
                 continue;
             }
@@ -1450,7 +1481,31 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
-    _addHistoryWindow(window, history, menu, showLimitLabel) {
+    _openActiveSparkHistory() {
+        const history = this._snapshot ? this._snapshot.history : null;
+        if (!history || !Array.isArray(history.windows)) return;
+
+        const activeSparkWindow = history.windows.find(window =>
+            this._modelBadge(window) === "S" &&
+            UsageFormat.hasRecentActivity(window.activity24h)
+        );
+        if (!activeSparkWindow) return;
+
+        const entry = this._historySubmenus.find(
+            candidate => candidate.id === activeSparkWindow.id
+        );
+        if (entry && !entry.submenu.menu.isOpen) {
+            entry.submenu.menu.open(false);
+        }
+    }
+
+    _addHistoryWindow(
+        window,
+        history,
+        menu,
+        showLimitLabel,
+        showActivityChart = true
+    ) {
         const duration = UsageFormat.formatDuration(window.durationMinutes);
         const periods = window.periods || {};
         const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
@@ -1469,12 +1524,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         );
         this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`, null, menu);
         this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`, null, menu);
-        this._addActivityChart(
-            window.activity24h,
-            history.activityBucketMinutes,
-            history.activityEndAt || this._snapshot.updatedAt,
-            menu
-        );
+        if (showActivityChart) {
+            this._addActivityChart(
+                window.activity24h,
+                history.activityBucketMinutes,
+                history.activityEndAt || this._snapshot.updatedAt,
+                menu
+            );
+        }
         if (hasPartialPeriod) {
             const trackedSinceSeconds = window.trackedSince || history.trackedSince;
             const trackedSince = UsageFormat.formatTimestamp(
@@ -1612,26 +1669,41 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _syncPopupRightInsets() {
-        const expanded = this._historySubmenus.some(
+        const expandedSubmenu = this._historySubmenus.some(
             entry => entry.submenu.menu.isOpen
         );
-        const extra = expanded ? POPUP_EXPANDED_RIGHT_INSET : 0;
+        const expandedWithScrollbar = this._historySubmenus.some(
+            entry => entry.submenu.menu.isOpen &&
+                entry.submenu.menu.actor.vscrollbar_policy === St.PolicyType.AUTOMATIC
+        );
+        const extra = expandedWithScrollbar ? POPUP_EXPANDED_RIGHT_INSET : 0;
         for (const row of this._popupRightInsetRows) {
             row.style = `padding-right: ${POPUP_RIGHT_INSET + extra}px;`;
         }
         for (const entry of this._activityCharts) {
-            const nestedExtra = expanded && entry.nested
+            const nestedShift = entry.nested ? POPUP_NESTED_CHART_LEFT_SHIFT : 0;
+            const nestedExtra = expandedWithScrollbar && entry.nested
                 ? POPUP_EXPANDED_RIGHT_INSET
                 : 0;
             entry.chart.style = [
-                "padding-left: 10px",
-                `padding-right: ${POPUP_CHART_RIGHT_INSET + extra + nestedExtra}px`
+                `padding-left: ${10 - nestedShift}px`,
+                `padding-right: ${
+                    POPUP_CHART_RIGHT_INSET + extra + nestedExtra + nestedShift +
+                    (entry.nested ? POPUP_NESTED_CHART_RIGHT_BALANCE : 0)
+                }px`
             ].join("; ") + ";";
         }
         for (const triangle of this._submenuTriangles) {
             triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET - (
-                expanded ? POPUP_EXPANDED_ARROW_INSET : 0
+                expandedSubmenu ? POPUP_EXPANDED_ARROW_INSET : 0
             );
+        }
+        if (
+            this._isRightPanel &&
+            this.menu.isOpen &&
+            this._rightPanelPopupLockedWidth > 0
+        ) {
+            this._lockRightPanelPopupLayoutWidth();
         }
     }
 
@@ -1856,6 +1928,17 @@ class ChatGptUsageApplet extends Applet.Applet {
     on_orientation_changed(orientation) {
         this._isVertical = this._orientationIsVertical(orientation);
         this._isRightPanel = this._orientationIsRight(orientation);
+        if (!this._isRightPanel && this.menu) {
+            this.menu.actor.set_width(-1);
+            this.menu.box.set_width(-1);
+            this.menu.box.clip_to_allocation = false;
+            this.menu.actor.style = this._rightPanelMenuStyleBase || "";
+            this.menu.actor.translation_x = 0;
+            for (const entry of this._historySubmenus) {
+                this._clearForcedActorWidth(entry.submenu.menu.actor);
+                this._clearForcedActorWidth(entry.submenu.menu.box);
+            }
+        }
         if (!this._root) return;
         this.actor.style = this._isVertical
             ? "padding-left: 0px; padding-right: 0px;"
@@ -1883,24 +1966,54 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _applyRightPanelPopupWidth() {
         if (!this._isRightPanel || !this.menu) return;
-        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
-        const width = Math.max(0, Math.ceil(naturalWidth) + POPUP_RIGHT_PANEL_WIDTH_BUMP);
-        if (!width) return;
         const baseStyle = this._rightPanelMenuStyleBase
             ? `${this._rightPanelMenuStyleBase}; `
             : "";
-        this.menu.actor.style = `${baseStyle}min-width: ${width}px;`;
+        this.menu.actor.style = `${baseStyle}min-width: ${POPUP_RIGHT_PANEL_WIDTH}px;`;
         this.menu.actor.translation_x = 0;
+        this._lockRightPanelPopupLayoutWidth();
+    }
+
+    _lockRightPanelPopupLayoutWidth() {
+        if (!this._isRightPanel || !this.menu) return;
+        const width = this._rightPanelPopupLockedWidth > 0
+            ? this._rightPanelPopupLockedWidth
+            : POPUP_RIGHT_PANEL_WIDTH;
+        this.menu.actor.set_width(width);
+        this.menu.box.set_width(width);
+        this.menu.box.clip_to_allocation = true;
+        for (const entry of this._historySubmenus) {
+            this._forceActorWidth(entry.submenu.menu.actor, width);
+            this._forceActorWidth(entry.submenu.menu.box, width);
+        }
+    }
+
+    _forceActorWidth(actor, width) {
+        actor.min_width = width;
+        actor.natural_width = width;
+        actor.min_width_set = true;
+        actor.natural_width_set = true;
+        actor.set_width(width);
+        actor.clip_to_allocation = true;
+    }
+
+    _clearForcedActorWidth(actor) {
+        actor.set_width(-1);
+        actor.min_width_set = false;
+        actor.natural_width_set = false;
+        actor.clip_to_allocation = false;
     }
 
     _normalizeRightPanelPopupCloseWidth(trimPx = 0) {
         if (!this._isRightPanel || !this.menu) return;
+        const lockedWidth = this._rightPanelPopupLockedWidth;
         this.menu.actor.style = this._rightPanelMenuStyleBase;
         this.menu.actor.translation_x = 0;
         this.menu.actor.set_width(-1);
 
-        const naturalWidth = Math.max(0, this.menu.actor.get_preferred_width(-1)[1] - trimPx);
-        const normalizedWidth = Math.max(0, Math.floor(naturalWidth));
+        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
+        const baseWidth = lockedWidth > 0 ? lockedWidth : naturalWidth;
+        const normalizedWidth = Math.max(0, Math.floor(baseWidth - trimPx));
         if (normalizedWidth > 0) {
             this.menu.actor.set_width(normalizedWidth);
             return;
