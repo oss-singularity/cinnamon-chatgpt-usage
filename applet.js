@@ -1772,7 +1772,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _applyRightPanelPopupWidth() {
         if (!this._isRightPanel || !this.menu) return;
-        const [_, naturalWidth] = this.menu.actor.get_preferred_width(-1);
+        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
         const width = Math.max(0, Math.ceil(naturalWidth) + POPUP_RIGHT_PANEL_WIDTH_BUMP);
         if (!width) return;
         const baseStyle = this._rightPanelMenuStyleBase
@@ -1784,7 +1784,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _normalizeRightPanelPopupCloseWidth() {
         if (!this._isRightPanel || !this.menu) return;
-        const [_, naturalWidth] = this.menu.actor.get_preferred_width(-1);
+        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
         const normalizedWidth = Math.max(0, Math.ceil(naturalWidth));
         this.menu.actor.style = this._rightPanelMenuStyleBase;
         this.menu.actor.translation_x = 0;
