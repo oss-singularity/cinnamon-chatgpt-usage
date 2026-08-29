@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.7 — 2026-08-29
+
+- Keep the right-panel popup flush with its transparent panel throughout a
+  smooth fade-only close, without a final jump, overlap seam or vertical gap.
+- Cancel stale close callbacks during rapid open/close changes and safely
+  restore Cinnamon's panel stacking after the animation completes.
+
 ## 0.2.6 — 2026-08-29
 
 - Add the rolling consumed total directly to each `24h Activity` chart heading,
