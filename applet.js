@@ -32,6 +32,7 @@ const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const POPUP_ACTION_GRID_WIDTH = 352;
 const POPUP_RIGHT_PANEL_WIDTH_BUMP = 5;
+const POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM = 1;
 const POPUP_RIGHT_INSET = 4;
 const POPUP_CHART_RIGHT_INSET = 14;
 const POPUP_SUBMENU_ARROW_OFFSET = -35;
@@ -60,6 +61,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._activityCharts = [];
         this._submenuTriangles = [];
         this._isRightPanel = this._orientationIsRight(orientation);
+        this._rightPanelPopupCloseInProgress = false;
+        this._rightPanelPopupCloseSeq = 0;
+        this._rightPanelMenuBaseMarginRight = 0;
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
         this._menuRebuildTimeoutId = 0;
@@ -192,28 +196,135 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
         this._rightPanelMenuStyleBase = this.menu.actor.get_style() || "";
+        this._rightPanelMenuBaseMarginRight = this.menu.actor.margin_right;
         this._menuOpenOriginal = this.menu.open.bind(this.menu);
         this._menuCloseOriginal = this.menu.close.bind(this.menu);
         this.menu.open = animate => {
             if (this._isRightPanel) this._applyRightPanelPopupWidth();
+            if (this._isRightPanel) {
+                this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
+                this.menu.actor.translation_x = 0;
+            }
             return this._menuOpenOriginal(animate);
         };
         this.menu.close = animate => {
-            if (this._isRightPanel) this._normalizeRightPanelPopupCloseWidth();
+            if (this._isRightPanel && this.menu.isOpen) {
+                const closeSeq = ++this._rightPanelPopupCloseSeq;
+                if (Main.uiGroup) {
+                    Main.uiGroup.set_child_above_sibling(this.menu.actor, null);
+                }
+
+                if (animate && Main.wm.desktop_effects_menus) {
+                    this._normalizeRightPanelPopupCloseWidth(POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM);
+
+                    this.menu.isOpen = false;
+                    if (global.menuStack && Array.isArray(global.menuStack)) {
+                        const menuStackIndex = global.menuStack.indexOf(this.menu);
+                        if (menuStackIndex >= 0) {
+                            global.menuStack.splice(menuStackIndex, 1);
+                        }
+                    }
+
+                    if (this.menu._activeMenuItem) {
+                        this.menu._activeMenuItem.setActive(false);
+                    }
+
+                    this.menu.actor.set_position(...this.menu._calculatePosition());
+                    this.menu.actor.set_size(...this.menu.actor.get_size());
+                    this.menu.actor.opacity = 255;
+                    this.menu.actor.show();
+                    this.menu.actor.translation_x = 0;
+                    this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
+                    this.menu.animating = true;
+
+                    this._rightPanelPopupCloseInProgress = true;
+                    this.menu.emit('open-state-changed', false);
+
+                    this.menu.actor.ease({
+                        mode: Clutter.AnimationMode.EASE_IN_QUAD,
+                        duration: Main.wm.MENU_ANIMATION_TIME,
+                        opacity: 0,
+                        onComplete: () => {
+                            if (!this._rightPanelPopupCloseInProgress) return;
+                            if (this._rightPanelPopupCloseSeq !== closeSeq) return;
+                            if (this.menu.isOpen) return;
+
+                            this.menu.animating = false;
+                            this.menu.actor.set_size(-1, -1);
+                            this.menu.actor.hide();
+                            this.menu.actor.opacity = 255;
+                            this.menu.emit('menu-animated-closed');
+                        }
+                    });
+                    return;
+                }
+
+                this._normalizeRightPanelPopupCloseWidth(POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM);
+                this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
+                this._rightPanelPopupCloseInProgress = false;
+            }
             return this._menuCloseOriginal(animate);
         };
         this._rightPanelPopupOpenStateChangedId = this.menu.connect(
             "open-state-changed",
             (_menu, open) => {
                 if (!this._isRightPanel || !this.menu) return;
-
-                if (!open) this._normalizeRightPanelPopupCloseWidth();
+                if (open) {
+                    this._rightPanelPopupCloseSeq++;
+                    this._rightPanelPopupCloseInProgress = false;
+                }
+                if (!open && !this._rightPanelPopupCloseInProgress) {
+                    this._normalizeRightPanelPopupCloseWidth();
+                }
             }
         );
         this._rightPanelPopupClosedId = this.menu.connect("menu-animated-closed", () => {
             if (!this._isRightPanel || !this.menu) return;
+            this._rightPanelPopupCloseInProgress = false;
             this.menu.actor.set_width(-1);
             this.menu.actor.translation_x = 0;
+            this.menu.actor.style = this._rightPanelMenuStyleBase || "";
+            this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
+            Main.panelManager.updatePanelsVisibility();
+            if (Main.uiGroup) {
+                const parentPanel = this.menu.getPanel();
+                if (parentPanel) {
+                    let children = Main.uiGroup.get_children();
+                    let panelIndex = children.indexOf(parentPanel);
+                    if (panelIndex < 0) {
+                        Main.uiGroup.set_child_above_sibling(this.menu.actor, null);
+                    } else {
+                        const sourceActor = this.menu.sourceActor;
+                        if (
+                            sourceActor &&
+                            Main.layoutManager &&
+                            typeof Main.layoutManager.findMonitorForActor === "function"
+                        ) {
+                            const monitor = Main.layoutManager.findMonitorForActor(sourceActor);
+                            if (
+                                monitor &&
+                                Number.isInteger(monitor.index) &&
+                                Main.panelManager &&
+                                typeof Main.panelManager.getPanelsInMonitor === "function"
+                            ) {
+                                const panels = Main.panelManager.getPanelsInMonitor(monitor.index);
+                                if (Array.isArray(panels)) {
+                                    for (let i = 0; i < panels.length; i++) {
+                                        const panelActor = panels[i] && panels[i].actor;
+                                        let idx = children.indexOf(panelActor);
+                                        if (idx >= 0 && idx < panelIndex) {
+                                            panelIndex = idx;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Main.uiGroup.set_child_below_sibling(this.menu.actor, children[panelIndex]);
+                    }
+                } else {
+                    Main.uiGroup.set_child_above_sibling(this.menu.actor, null);
+                }
+            }
         });
         this._rebuildMenu();
     }
@@ -1782,12 +1893,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.actor.translation_x = 0;
     }
 
-    _normalizeRightPanelPopupCloseWidth() {
+    _normalizeRightPanelPopupCloseWidth(trimPx = 0) {
         if (!this._isRightPanel || !this.menu) return;
-        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
-        const normalizedWidth = Math.max(0, Math.ceil(naturalWidth));
         this.menu.actor.style = this._rightPanelMenuStyleBase;
         this.menu.actor.translation_x = 0;
+        this.menu.actor.set_width(-1);
+
+        const naturalWidth = Math.max(0, this.menu.actor.get_preferred_width(-1)[1] - trimPx);
+        const normalizedWidth = Math.max(0, Math.floor(naturalWidth));
         if (normalizedWidth > 0) {
             this.menu.actor.set_width(normalizedWidth);
             return;
