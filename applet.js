@@ -31,7 +31,7 @@ const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const POPUP_ACTION_GRID_WIDTH = 352;
-const POPUP_WIDTH_TRIM = 5;
+const POPUP_RIGHT_PANEL_WIDTH_BUMP = 5;
 const POPUP_RIGHT_INSET = 4;
 const POPUP_CHART_RIGHT_INSET = 14;
 const POPUP_SUBMENU_ARROW_OFFSET = -35;
@@ -59,10 +59,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._popupRightInsetRows = [];
         this._activityCharts = [];
         this._submenuTriangles = [];
-        this._popupOpenWidth = 0;
+        this._isRightPanel = this._orientationIsRight(orientation);
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
         this._menuRebuildTimeoutId = 0;
+        this._rightPanelPopupClosedId = 0;
+        this._rightPanelPopupOpenStateChangedId = 0;
         this._refreshButton = null;
         this._refreshButtonIcon = null;
         this._refreshButtonLabel = null;
@@ -80,6 +82,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._cancellable = null;
         this._snapshot = null;
         this._lastError = null;
+        this._rightPanelMenuStyleBase = null;
         this._clockSettings = null;
         this._clockChangedId = 0;
         this._use24HourClock = true;
@@ -188,17 +191,29 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
-        this.menu.connect("open-state-changed", (menu, open) => {
-            if (open) {
-                const width = Math.ceil(menu.actor.get_width()) - POPUP_WIDTH_TRIM;
-                if (width > 0) {
-                    this._popupOpenWidth = width;
-                    menu.actor.set_width(width);
-                }
-            } else {
-                this._popupOpenWidth = 0;
-                menu.actor.set_width(-1);
+        this._rightPanelMenuStyleBase = this.menu.actor.get_style() || "";
+        this._menuOpenOriginal = this.menu.open.bind(this.menu);
+        this._menuCloseOriginal = this.menu.close.bind(this.menu);
+        this.menu.open = animate => {
+            if (this._isRightPanel) this._applyRightPanelPopupWidth();
+            return this._menuOpenOriginal(animate);
+        };
+        this.menu.close = animate => {
+            if (this._isRightPanel) this._normalizeRightPanelPopupCloseWidth();
+            return this._menuCloseOriginal(animate);
+        };
+        this._rightPanelPopupOpenStateChangedId = this.menu.connect(
+            "open-state-changed",
+            (_menu, open) => {
+                if (!this._isRightPanel || !this.menu) return;
+
+                if (!open) this._normalizeRightPanelPopupCloseWidth();
             }
+        );
+        this._rightPanelPopupClosedId = this.menu.connect("menu-animated-closed", () => {
+            if (!this._isRightPanel || !this.menu) return;
+            this.menu.actor.set_width(-1);
+            this.menu.actor.translation_x = 0;
         });
         this._rebuildMenu();
     }
@@ -1486,9 +1501,6 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _syncPopupRightInsets() {
-        if (this.menu.isOpen && this._popupOpenWidth > 0) {
-            this.menu.actor.set_width(this._popupOpenWidth);
-        }
         const expanded = this._historySubmenus.some(
             entry => entry.submenu.menu.isOpen
         );
@@ -1725,13 +1737,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         return GLib.file_test(localPath, GLib.FileTest.IS_EXECUTABLE) ? localPath : null;
     }
 
-    on_applet_clicked() {
+        on_applet_clicked() {
         this._rebuildMenu();
         this.menu.toggle();
     }
 
     on_orientation_changed(orientation) {
         this._isVertical = this._orientationIsVertical(orientation);
+        this._isRightPanel = this._orientationIsRight(orientation);
         if (!this._root) return;
         this.actor.style = this._isVertical
             ? "padding-left: 0px; padding-right: 0px;"
@@ -1757,8 +1770,37 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
+    _applyRightPanelPopupWidth() {
+        if (!this._isRightPanel || !this.menu) return;
+        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
+        const width = Math.max(0, Math.ceil(naturalWidth) + POPUP_RIGHT_PANEL_WIDTH_BUMP);
+        if (!width) return;
+        const baseStyle = this._rightPanelMenuStyleBase
+            ? `${this._rightPanelMenuStyleBase}; `
+            : "";
+        this.menu.actor.style = `${baseStyle}min-width: ${width}px;`;
+        this.menu.actor.translation_x = 0;
+    }
+
+    _normalizeRightPanelPopupCloseWidth() {
+        if (!this._isRightPanel || !this.menu) return;
+        const naturalWidth = this.menu.actor.get_preferred_width(-1)[1];
+        const normalizedWidth = Math.max(0, Math.ceil(naturalWidth));
+        this.menu.actor.style = this._rightPanelMenuStyleBase;
+        this.menu.actor.translation_x = 0;
+        if (normalizedWidth > 0) {
+            this.menu.actor.set_width(normalizedWidth);
+            return;
+        }
+        this.menu.actor.set_width(-1);
+    }
+
     _orientationIsVertical(orientation) {
         return orientation === St.Side.LEFT || orientation === St.Side.RIGHT;
+    }
+
+    _orientationIsRight(orientation) {
+        return orientation === St.Side.RIGHT;
     }
 
     on_applet_removed_from_panel() {
@@ -1774,6 +1816,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._refreshConfirmationTimeoutId) {
             Mainloop.source_remove(this._refreshConfirmationTimeoutId);
             this._refreshConfirmationTimeoutId = 0;
+        }
+        if (this._rightPanelPopupClosedId) {
+            this.menu.disconnect(this._rightPanelPopupClosedId);
+            this._rightPanelPopupClosedId = 0;
+        }
+        if (this._rightPanelPopupOpenStateChangedId) {
+            this.menu.disconnect(this._rightPanelPopupOpenStateChangedId);
+            this._rightPanelPopupOpenStateChangedId = 0;
         }
         if (this._menuRebuildTimeoutId) {
             Mainloop.source_remove(this._menuRebuildTimeoutId);

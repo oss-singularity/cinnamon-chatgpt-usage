@@ -20,25 +20,25 @@
 
 ![ChatGPT Usage for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
 
-| Horizontal top bar                     | 40 px vertical panel                                      |
-| -------------------------------------- | --------------------------------------------------------- |
-| ![Horizontal top bar](docs/topbar.png) | ![Above Adaptive System Monitor](docs/vertical-panel.png) |
+| Horizontal top bar with Spark + Codex blocks                                    | 40 px vertical panel with both blocks                                                         |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| ![Spark and Codex limits in a horizontal top bar](docs/model-limits/topbar.png) | ![Spark and Codex limits below Adaptive System Monitor](docs/model-limits/vertical-panel.png) |
 
-| Full 24-hour usage overview                                        | Spark histories expanded                                              |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| ![Usage menu with a full hourly demo history](docs/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories](docs/usage-menu-spark.png) |
+| Full 24-hour usage overview                                                                           | Spark histories expanded                                                                                  |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| ![Usage menu with both panel blocks and a full hourly demo history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories with both panel blocks](docs/model-limits/usage-menu-spark.png) |
 
-| Precise hourly bucket details                           | Every active quota at a glance                         |
-| ------------------------------------------------------- | ------------------------------------------------------ |
-| ![Hourly bucket hover details](docs/bucket-tooltip.png) | ![Compact panel hover summary](docs/panel-tooltip.png) |
+| Precise hourly bucket details                                                                 | Every active quota at a glance                                                               |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| ![Hourly bucket hover details beside both panel blocks](docs/model-limits/bucket-tooltip.png) | ![Compact panel hover summary beside both panel blocks](docs/model-limits/panel-tooltip.png) |
 
-| ChatGPT desktop app guidance                               | Codex CLI guidance                                     |
-| ---------------------------------------------------------- | ------------------------------------------------------ |
-| ![ChatGPT App installation help](docs/install-chatgpt.png) | ![Codex CLI installation help](docs/install-codex.png) |
+| ChatGPT desktop app guidance                                                                     | Codex CLI guidance                                                                           |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| ![ChatGPT App installation help beside both panel blocks](docs/model-limits/install-chatgpt.png) | ![Codex CLI installation help beside both panel blocks](docs/model-limits/install-codex.png) |
 
-| General settings                               | Colors and thresholds                       |
-| ---------------------------------------------- | ------------------------------------------- |
-| ![General settings](docs/settings-general.png) | ![Color settings](docs/settings-colors.png) |
+| General settings with model-specific panel limits enabled                                            | Colors and thresholds beside both panel blocks                                    |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| ![General settings with model-specific panel limits enabled](docs/model-limits/settings-general.png) | ![Color settings beside both panel blocks](docs/model-limits/settings-colors.png) |
 
 ## Highlights
 
