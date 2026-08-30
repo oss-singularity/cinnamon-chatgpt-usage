@@ -1784,8 +1784,8 @@ class ChatGptUsageApplet extends Applet.Applet {
             const preferredLeft = tooltip.mousePosition[0] + Math.round(
                 cursorSize / 2
             );
-            const preferredTop = tooltip.mousePosition[1] + Math.round(
-                cursorSize / 1.5
+            const preferredTop = tooltip.mousePosition[1] - naturalHeight - Math.round(
+                cursorSize / 2
             );
             const left = Math.max(
                 monitor.x,
