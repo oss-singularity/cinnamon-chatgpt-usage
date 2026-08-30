@@ -67,6 +67,8 @@
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
+- Replaces stale usage with a compact sign-in message when Codex reports that
+  its ChatGPT login is missing or expired, both at startup and after logout.
 
 ## Installation
 
@@ -79,7 +81,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.2.8 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.3.0 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.

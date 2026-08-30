@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 — 2026-08-30
+
+- Highlight credit balances and rate-limit reset counts with the same bright,
+  bold treatment as the remaining-usage values.
+- Show a compact, wrapped sign-in message when no ChatGPT login is available,
+  explicitly accepting the Codex App or CLI, and discard stale usage
+  immediately when a later refresh detects logout.
+- Keep the Spark disclosure arrow at one stable horizontal position while its
+  usage histories open and close.
+- Refresh the complete README screenshot set around a consistent illustrative
+  Spark 5h 82%, Spark 7d 76% and Codex 7d 62% demo state.
+
 ## 0.2.8 — 2026-08-29
 
 - Keep expanded Spark history compact by sharing one 24-hour activity chart

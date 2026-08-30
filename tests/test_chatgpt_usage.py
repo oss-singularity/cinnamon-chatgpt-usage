@@ -10,9 +10,33 @@ from tempfile import TemporaryDirectory
 
 from chatgpt_usage import (
     build_usage_history,
+    is_authentication_error,
     normalise_rate_limits,
     update_usage_history,
 )
+
+
+class AuthenticationErrorTests(unittest.TestCase):
+    def test_logged_out_and_rejected_refresh_tokens_require_login(self) -> None:
+        messages = (
+            "Not logged in",
+            "authentication required",
+            "Failed to refresh token: refresh token was rejected",
+            "OAuth refresh token was rejected: already used",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                self.assertTrue(is_authentication_error(message))
+
+    def test_network_and_service_errors_do_not_discard_stale_usage(self) -> None:
+        messages = (
+            "Timed out while reading ChatGPT usage limits",
+            "service unavailable",
+            "failed to send request",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                self.assertFalse(is_authentication_error(message))
 
 
 class NormaliseRateLimitsTests(unittest.TestCase):
