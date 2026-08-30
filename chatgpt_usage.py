@@ -28,10 +28,35 @@ HISTORY_RETENTION_SECONDS = 8 * 24 * 60 * 60
 ACTIVITY_WINDOW_SECONDS = 24 * 60 * 60
 DEFAULT_ACTIVITY_BUCKET_MINUTES = 60
 RESET_TIMESTAMP_JITTER_SECONDS = 60
+AUTH_REQUIRED_PREFIX = "AUTH_REQUIRED:"
+AUTH_REQUIRED_MESSAGE = "Sign in to ChatGPT with the Codex App/CLI, then refresh this applet."
 
 
 class UsageError(RuntimeError):
     """A user-facing usage retrieval error."""
+
+
+class AuthenticationRequired(UsageError):
+    """The Codex app-server cannot read usage without a ChatGPT login."""
+
+
+def is_authentication_error(detail: Any) -> bool:
+    """Recognise stable Codex authentication failures without exposing raw errors."""
+
+    message = str(detail or "").casefold()
+    markers = (
+        "authentication required",
+        "login required",
+        "not logged in",
+        "not signed in",
+        "failed to refresh token",
+        "oauth refresh token was rejected",
+        "refresh token was rejected",
+        "token refresh not possible",
+        "unauthenticated",
+        "unauthorized",
+    )
+    return any(marker in message for marker in markers)
 
 
 def _number(value: Any, default: float = 0) -> float:
@@ -412,6 +437,8 @@ def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
             if "error" in message:
                 error = message["error"]
                 detail = error.get("message") if isinstance(error, dict) else error
+                if is_authentication_error(detail):
+                    raise AuthenticationRequired(AUTH_REQUIRED_MESSAGE)
                 raise UsageError(f"Codex app-server rejected the request: {detail}")
             result = message.get("result")
             if not isinstance(result, dict):
@@ -465,6 +492,9 @@ def main() -> int:
                 snapshot["history"] = {"error": f"Could not store local history: {error}"}
         print(json.dumps(snapshot, separators=(",", ":")))
         return 0
+    except AuthenticationRequired as error:
+        print(f"{AUTH_REQUIRED_PREFIX} {error}", file=sys.stderr)
+        return 2
     except (OSError, UsageError) as error:
         print(str(error), file=sys.stderr)
         return 1

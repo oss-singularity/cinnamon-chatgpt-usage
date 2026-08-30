@@ -295,6 +295,18 @@ function formatWholeNumber(value) {
     return Number.isFinite(numeric) ? String(Math.round(numeric)) : String(value);
 }
 
+function parseUsageHelperError(value) {
+    const message = String(value || "Usage helper failed").trim();
+    const prefix = "AUTH_REQUIRED:";
+    if (message.startsWith(prefix)) {
+        return {
+            authenticationRequired: true,
+            message: message.slice(prefix.length).trim()
+        };
+    }
+    return { authenticationRequired: false, message };
+}
+
 function hasRecentActivity(activity24h) {
     if (!Array.isArray(activity24h)) return false;
     return activity24h.some(bucket => {
@@ -345,6 +357,7 @@ module.exports = {
     buildQuotaIndicator,
     buildActivityChart,
     formatWholeNumber,
+    parseUsageHelperError,
     hasRecentActivity,
     formatActivityBucketTooltip,
     formatAccessibleTooltip,

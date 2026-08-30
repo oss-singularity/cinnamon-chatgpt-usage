@@ -311,6 +311,26 @@ assertEqual(
     "3",
     "Whole reset count omits decimal zeroes"
 );
+const authenticationError = UsageFormat.parseUsageHelperError(
+    "AUTH_REQUIRED: Sign in to ChatGPT with the Codex App/CLI."
+);
+assertEqual(
+    authenticationError.authenticationRequired,
+    true,
+    "Authentication marker is recognised"
+);
+assertEqual(
+    authenticationError.message,
+    "Sign in to ChatGPT with the Codex App/CLI.",
+    "Authentication marker is hidden from the user"
+);
+const refreshError = UsageFormat.parseUsageHelperError("Network unavailable");
+assertEqual(
+    refreshError.authenticationRequired,
+    false,
+    "Ordinary refresh errors retain stale usage"
+);
+assertEqual(refreshError.message, "Network unavailable", "Refresh error text is retained");
 
 const knownBucketTooltip = UsageFormat.formatActivityBucketTooltip(
     chart.bars[3],
