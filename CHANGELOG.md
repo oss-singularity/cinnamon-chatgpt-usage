@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2 — 2026-08-31
+
+- Keep the nested Spark activity chart on its final horizontal insets from its
+  first hidden layout frame, preventing an empty chart from shifting left when
+  its manually opened details finish animating.
+
 ## 0.3.1 — 2026-08-31
 
 - Supplement rounded-zero 7-day Spark activity buckets with a smallest-height,

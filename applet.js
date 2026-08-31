@@ -1754,13 +1754,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         column.add_child(caption);
 
         const chart = new St.BoxLayout({ vertical: true, x_expand: true });
-        chart.style = [
-            "padding-left: 10px",
-            `padding-right: ${POPUP_CHART_RIGHT_INSET}px`
-        ].join("; ") + ";";
+        const nested = menu !== this.menu;
+        chart.style = this._activityChartStyle(nested, false);
         this._activityCharts.push({
             chart,
-            nested: menu !== this.menu
+            nested
         });
 
         const plot = new St.Widget({
@@ -1838,6 +1836,21 @@ class ChatGptUsageApplet extends Applet.Applet {
         menu.addMenuItem(item);
     }
 
+    _activityChartStyle(nested, expandedWithScrollbar) {
+        const nestedShift = nested ? POPUP_NESTED_CHART_LEFT_SHIFT : 0;
+        const extra = expandedWithScrollbar ? POPUP_EXPANDED_RIGHT_INSET : 0;
+        const nestedExtra = expandedWithScrollbar && nested
+            ? POPUP_EXPANDED_RIGHT_INSET
+            : 0;
+        return [
+            `padding-left: ${10 - nestedShift}px`,
+            `padding-right: ${
+                POPUP_CHART_RIGHT_INSET + extra + nestedExtra + nestedShift +
+                (nested ? POPUP_NESTED_CHART_RIGHT_BALANCE : 0)
+            }px`
+        ].join("; ") + ";";
+    }
+
     _syncPopupRightInsets() {
         const expandedWithScrollbar = this._historySubmenus.some(
             entry => entry.submenu.menu.isOpen &&
@@ -1848,17 +1861,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             row.style = `padding-right: ${POPUP_RIGHT_INSET + extra}px;`;
         }
         for (const entry of this._activityCharts) {
-            const nestedShift = entry.nested ? POPUP_NESTED_CHART_LEFT_SHIFT : 0;
-            const nestedExtra = expandedWithScrollbar && entry.nested
-                ? POPUP_EXPANDED_RIGHT_INSET
-                : 0;
-            entry.chart.style = [
-                `padding-left: ${10 - nestedShift}px`,
-                `padding-right: ${
-                    POPUP_CHART_RIGHT_INSET + extra + nestedExtra + nestedShift +
-                    (entry.nested ? POPUP_NESTED_CHART_RIGHT_BALANCE : 0)
-                }px`
-            ].join("; ") + ";";
+            entry.chart.style = this._activityChartStyle(
+                entry.nested,
+                expandedWithScrollbar
+            );
         }
         for (const triangle of this._submenuTriangles) {
             triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET;

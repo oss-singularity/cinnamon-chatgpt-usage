@@ -11,4 +11,20 @@ for (const path of ARGV) {
     if (path.endsWith("applet.js") && source.includes("collecting since")) {
         throw new Error("Spark history must not expose internal collection-start text");
     }
+    if (path.endsWith("applet.js")) {
+        const initialNestedChartStyle =
+            /chart\.style = this\._activityChartStyle\(nested, false\);[\s\S]*this\._activityCharts\.push\(\{\s*chart,\s*nested\s*\}\);/;
+        if (!initialNestedChartStyle.test(source)) {
+            throw new Error(
+                "Nested activity charts must receive their final inset style before registration"
+            );
+        }
+        const synchronizedNestedChartStyle =
+            /entry\.chart\.style = this\._activityChartStyle\(\s*entry\.nested,\s*expandedWithScrollbar\s*\);/;
+        if (!synchronizedNestedChartStyle.test(source)) {
+            throw new Error(
+                "Initial and synchronized activity-chart insets must share one layout path"
+            );
+        }
+    }
 }
