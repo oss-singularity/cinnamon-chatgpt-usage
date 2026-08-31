@@ -20,13 +20,19 @@
 
 ![ChatGPT Usage for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
 
-| Horizontal top bar with Spark + Codex blocks                                    | 40 px vertical panel with both blocks                                                         |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| ![Spark and Codex limits in a horizontal top bar](docs/model-limits/topbar.png) | ![Spark and Codex limits below Adaptive System Monitor](docs/model-limits/vertical-panel.png) |
+| Horizontal top bar with Spark + Codex blocks                                    | 40 px vertical panel with both blocks                                               |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| ![Spark and Codex limits in a horizontal top bar](docs/model-limits/topbar.png) | ![Spark and Codex limits in a vertical panel](docs/model-limits/vertical-panel.png) |
 
 | Full 24-hour usage overview                                                                           | Compact Spark histories                                                                                       |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | ![Usage menu with both panel blocks and a full hourly demo history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories sharing one activity chart](docs/model-limits/usage-menu-spark.png) |
+
+<p align="center"><strong>Conditional four-ring quota state</strong></p>
+<p align="center">
+  <img src="docs/model-limits/usage-menu-four-rings.png" width="467" alt="Usage menu with account-wide Codex 5h and 7d plus Spark 5h and 7d quota rings">
+</p>
+<p align="center"><sub>The account-wide Codex 5h ring appears only when the signed-in account exposes that quota.</sub></p>
 
 | Precise hourly bucket details                                                                 | Every active quota at a glance                                                               |
 | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -51,11 +57,13 @@
 - Shows paired circular available-quota and reset-countdown indicators for
   every active 5h and 7d window without polling the API more often. Untouched
   100%-remaining cycles stay at their exact full duration until usage begins.
-- Tracks observed consumption for the last 1h, 4h, 12h and today per active
-  quota, with a rolling total, compact bar timeline and per-bucket hover
-  details for the last 24 hours. Two-hour buckets remain selectable in
-  settings, and Spark's 5h and 7d summaries share one chart in their native
-  expandable section, which opens automatically after recent Spark activity.
+- Tracks observed consumption for the last 1h and 4h plus an exact rolling 24h
+  total for active 5h quotas; weekly quotas retain 12h and Today context. The
+  compact timeline offers per-bucket hover details for the last 24 hours, and
+  a rounded-zero Spark 7d bucket can use a clearly marked, smallest-height
+  estimate from the more sensitive 5h history. Two-hour buckets remain
+  selectable in settings, and Spark's summaries share one chart in their
+  native expandable section, which opens automatically after recent activity.
 - Launches an installed ChatGPT desktop app or Codex CLI directly, with native
   installation guidance when either is missing. Web shortcuts cover ChatGPT,
   Codex Cloud and ChatGPT Analytics.
@@ -67,6 +75,9 @@
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
+- Can notify once when selected 7d limits refresh and when enabled 5h or 7d
+  quotas cross configurable warning and critical remaining-usage thresholds;
+  all detection happens only on successful data refreshes.
 - Replaces stale usage with a compact sign-in message when Codex reports that
   its ChatGPT login is missing or expired, both at startup and after logout.
 
@@ -81,7 +92,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.3.0 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
+with ChatGPT. Version 0.3.1 is tested on Cinnamon 6.6.9 with Codex CLI 0.150.1.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.

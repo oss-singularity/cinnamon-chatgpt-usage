@@ -193,6 +193,7 @@ function buildActivityChart(values) {
                 known: false,
                 complete: false,
                 partial: false,
+                estimated: false,
                 consumedPercent: null,
                 intensity: null
             };
@@ -203,10 +204,12 @@ function buildActivityChart(values) {
             ? value.observed
             : complete || consumedPercent > 0;
         const partial = !complete && observed;
+        const estimated = structured && value.estimated === true;
         return {
             known: observed,
             complete,
             partial,
+            estimated,
             consumedPercent,
             intensity: null
         };
@@ -217,7 +220,9 @@ function buildActivityChart(values) {
         : 0;
     bars.forEach(bar => {
         if (!bar.known) return;
-        const intensity = bar.consumedPercent <= 0 || peakPercent <= 0
+        const intensity = bar.estimated && bar.consumedPercent > 0
+            ? 1
+            : bar.consumedPercent <= 0 || peakPercent <= 0
             ? 0
             : Math.max(1, Math.ceil((bar.consumedPercent / peakPercent) * 7));
         bar.intensity = intensity;
@@ -232,11 +237,13 @@ function buildActivityChart(values) {
     const totalComplete = bars.length > 0 && bars.every(
         bar => bar.known && bar.complete
     );
+    const totalEstimated = known.some(bar => bar.estimated);
     return {
         peakPercent,
         peakComplete,
         totalPercent,
         totalComplete,
+        totalEstimated,
         knownCount: known.length,
         bars
     };
@@ -277,12 +284,13 @@ function formatActivityBucketTooltip(
 
     const consumed = formatConsumedPercent({
         consumedPercent: bar.consumedPercent,
-        complete: bar.complete
+        complete: bar.complete && !bar.estimated
     });
     const partialSuffix = bar.partial && position < count - 1
         ? " · partial bucket"
         : "";
-    return `${range}\n${consumed} consumed${partialSuffix}`;
+    const estimatedSuffix = bar.estimated ? " · estimated" : "";
+    return `${range}\n${consumed} consumed${partialSuffix}${estimatedSuffix}`;
 }
 
 function formatAccessibleTooltip(text) {
@@ -315,6 +323,193 @@ function hasRecentActivity(activity24h) {
             : Number(bucket);
         return Number.isFinite(consumed) && consumed > 0;
     });
+}
+
+function historyPeriodKeys(durationMinutes) {
+    return Number(durationMinutes) <= 300
+        ? ["1h", "4h", "24h"]
+        : ["1h", "4h", "12h", "today"];
+}
+
+function buildActivityTotalPeriod(activity24h) {
+    const chart = buildActivityChart(activity24h);
+    return {
+        consumedPercent: chart.totalPercent,
+        complete: chart.totalComplete
+    };
+}
+
+function activityValue(bucket) {
+    const value = typeof bucket === "object" && bucket !== null
+        ? Number(bucket.consumedPercent)
+        : Number(bucket);
+    return Number.isFinite(value) ? Math.max(0, value) : null;
+}
+
+function buildSharedActivityValues(windows, shortToWeeklyScale = 0.5) {
+    const source = Array.from(windows || []);
+    if (source.length === 0) return [];
+    if (source.length === 1) return Array.from(source[0].activity24h || []);
+    const shortest = source.reduce((current, window) =>
+        Number(window.durationMinutes) < Number(current.durationMinutes)
+            ? window
+            : current
+    );
+    const weekly = source.reduce((current, window) =>
+        Number(window.durationMinutes) > Number(current.durationMinutes)
+            ? window
+            : current
+    );
+    const shortValues = Array.from(shortest.activity24h || []);
+    const weeklyValues = Array.from(weekly.activity24h || []);
+    return weeklyValues.map((weeklyBucket, index) => {
+        const weeklyConsumed = activityValue(weeklyBucket);
+        const shortBucket = shortValues[index];
+        const shortConsumed = activityValue(shortBucket);
+        if (
+            weeklyConsumed === null || weeklyConsumed > 0 ||
+            shortConsumed === null || shortConsumed <= 0
+        ) {
+            return weeklyBucket;
+        }
+        const shortComplete = typeof shortBucket === "object" && shortBucket !== null
+            ? shortBucket.complete !== false
+            : true;
+        return {
+            consumedPercent: shortConsumed * Number(shortToWeeklyScale),
+            complete: shortComplete,
+            observed: true,
+            estimated: true
+        };
+    });
+}
+
+function normalizeNotificationThresholds(warning, critical) {
+    const warningValue = Number(warning);
+    const criticalValue = Number(critical);
+    const boundedWarning = Number.isFinite(warningValue)
+        ? clamp(warningValue, 1, 100)
+        : 25;
+    const boundedCritical = Number.isFinite(criticalValue)
+        ? clamp(criticalValue, 0, 99)
+        : 10;
+    return {
+        warning: boundedWarning,
+        critical: boundedCritical,
+        valid: boundedCritical < boundedWarning
+    };
+}
+
+function notificationZone(remainingPercent, warning, critical) {
+    const remaining = Number(remainingPercent);
+    const thresholds = normalizeNotificationThresholds(warning, critical);
+    if (!Number.isFinite(remaining) || !thresholds.valid) return null;
+    if (remaining <= thresholds.critical) return "critical";
+    if (remaining <= thresholds.warning) return "warning";
+    return "normal";
+}
+
+function quotaWindowMap(snapshot) {
+    const windows = new Map();
+    for (const limit of snapshot && snapshot.limits || []) {
+        for (const window of limit.windows || []) {
+            const duration = Number(window.durationMinutes);
+            if (!Number.isFinite(duration)) continue;
+            windows.set(`${limit.id}:${duration}`, { limit, window, duration });
+        }
+    }
+    return windows;
+}
+
+function isSparkLimit(limit) {
+    return /spark/i.test(`${limit && limit.id || ""} ${limit && limit.label || ""}`);
+}
+
+function resetNotificationEnabled(limit, options) {
+    if (options.notifyAllWeeklyResets === true) return true;
+    if (isSparkLimit(limit)) return options.notifySparkWeeklyReset === true;
+    return limit.id === "codex" && options.notifyCodexWeeklyReset === true;
+}
+
+function resetWasObserved(previousWindow, currentWindow) {
+    const previousRemaining = Number(previousWindow.remainingPercent);
+    const currentRemaining = Number(currentWindow.remainingPercent);
+    const previousReset = Number(previousWindow.resetsAt);
+    const currentReset = Number(currentWindow.resetsAt);
+    return Number.isFinite(previousRemaining) && Number.isFinite(currentRemaining) &&
+        currentRemaining > previousRemaining &&
+        Number.isFinite(previousReset) && Number.isFinite(currentReset) &&
+        currentReset > previousReset + 60;
+}
+
+function lowNotificationSettings(duration, options) {
+    if (duration === 300 && options.enableFiveHourLowNotifications === true) {
+        return {
+            warning: options.fiveHourWarningRemaining,
+            critical: options.fiveHourCriticalRemaining
+        };
+    }
+    if (duration === 10080 && options.enableWeeklyLowNotifications === true) {
+        return {
+            warning: options.weeklyWarningRemaining,
+            critical: options.weeklyCriticalRemaining
+        };
+    }
+    return null;
+}
+
+function buildUsageNotificationEvents(previousSnapshot, snapshot, options = {}) {
+    if (!previousSnapshot || !snapshot) return [];
+    const previousWindows = quotaWindowMap(previousSnapshot);
+    const currentWindows = quotaWindowMap(snapshot);
+    const events = [];
+
+    for (const [key, current] of currentWindows) {
+        const previous = previousWindows.get(key);
+        if (!previous) continue;
+        const label = String(current.limit.label || current.limit.id || "Usage");
+
+        if (
+            current.duration === 10080 &&
+            resetNotificationEnabled(current.limit, options) &&
+            resetWasObserved(previous.window, current.window)
+        ) {
+            events.push({
+                kind: "reset",
+                limitId: current.limit.id,
+                durationMinutes: current.duration,
+                title: `${label} 7d limit refreshed`,
+                message: `${label} weekly usage is available again.`
+            });
+        }
+
+        const lowSettings = lowNotificationSettings(current.duration, options);
+        if (!lowSettings) continue;
+        const previousZone = notificationZone(
+            previous.window.remainingPercent,
+            lowSettings.warning,
+            lowSettings.critical
+        );
+        const currentZone = notificationZone(
+            current.window.remainingPercent,
+            lowSettings.warning,
+            lowSettings.critical
+        );
+        if (!previousZone || !currentZone || currentZone === "normal") continue;
+        const enteredWarning = currentZone === "warning" && previousZone === "normal";
+        const enteredCritical = currentZone === "critical" && previousZone !== "critical";
+        if (!enteredWarning && !enteredCritical) continue;
+        const durationLabel = formatDuration(current.duration);
+        events.push({
+            kind: "low",
+            level: currentZone,
+            limitId: current.limit.id,
+            durationMinutes: current.duration,
+            title: `${label} ${durationLabel} limit ${currentZone}`,
+            message: `${label} has ${formatPercent(current.window.remainingPercent)} remaining.`
+        });
+    }
+    return events;
 }
 
 function formatTimestamp(epochSeconds, use24Hour) {
@@ -359,6 +554,12 @@ module.exports = {
     formatWholeNumber,
     parseUsageHelperError,
     hasRecentActivity,
+    historyPeriodKeys,
+    buildActivityTotalPeriod,
+    buildSharedActivityValues,
+    normalizeNotificationThresholds,
+    notificationZone,
+    buildUsageNotificationEvents,
     formatActivityBucketTooltip,
     formatAccessibleTooltip,
     formatTimestamp,

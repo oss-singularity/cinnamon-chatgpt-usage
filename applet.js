@@ -127,6 +127,15 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.criticalColor = "#ed333b";
         this.warningRemaining = 25;
         this.criticalRemaining = 10;
+        this.notifyAllWeeklyResets = false;
+        this.notifyCodexWeeklyReset = false;
+        this.notifySparkWeeklyReset = false;
+        this.enableFiveHourLowNotifications = false;
+        this.fiveHourWarningRemaining = 25;
+        this.fiveHourCriticalRemaining = 10;
+        this.enableWeeklyLowNotifications = false;
+        this.weeklyWarningRemaining = 25;
+        this.weeklyCriticalRemaining = 10;
     }
 
     _bindSettings(instanceId) {
@@ -165,6 +174,79 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.settings.bind("critical-color", "criticalColor", styleChanged);
         this.settings.bind("warning-remaining", "warningRemaining", styleChanged);
         this.settings.bind("critical-remaining", "criticalRemaining", styleChanged);
+        this.settings.bind(
+            "notify-all-weekly-resets",
+            "notifyAllWeeklyResets"
+        );
+        this.settings.bind(
+            "notify-codex-weekly-reset",
+            "notifyCodexWeeklyReset"
+        );
+        this.settings.bind(
+            "notify-spark-weekly-reset",
+            "notifySparkWeeklyReset"
+        );
+        this.settings.bind(
+            "enable-five-hour-low-notifications",
+            "enableFiveHourLowNotifications"
+        );
+        this.settings.bind(
+            "five-hour-warning-remaining",
+            "fiveHourWarningRemaining",
+            () => this._validateNotificationThresholds("five-hour", "warning")
+        );
+        this.settings.bind(
+            "five-hour-critical-remaining",
+            "fiveHourCriticalRemaining",
+            () => this._validateNotificationThresholds("five-hour", "critical")
+        );
+        this.settings.bind(
+            "enable-weekly-low-notifications",
+            "enableWeeklyLowNotifications"
+        );
+        this.settings.bind(
+            "weekly-warning-remaining",
+            "weeklyWarningRemaining",
+            () => this._validateNotificationThresholds("weekly", "warning")
+        );
+        this.settings.bind(
+            "weekly-critical-remaining",
+            "weeklyCriticalRemaining",
+            () => this._validateNotificationThresholds("weekly", "critical")
+        );
+    }
+
+    _validateNotificationThresholds(period, changedThreshold) {
+        const weekly = period === "weekly";
+        const warningProperty = weekly
+            ? "weeklyWarningRemaining"
+            : "fiveHourWarningRemaining";
+        const criticalProperty = weekly
+            ? "weeklyCriticalRemaining"
+            : "fiveHourCriticalRemaining";
+        const warningKey = weekly
+            ? "weekly-warning-remaining"
+            : "five-hour-warning-remaining";
+        const criticalKey = weekly
+            ? "weekly-critical-remaining"
+            : "five-hour-critical-remaining";
+        const thresholds = UsageFormat.normalizeNotificationThresholds(
+            this[warningProperty],
+            this[criticalProperty]
+        );
+        if (thresholds.valid) return;
+
+        if (changedThreshold === "warning") {
+            this.settings.setValue(
+                criticalKey,
+                Math.max(0, Number(this[warningProperty]) - 1)
+            );
+        } else {
+            this.settings.setValue(
+                warningKey,
+                Math.min(100, Number(this[criticalProperty]) + 1)
+            );
+        }
     }
 
     _buildUi() {
@@ -1526,6 +1608,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                     id: limitId,
                     label: first.label
                 }) === "S" && windows.length > 1;
+                const sharedActivityValues = shareSparkActivityChart
+                    ? UsageFormat.buildSharedActivityValues(windows, 0.5)
+                    : [];
                 windows.forEach((window, index) => {
                     if (index > 0) {
                         submenu.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -1535,7 +1620,11 @@ class ChatGptUsageApplet extends Applet.Applet {
                         history,
                         submenu.menu,
                         false,
-                        !shareSparkActivityChart || index === windows.length - 1
+                        !shareSparkActivityChart
+                            ? window.activity24h
+                            : index === windows.length - 1
+                                ? sharedActivityValues
+                                : null
                     );
                 });
                 continue;
@@ -1569,17 +1658,17 @@ class ChatGptUsageApplet extends Applet.Applet {
         history,
         menu,
         showLimitLabel,
-        showActivityChart = true
+        activityValues = window.activity24h
     ) {
         const duration = UsageFormat.formatDuration(window.durationMinutes);
         const periods = window.periods || {};
+        const activityTotal = UsageFormat.buildActivityTotalPeriod(window.activity24h);
         const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
         const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
         const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
         const today = UsageFormat.formatConsumedPercent(periods.today);
-        const hasPartialPeriod = Object.values(periods).some(
-            period => period && period.complete === false
-        );
+        const rollingDay = UsageFormat.formatConsumedPercent(activityTotal);
+        const periodKeys = UsageFormat.historyPeriodKeys(window.durationMinutes);
         const labelPrefix = showLimitLabel ? `${window.label || window.id} · ` : "";
 
         this._addInfoItem(
@@ -1587,32 +1676,48 @@ class ChatGptUsageApplet extends Applet.Applet {
             "font-weight: bold;",
             menu
         );
-        this._addInfoItem(`    1h ${oneHour}  ·  4h ${fourHours}`, null, menu);
-        this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`, null, menu);
-        if (showActivityChart) {
+        const rollingDayText = periodKeys.includes("24h")
+            ? `  ·  24h ${rollingDay}`
+            : "";
+        this._addInfoItem(
+            `    1h ${oneHour}  ·  4h ${fourHours}${rollingDayText}`,
+            null,
+            menu
+        );
+        if (periodKeys.includes("12h")) {
+            this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`, null, menu);
+        }
+        if (activityValues) {
             this._addActivityChart(
-                window.activity24h,
+                activityValues,
                 history.activityBucketMinutes,
                 history.activityEndAt || this._snapshot.updatedAt,
                 menu
             );
         }
-        if (hasPartialPeriod) {
-            const trackedSinceSeconds = window.trackedSince || history.trackedSince;
-            const trackedSince = UsageFormat.formatTimestamp(
-                trackedSinceSeconds,
-                this._use24HourClock
-            );
-            const trackedDuration = UsageFormat.formatElapsedDuration(
-                trackedSinceSeconds,
-                this._snapshot.updatedAt
-            );
-            this._addInfoItem(
-                `    ~ collecting since ${trackedSince} (${trackedDuration})`,
-                null,
-                menu
-            );
-        }
+    }
+
+    _notificationOptions() {
+        return {
+            notifyAllWeeklyResets: this.notifyAllWeeklyResets,
+            notifyCodexWeeklyReset: this.notifyCodexWeeklyReset,
+            notifySparkWeeklyReset: this.notifySparkWeeklyReset,
+            enableFiveHourLowNotifications: this.enableFiveHourLowNotifications,
+            fiveHourWarningRemaining: this.fiveHourWarningRemaining,
+            fiveHourCriticalRemaining: this.fiveHourCriticalRemaining,
+            enableWeeklyLowNotifications: this.enableWeeklyLowNotifications,
+            weeklyWarningRemaining: this.weeklyWarningRemaining,
+            weeklyCriticalRemaining: this.weeklyCriticalRemaining
+        };
+    }
+
+    _showUsageNotifications(previousSnapshot, snapshot) {
+        const events = UsageFormat.buildUsageNotificationEvents(
+            previousSnapshot,
+            snapshot,
+            this._notificationOptions()
+        );
+        for (const event of events) Main.notify(event.title, event.message);
     }
 
     _addActivityChart(values, bucketMinutes, endAt, menu = this.menu) {
@@ -1929,9 +2034,11 @@ class ChatGptUsageApplet extends Applet.Applet {
                     if (!snapshot || !Array.isArray(snapshot.limits)) {
                         throw new Error("Usage helper returned invalid data");
                     }
+                    const previousSnapshot = this._snapshot;
                     this._snapshot = snapshot;
                     this._lastError = null;
                     this._authenticationRequired = false;
+                    this._showUsageNotifications(previousSnapshot, snapshot);
                     succeeded = true;
                 } catch (error) {
                     const cancelled = error.matches &&

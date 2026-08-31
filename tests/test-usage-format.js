@@ -287,6 +287,106 @@ assertEqual(
     "Missing activity keeps recent details closed"
 );
 assertEqual(
+    UsageFormat.historyPeriodKeys(300).join(","),
+    "1h,4h,24h",
+    "Five-hour history replaces reset-spanning periods with a rolling day"
+);
+assertEqual(
+    UsageFormat.historyPeriodKeys(10080).join(","),
+    "1h,4h,12h,today",
+    "Weekly history keeps the longer consumption periods"
+);
+const fiveHourActivityHistory = {
+    durationMinutes: 300,
+    activity24h: [
+        { consumedPercent: 0, complete: true, observed: true },
+        { consumedPercent: 1, complete: true, observed: true }
+    ]
+};
+const weeklyActivityHistory = {
+    durationMinutes: 10080,
+    activity24h: [
+        { consumedPercent: 0, complete: true, observed: true },
+        { consumedPercent: 0, complete: true, observed: true }
+    ]
+};
+const sharedActivityValues = UsageFormat.buildSharedActivityValues([
+    weeklyActivityHistory,
+    fiveHourActivityHistory
+], 0.5);
+assertEqual(
+    sharedActivityValues[1].consumedPercent,
+    0.5,
+    "Shared Spark chart estimates rounded weekly activity at half scale"
+);
+assertEqual(
+    sharedActivityValues[1].estimated,
+    true,
+    "Rounded weekly activity remains marked as estimated"
+);
+const sharedActivityChart = UsageFormat.buildActivityChart(sharedActivityValues);
+const fiveHourActivityTotal = UsageFormat.buildActivityTotalPeriod(
+    fiveHourActivityHistory.activity24h
+);
+assertEqual(
+    UsageFormat.formatConsumedPercent(fiveHourActivityTotal),
+    "1%",
+    "Five-hour history exposes its exact rolling-day activity"
+);
+assertEqual(
+    sharedActivityChart.totalPercent,
+    0.5,
+    "Shared Spark chart keeps the estimated weekly deduction"
+);
+assertEqual(
+    sharedActivityChart.totalEstimated,
+    true,
+    "Shared Spark chart exposes its estimated total"
+);
+assertEqual(
+    sharedActivityChart.bars[1].intensity,
+    1,
+    "Estimated sub-percent weekly activity stays at the smallest visible bar"
+);
+assertEqual(
+    UsageFormat.hasRecentActivity(sharedActivityValues),
+    true,
+    "Shared Spark chart stays aligned with the auto-open activity signal"
+);
+const estimatedActivityTooltip = UsageFormat.formatActivityBucketTooltip(
+    sharedActivityChart.bars[1],
+    1,
+    2,
+    60,
+    1700000000,
+    true
+);
+if (!estimatedActivityTooltip.includes("~0.5% consumed · estimated")) {
+    throw new Error(
+        `Expected estimated weekly deduction tooltip, got ${estimatedActivityTooltip}`
+    );
+}
+const measuredWeeklyActivity = UsageFormat.buildSharedActivityValues([
+    fiveHourActivityHistory,
+    {
+        durationMinutes: 10080,
+        activity24h: [
+            { consumedPercent: 0, complete: true, observed: true },
+            { consumedPercent: 1, complete: true, observed: true }
+        ]
+    }
+], 0.5);
+assertEqual(
+    measuredWeeklyActivity[1].consumedPercent,
+    1,
+    "Measured weekly activity takes precedence over the estimate"
+);
+assertEqual(
+    Boolean(measuredWeeklyActivity[1].estimated),
+    false,
+    "Measured weekly activity is not marked as estimated"
+);
+assertEqual(
     UsageFormat.formatWholeNumber("250.0000000000"),
     "250",
     "Whole credit balance omits decimal zeroes"
@@ -385,6 +485,227 @@ assertEqual(
     UsageFormat.formatAccessibleTooltip("First\nSecond\nThird"),
     "First. Second. Third",
     "All accessible tooltip line breaks"
+);
+
+assertEqual(
+    UsageFormat.normalizeNotificationThresholds(25, 10).valid,
+    true,
+    "Notification thresholds require critical below warning"
+);
+assertEqual(
+    UsageFormat.normalizeNotificationThresholds(10, 10).valid,
+    false,
+    "Equal notification thresholds are rejected"
+);
+assertEqual(
+    UsageFormat.notificationZone(26, 25, 10),
+    "normal",
+    "Quota above warning threshold is normal"
+);
+assertEqual(
+    UsageFormat.notificationZone(25, 25, 10),
+    "warning",
+    "Warning threshold is inclusive"
+);
+assertEqual(
+    UsageFormat.notificationZone(10, 25, 10),
+    "critical",
+    "Critical threshold is inclusive"
+);
+
+function notificationSnapshot(codexFive, codexWeekly, sparkFive, sparkWeekly, resetShift = 0) {
+    return {
+        limits: [
+            {
+                id: "codex",
+                label: "Codex",
+                windows: [
+                    {
+                        durationMinutes: 300,
+                        remainingPercent: codexFive,
+                        resetsAt: 20000 + resetShift
+                    },
+                    {
+                        durationMinutes: 10080,
+                        remainingPercent: codexWeekly,
+                        resetsAt: 700000 + resetShift
+                    }
+                ]
+            },
+            {
+                id: "codex_spark",
+                label: "GPT-5.3-Codex-Spark",
+                windows: [
+                    {
+                        durationMinutes: 300,
+                        remainingPercent: sparkFive,
+                        resetsAt: 21000 + resetShift
+                    },
+                    {
+                        durationMinutes: 10080,
+                        remainingPercent: sparkWeekly,
+                        resetsAt: 710000 + resetShift
+                    }
+                ]
+            }
+        ]
+    };
+}
+
+const notificationDefaults = {
+    notifyAllWeeklyResets: false,
+    notifyCodexWeeklyReset: false,
+    notifySparkWeeklyReset: false,
+    enableFiveHourLowNotifications: true,
+    fiveHourWarningRemaining: 25,
+    fiveHourCriticalRemaining: 10,
+    enableWeeklyLowNotifications: true,
+    weeklyWarningRemaining: 25,
+    weeklyCriticalRemaining: 10
+};
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        null,
+        notificationSnapshot(20, 20, 20, 20),
+        notificationDefaults
+    ).length,
+    0,
+    "First successful refresh stays silent"
+);
+const warningEvents = UsageFormat.buildUsageNotificationEvents(
+    notificationSnapshot(40, 40, 40, 40),
+    notificationSnapshot(25, 24, 24, 40),
+    notificationDefaults
+);
+assertEqual(warningEvents.length, 3, "Independent 5h and 7d warning entries");
+assertEqual(warningEvents[0].level, "warning", "Warning zone entry level");
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        notificationSnapshot(25, 24, 24, 40),
+        notificationSnapshot(20, 20, 20, 40),
+        notificationDefaults
+    ).length,
+    0,
+    "Repeated refresh inside warning zone stays silent"
+);
+const criticalEvents = UsageFormat.buildUsageNotificationEvents(
+    notificationSnapshot(20, 20, 20, 40),
+    notificationSnapshot(10, 10, 10, 40),
+    notificationDefaults
+);
+assertEqual(criticalEvents.length, 3, "Critical entry follows an earlier warning");
+assertEqual(criticalEvents[0].level, "critical", "Critical zone entry level");
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        notificationSnapshot(10, 10, 10, 40),
+        notificationSnapshot(50, 50, 50, 40),
+        notificationDefaults
+    ).length,
+    0,
+    "Recovery to normal stays silent"
+);
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        notificationSnapshot(50, 50, 50, 40),
+        notificationSnapshot(25, 50, 50, 40),
+        notificationDefaults
+    ).length,
+    1,
+    "Fresh crossing after recovery notifies again"
+);
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        notificationSnapshot(40, 40, 40, 40),
+        notificationSnapshot(20, 20, 20, 20),
+        {
+            ...notificationDefaults,
+            enableFiveHourLowNotifications: false
+        }
+    ).filter(event => event.durationMinutes === 300).length,
+    0,
+    "Five-hour notification switch is independent"
+);
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        notificationSnapshot(40, 40, 40, 40),
+        notificationSnapshot(20, 20, 20, 20),
+        {
+            ...notificationDefaults,
+            enableWeeklyLowNotifications: false
+        }
+    ).filter(event => event.durationMinutes === 10080).length,
+    0,
+    "Weekly notification switch is independent"
+);
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        notificationSnapshot(40, 40, 40, 40),
+        notificationSnapshot(20, 20, 20, 20),
+        {
+            ...notificationDefaults,
+            fiveHourWarningRemaining: 10,
+            fiveHourCriticalRemaining: 10
+        }
+    ).filter(event => event.durationMinutes === 300).length,
+    0,
+    "Invalid threshold pair cannot notify"
+);
+
+const resetPrevious = notificationSnapshot(50, 60, 50, 70);
+const resetCurrent = notificationSnapshot(50, 100, 50, 100, 604800);
+const resetEvents = UsageFormat.buildUsageNotificationEvents(
+    resetPrevious,
+    resetCurrent,
+    {
+        ...notificationDefaults,
+        notifyAllWeeklyResets: true,
+        enableFiveHourLowNotifications: false,
+        enableWeeklyLowNotifications: false
+    }
+);
+assertEqual(resetEvents.length, 2, "Master reset switch covers Codex and Spark");
+assertEqual(resetEvents[0].kind, "reset", "Weekly refresh event kind");
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        resetPrevious,
+        resetCurrent,
+        {
+            ...notificationDefaults,
+            notifySparkWeeklyReset: true,
+            enableFiveHourLowNotifications: false,
+            enableWeeklyLowNotifications: false
+        }
+    ).length,
+    1,
+    "Spark reset switch stays independent"
+);
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        resetCurrent,
+        resetCurrent,
+        {
+            ...notificationDefaults,
+            notifyAllWeeklyResets: true,
+            enableFiveHourLowNotifications: false,
+            enableWeeklyLowNotifications: false
+        }
+    ).length,
+    0,
+    "Already observed reset is deduplicated"
+);
+assertEqual(
+    UsageFormat.buildUsageNotificationEvents(
+        resetPrevious,
+        notificationSnapshot(50, 100, 50, 100, 30),
+        {
+            ...notificationDefaults,
+            notifyAllWeeklyResets: true,
+            enableFiveHourLowNotifications: false,
+            enableWeeklyLowNotifications: false
+        }
+    ).length,
+    0,
+    "Reset timestamp jitter cannot create a refresh notification"
 );
 
 const timestamp24h = UsageFormat.formatTimestamp(1700000000, true);
