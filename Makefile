@@ -3,6 +3,7 @@
 check:
 	cjs tests/check-source.js applet.js usage-format.js
 	cjs tests/test-usage-format.js
+	cjs tests/test-settings-schema.js
 	python3 -m unittest tests/test_chatgpt_usage.py
 	python3 -m json.tool metadata.json >/dev/null
 	python3 -m json.tool settings-schema.json >/dev/null

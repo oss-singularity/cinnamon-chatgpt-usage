@@ -1,7 +1,7 @@
 {
   "layout": {
     "type": "layout",
-    "pages": ["general-page", "colors-page"],
+    "pages": ["general-page", "colors-page", "notifications-page"],
     "general-page": {
       "type": "page",
       "title": "General",
@@ -11,6 +11,11 @@
       "type": "page",
       "title": "Colors",
       "sections": ["color-section", "threshold-section"]
+    },
+    "notifications-page": {
+      "type": "page",
+      "title": "Notifications",
+      "sections": ["reset-notification-section", "low-notification-section"]
     },
     "data-section": {
       "type": "section",
@@ -38,6 +43,27 @@
       "type": "section",
       "title": "Remaining usage thresholds",
       "keys": ["warning-remaining", "critical-remaining"]
+    },
+    "reset-notification-section": {
+      "type": "section",
+      "title": "Weekly limit refreshes",
+      "keys": [
+        "notify-all-weekly-resets",
+        "notify-codex-weekly-reset",
+        "notify-spark-weekly-reset"
+      ]
+    },
+    "low-notification-section": {
+      "type": "section",
+      "title": "Low remaining usage",
+      "keys": [
+        "enable-five-hour-low-notifications",
+        "five-hour-warning-remaining",
+        "five-hour-critical-remaining",
+        "enable-weekly-low-notifications",
+        "weekly-warning-remaining",
+        "weekly-critical-remaining"
+      ]
     }
   },
   "refresh-interval": {
@@ -133,5 +159,72 @@
     "step": 1,
     "units": "%",
     "description": "Critical at or below"
+  },
+  "notify-all-weekly-resets": {
+    "type": "switch",
+    "default": false,
+    "description": "Notify when any model 7d limit refreshes"
+  },
+  "notify-codex-weekly-reset": {
+    "type": "switch",
+    "default": false,
+    "dependency": "!notify-all-weekly-resets",
+    "description": "Notify when 7d limits reset"
+  },
+  "notify-spark-weekly-reset": {
+    "type": "switch",
+    "default": false,
+    "dependency": "!notify-all-weekly-resets",
+    "description": "Notify when 7d Spark limits reset"
+  },
+  "enable-five-hour-low-notifications": {
+    "type": "switch",
+    "default": false,
+    "description": "Enable 5h low-limit notifications"
+  },
+  "five-hour-warning-remaining": {
+    "type": "spinbutton",
+    "default": 25,
+    "min": 1,
+    "max": 100,
+    "step": 1,
+    "units": "%",
+    "dependency": "enable-five-hour-low-notifications",
+    "description": "5h warning at or below"
+  },
+  "five-hour-critical-remaining": {
+    "type": "spinbutton",
+    "default": 10,
+    "min": 0,
+    "max": 99,
+    "step": 1,
+    "units": "%",
+    "dependency": "enable-five-hour-low-notifications",
+    "description": "5h critical at or below"
+  },
+  "enable-weekly-low-notifications": {
+    "type": "switch",
+    "default": false,
+    "description": "Enable 7d low-limit notifications"
+  },
+  "weekly-warning-remaining": {
+    "type": "spinbutton",
+    "default": 25,
+    "min": 1,
+    "max": 100,
+    "step": 1,
+    "units": "%",
+    "dependency": "enable-weekly-low-notifications",
+    "description": "7d warning at or below"
+  },
+  "weekly-critical-remaining": {
+    "type": "spinbutton",
+    "default": 10,
+    "min": 0,
+    "max": 99,
+    "step": 1,
+    "units": "%",
+    "dependency": "enable-weekly-low-notifications",
+    "description": "7d critical at or below"
   }
 }

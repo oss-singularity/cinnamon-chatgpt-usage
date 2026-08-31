@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.1 — 2026-08-31
+
+- Supplement rounded-zero 7-day Spark activity buckets with a smallest-height,
+  half-scale estimate from the more sensitive 5-hour history while preferring
+  measured weekly activity whenever available.
+- Replace the 5-hour history's reset-spanning 12-hour and Today values with its
+  exact rolling 24-hour consumption total.
+- Remove the internal collection-start diagnostic from Spark history details.
+- Add refresh-only, deduplicated notifications for any weekly reset or separate
+  Codex and Spark weekly resets, with one master switch taking precedence.
+- Add independent 5-hour and 7-day low-limit notifications with configurable
+  warning and critical thresholds, recovery-aware zone entry and strict
+  critical-below-warning validation.
+- Refresh the README's settings, popup, expanded-history, full-hour-tooltip and
+  focused vertical-panel captures; document the conditional four-ring quota
+  state and rebalance the Live Limits pill in the social preview.
+
 ## 0.3.0 — 2026-08-30
 
 - Highlight credit balances and rate-limit reset counts with the same bright,

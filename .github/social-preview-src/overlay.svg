@@ -41,15 +41,15 @@
   <text x="76" y="399" fill="#aebbc6" font-family="Noto Sans, sans-serif" font-size="18">{{TAGLINE}}</text>
 
   <g font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" letter-spacing="1.35">
-    <rect x="76" y="449" width="139" height="38" rx="19" fill="#121820" stroke="#21b68e" stroke-opacity="0.82"/>
+    <rect x="76" y="449" width="145" height="38" rx="19" fill="#121820" stroke="#21b68e" stroke-opacity="0.82"/>
     <circle cx="97" cy="468" r="4" fill="#4ee1ae"/>
     <text x="154" y="474" text-anchor="middle" fill="#dcfff3">LIVE LIMITS</text>
 
-    <rect x="229" y="449" width="153" height="38" rx="19" fill="#121820" stroke="#45bdf5" stroke-opacity="0.76"/>
-    <text x="305.5" y="474" text-anchor="middle" fill="#ddf5ff">RESET TIMES</text>
+    <rect x="235" y="449" width="153" height="38" rx="19" fill="#121820" stroke="#45bdf5" stroke-opacity="0.76"/>
+    <text x="311.5" y="474" text-anchor="middle" fill="#ddf5ff">RESET TIMES</text>
 
-    <rect x="396" y="449" width="148" height="38" rx="19" fill="#121820" stroke="#8a7df5" stroke-opacity="0.72"/>
-    <text x="470" y="474" text-anchor="middle" fill="#ebe8ff">24H HISTORY</text>
+    <rect x="402" y="449" width="148" height="38" rx="19" fill="#121820" stroke="#8a7df5" stroke-opacity="0.72"/>
+    <text x="476" y="474" text-anchor="middle" fill="#ebe8ff">24H HISTORY</text>
   </g>
 
   <text x="76" y="571" fill="#7f91a0" font-family="Noto Sans, sans-serif" font-size="16">github.com/oss-singularity/cinnamon-chatgpt-usage</text>
