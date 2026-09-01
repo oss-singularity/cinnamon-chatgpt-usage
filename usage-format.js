@@ -527,6 +527,27 @@ function formatLocalDate(epochSeconds) {
     return dateTime.format("%d.%m.%Y");
 }
 
+function formatChatGptVersionDate(version) {
+    const match = String(version || "").trim().match(/^(\d{2})\.(\d{3,4})\.\d{5}$/);
+    if (!match) return null;
+
+    const year = 2000 + Number(match[1]);
+    const dateCode = match[2];
+    const month = Number(dateCode.slice(0, -2));
+    const day = Number(dateCode.slice(-2));
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (
+        month < 1 || month > 12 || day < 1 ||
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+    ) {
+        return null;
+    }
+
+    return `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}`;
+}
+
 function formatRelativeTime(epochSeconds, nowSeconds = null) {
     const updatedSeconds = Number(epochSeconds);
     const currentSeconds = nowSeconds === null
@@ -581,6 +602,7 @@ module.exports = {
     formatAccessibleTooltip,
     formatTimestamp,
     formatLocalDate,
+    formatChatGptVersionDate,
     formatRelativeTime,
     formatAppTooltip
 };

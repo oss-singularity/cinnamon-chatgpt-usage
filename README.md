@@ -66,9 +66,10 @@
   native expandable section, which opens automatically after recent activity.
 - Launches an installed ChatGPT desktop app or Codex CLI directly, with native
   installation guidance when either is missing. Web shortcuts cover ChatGPT,
-  Codex Cloud and ChatGPT Analytics. The ChatGPT launch tooltip derives its
-  displayed date from the installed executable's local package/update timestamp;
-  this is not an upstream publication-date guarantee.
+  Codex Cloud and ChatGPT Analytics. The ChatGPT launch tooltip interprets the
+  observed date segment in the desktop version (`YY.MDD`) and falls back to the
+  installed executable's local package/update timestamp when that format is
+  unavailable; neither is an upstream publication-date guarantee.
 - Shows `5h` automatically only when an active API limit exposes that window;
   an accompanying `7d` panel block can be hidden in settings while unnamed
   internal buckets stay hidden.
@@ -94,7 +95,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.3.4 is tested on Cinnamon 6.6.9 with Codex CLI 0.152.0.
+with ChatGPT. Version 0.3.5 is tested on Cinnamon 6.6.9 with Codex CLI 0.152.0.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.

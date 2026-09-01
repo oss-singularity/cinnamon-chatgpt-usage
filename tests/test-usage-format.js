@@ -512,6 +512,31 @@ assertEqual(
     "Invalid application package timestamp has no date"
 );
 assertEqual(
+    UsageFormat.formatChatGptVersionDate("26.831.20005"),
+    "31.08.2026",
+    "ChatGPT version date decodes August 31, 2026"
+);
+assertEqual(
+    UsageFormat.formatChatGptVersionDate("26.825.51511"),
+    "25.08.2026",
+    "ChatGPT version date decodes August 25, 2026"
+);
+assertEqual(
+    UsageFormat.formatChatGptVersionDate("26.406.40811"),
+    "06.04.2026",
+    "ChatGPT version date decodes April 6, 2026"
+);
+assertEqual(
+    UsageFormat.formatChatGptVersionDate("26.1001.20005"),
+    "01.10.2026",
+    "ChatGPT version date supports two-digit months"
+);
+assertEqual(
+    UsageFormat.formatChatGptVersionDate("new-version"),
+    null,
+    "Unknown ChatGPT version has no decoded build date"
+);
+assertEqual(
     UsageFormat.formatAppTooltip(true, "codex-cli 0.152.0", "", "01.09.2026"),
     "codex-cli 0.152.0 — 01.09.2026",
     "Installed Codex tooltip includes release date"
