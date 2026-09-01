@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.3 — 2026-09-01
+
+- Show the installed ChatGPT package/version and Codex CLI version in the two
+  launch-button tooltips, including known release dates separated by an em
+  dash.
+- Keep the button tooltips centered above the pointer with a 420 ms reveal
+  delay, while leaving other applet tooltips unchanged.
+- Report missing applications as `not installed` and unreadable versions as
+  `version unavailable`.
+
 ## 0.3.2 — 2026-08-31
 
 - Keep the nested Spark activity chart on its final horizontal insets from its
