@@ -1046,6 +1046,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const codexPath = this._resolveCodexPath();
         const codexCommand = this._codexTerminalCommand(codexPath);
         const chatGptVersion = this._chatGptAppVersion(chatGptApp);
+        const chatGptVersionDate = UsageFormat.formatChatGptVersionDate(chatGptVersion);
         const chatGptInstallDate = this._chatGptAppInstallDate(chatGptApp);
         const codexVersion = this._commandVersion(codexPath);
         const item = new PopupMenu.PopupBaseMenuItem({
@@ -1110,7 +1111,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 Boolean(chatGptApp),
                 chatGptVersion,
                 "chatgpt",
-                chatGptInstallDate
+                chatGptVersionDate || chatGptInstallDate
             )
         );
         this._codexButton = this._createLaunchButton(

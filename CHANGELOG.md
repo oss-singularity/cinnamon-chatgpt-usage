@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.5 — 2026-09-01
+
+- Interpret the ChatGPT desktop version date segment (`YY.MDD`) for the
+  launch-button tooltip, with the local package/update date as a fallback for
+  versions that do not match the observed format.
+
 ## 0.3.4 — 2026-09-01
 
 - Derive the ChatGPT launch-button date dynamically from the installed
