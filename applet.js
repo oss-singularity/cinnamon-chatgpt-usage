@@ -1451,7 +1451,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     _readCommandVersion(argv) {
         if (!Array.isArray(argv) || argv.length === 0) return null;
         try {
-            const [ok, stdout, _stderr, status] = GLib.spawn_sync(
+            const [ok, stdout, , status] = GLib.spawn_sync(
                 null,
                 argv,
                 null,
