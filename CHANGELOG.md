@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.4 — 2026-09-01
+
+- Recognize ChatGPT package `26.831.20005` and show its `01.09.2026` release
+  date in the launch-button tooltip.
+- Verify that the existing ChatGPT app button still brings a minimized app
+  window to the foreground after the package update.
+
 ## 0.3.3 — 2026-09-01
 
 - Show the installed ChatGPT package/version and Codex CLI version in the two
