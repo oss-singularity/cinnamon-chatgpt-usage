@@ -502,6 +502,16 @@ assertEqual(
     "Updated ChatGPT tooltip includes current release date"
 );
 assertEqual(
+    UsageFormat.formatLocalDate(1788250825),
+    "01.09.2026",
+    "Application package timestamp formats as a local date"
+);
+assertEqual(
+    UsageFormat.formatLocalDate(0),
+    null,
+    "Invalid application package timestamp has no date"
+);
+assertEqual(
     UsageFormat.formatAppTooltip(true, "codex-cli 0.152.0", "", "01.09.2026"),
     "codex-cli 0.152.0 — 01.09.2026",
     "Installed Codex tooltip includes release date"

@@ -2,8 +2,8 @@
 
 ## 0.3.4 — 2026-09-01
 
-- Recognize ChatGPT package `26.831.20005` and show its `01.09.2026` release
-  date in the launch-button tooltip.
+- Derive the ChatGPT launch-button date dynamically from the installed
+  executable's local package/update timestamp instead of hardcoding a version.
 - Verify that the existing ChatGPT app button still brings a minimized app
   window to the foreground after the package update.
 

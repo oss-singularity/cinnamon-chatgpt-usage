@@ -520,6 +520,13 @@ function formatTimestamp(epochSeconds, use24Hour) {
     return dateTime.format(`%x ${timeFormat}`);
 }
 
+function formatLocalDate(epochSeconds) {
+    const seconds = Number(epochSeconds);
+    if (!Number.isFinite(seconds) || seconds <= 0) return null;
+    const dateTime = GLib.DateTime.new_from_unix_local(Math.floor(seconds));
+    return dateTime.format("%d.%m.%Y");
+}
+
 function formatRelativeTime(epochSeconds, nowSeconds = null) {
     const updatedSeconds = Number(epochSeconds);
     const currentSeconds = nowSeconds === null
@@ -573,6 +580,7 @@ module.exports = {
     formatActivityBucketTooltip,
     formatAccessibleTooltip,
     formatTimestamp,
+    formatLocalDate,
     formatRelativeTime,
     formatAppTooltip
 };
