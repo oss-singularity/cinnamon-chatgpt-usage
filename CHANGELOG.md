@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.4 — 2026-09-01
+
+- Derive the ChatGPT launch-button date dynamically from the installed
+  executable's local package/update timestamp instead of hardcoding a version.
+- Verify that the existing ChatGPT app button still brings a minimized app
+  window to the foreground after the package update.
+
 ## 0.3.3 — 2026-09-01
 
 - Show the installed ChatGPT package/version and Codex CLI version in the two

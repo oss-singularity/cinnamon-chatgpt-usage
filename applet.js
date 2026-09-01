@@ -28,8 +28,6 @@ const CODEX_CLOUD_URL = "https://chatgpt.com/codex/cloud";
 const ANALYTICS_URL = "https://chatgpt.com/codex/cloud/settings/analytics#usage";
 const CHATGPT_LINUX_INSTALL_URL = "https://learn.chatgpt.com/docs/linux/linux-app";
 const CODEX_CLI_INSTALL_URL = "https://learn.chatgpt.com/docs/codex/cli#getting-started";
-const CHATGPT_RELEASE_VERSION = "26.825.51511";
-const CHATGPT_RELEASE_DATE = "30.08.2026";
 const CODEX_RELEASE_VERSION = "codex-cli 0.152.0";
 const CODEX_RELEASE_DATE = "01.09.2026";
 const PANEL_FONT_SCALE = 0.95;
@@ -1048,6 +1046,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const codexPath = this._resolveCodexPath();
         const codexCommand = this._codexTerminalCommand(codexPath);
         const chatGptVersion = this._chatGptAppVersion(chatGptApp);
+        const chatGptInstallDate = this._chatGptAppInstallDate(chatGptApp);
         const codexVersion = this._commandVersion(codexPath);
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
@@ -1111,11 +1110,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 Boolean(chatGptApp),
                 chatGptVersion,
                 "chatgpt",
-                this._knownReleaseDate(
-                    chatGptVersion,
-                    CHATGPT_RELEASE_VERSION,
-                    CHATGPT_RELEASE_DATE
-                )
+                chatGptInstallDate
             )
         );
         this._codexButton = this._createLaunchButton(
@@ -1475,6 +1470,26 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _knownReleaseDate(version, knownVersion, releaseDate) {
         return version === knownVersion ? releaseDate : null;
+    }
+
+    _chatGptAppInstallDate(appInfo) {
+        if (!appInfo) return null;
+        try {
+            const executable = appInfo.get_executable();
+            const executablePath = GLib.find_program_in_path(executable);
+            if (!executablePath) return null;
+            const fileInfo = Gio.File.new_for_path(executablePath).query_info(
+                "time::modified",
+                Gio.FileQueryInfoFlags.NONE,
+                null
+            );
+            return UsageFormat.formatLocalDate(
+                fileInfo.get_attribute_uint64("time::modified")
+            );
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect ChatGPT package date: ${error}`);
+            return null;
+        }
     }
 
     _chatGptAppVersion(appInfo) {
