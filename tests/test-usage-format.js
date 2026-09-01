@@ -486,6 +486,36 @@ assertEqual(
     "First. Second. Third",
     "All accessible tooltip line breaks"
 );
+assertEqual(
+    UsageFormat.formatAppTooltip(true, "26.825.51511", "chatgpt"),
+    "chatgpt 26.825.51511",
+    "ChatGPT tooltip includes package and version"
+);
+assertEqual(
+    UsageFormat.formatAppTooltip(true, "26.825.51511", "chatgpt", "30.08.2026"),
+    "chatgpt 26.825.51511 — 30.08.2026",
+    "Installed ChatGPT tooltip includes release date"
+);
+assertEqual(
+    UsageFormat.formatAppTooltip(true, "codex-cli 0.152.0", "", "01.09.2026"),
+    "codex-cli 0.152.0 — 01.09.2026",
+    "Installed Codex tooltip includes release date"
+);
+assertEqual(
+    UsageFormat.formatAppTooltip(true, "new-version", "chatgpt", null),
+    "chatgpt new-version",
+    "Unknown application version has no guessed release date"
+);
+assertEqual(
+    UsageFormat.formatAppTooltip(false),
+    "not installed",
+    "Missing application tooltip contains only not installed"
+);
+assertEqual(
+    UsageFormat.formatAppTooltip(true),
+    "version unavailable",
+    "Installed application without readable version reports unavailable version"
+);
 
 assertEqual(
     UsageFormat.normalizeNotificationThresholds(25, 10).valid,

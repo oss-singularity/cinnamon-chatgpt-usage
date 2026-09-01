@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 const Applet = imports.ui.applet;
+const ByteArray = imports.byteArray;
 const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const Tooltips = imports.ui.tooltips;
@@ -27,9 +28,14 @@ const CODEX_CLOUD_URL = "https://chatgpt.com/codex/cloud";
 const ANALYTICS_URL = "https://chatgpt.com/codex/cloud/settings/analytics#usage";
 const CHATGPT_LINUX_INSTALL_URL = "https://learn.chatgpt.com/docs/linux/linux-app";
 const CODEX_CLI_INSTALL_URL = "https://learn.chatgpt.com/docs/codex/cli#getting-started";
+const CHATGPT_RELEASE_VERSION = "26.825.51511";
+const CHATGPT_RELEASE_DATE = "30.08.2026";
+const CODEX_RELEASE_VERSION = "codex-cli 0.152.0";
+const CODEX_RELEASE_DATE = "01.09.2026";
 const PANEL_FONT_SCALE = 0.95;
 const PANEL_LABEL_SCALE = 0.79;
 const ACTIVITY_TOOLTIP_DELAY_MS = 120;
+const LAUNCH_TOOLTIP_DELAY_MS = 420;
 const POPUP_ACTION_GRID_WIDTH = 352;
 // Cinnamon's one-pixel menu edge brings the visible popup width to 420 px.
 const POPUP_RIGHT_PANEL_WIDTH = 419;
@@ -1039,7 +1045,10 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _addLaunchButtons() {
         const chatGptApp = this._chatGptAppInfo();
-        const codexCommand = this._codexTerminalCommand();
+        const codexPath = this._resolveCodexPath();
+        const codexCommand = this._codexTerminalCommand(codexPath);
+        const chatGptVersion = this._chatGptAppVersion(chatGptApp);
+        const codexVersion = this._commandVersion(codexPath);
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
             activate: false
@@ -1097,7 +1106,17 @@ class ChatGptUsageApplet extends Applet.Applet {
                         "Linux distributions.",
                     CHATGPT_LINUX_INSTALL_URL
                 );
-            }
+            },
+            UsageFormat.formatAppTooltip(
+                Boolean(chatGptApp),
+                chatGptVersion,
+                "chatgpt",
+                this._knownReleaseDate(
+                    chatGptVersion,
+                    CHATGPT_RELEASE_VERSION,
+                    CHATGPT_RELEASE_DATE
+                )
+            )
         );
         this._codexButton = this._createLaunchButton(
             "Codex CLI",
@@ -1114,7 +1133,17 @@ class ChatGptUsageApplet extends Applet.Applet {
                         "guide to install it, sign in, and then refresh this applet.",
                     CODEX_CLI_INSTALL_URL
                 );
-            }
+            },
+            UsageFormat.formatAppTooltip(
+                Boolean(codexPath),
+                codexVersion,
+                "",
+                this._knownReleaseDate(
+                    codexVersion,
+                    CODEX_RELEASE_VERSION,
+                    CODEX_RELEASE_DATE
+                )
+            )
         );
         const refreshConfirmed = this._refreshConfirmed;
         this._refreshButton = this._createLaunchButton(
@@ -1195,7 +1224,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.addMenuItem(item);
     }
 
-    _createLaunchButton(label, iconSpec, available, action) {
+    _createLaunchButton(label, iconSpec, available, action, tooltipText = null) {
         const content = new St.BoxLayout({
             vertical: false,
             y_align: Clutter.ActorAlign.CENTER
@@ -1237,6 +1266,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         button._usageLabel = buttonLabel;
         button._usageContent = content;
         button._usageBusy = false;
+        if (tooltipText) {
+            button._usageTooltip = this._createPositionedTooltip(
+                button,
+                tooltipText,
+                true,
+                LAUNCH_TOOLTIP_DELAY_MS
+            );
+        }
         button.style = this._launchButtonStyle(
             available ? "normal" : "disabled",
             iconSpec.compact,
@@ -1411,6 +1448,53 @@ class ChatGptUsageApplet extends Applet.Applet {
         ].join("; ") + ";";
     }
 
+    _readCommandVersion(argv) {
+        if (!Array.isArray(argv) || argv.length === 0) return null;
+        try {
+            const [ok, stdout, _stderr, status] = GLib.spawn_sync(
+                null,
+                argv,
+                null,
+                GLib.SpawnFlags.SEARCH_PATH,
+                null
+            );
+            if (!ok || status !== 0) return null;
+            const output = ByteArray.toString(stdout).trim();
+            if (!output) return null;
+            return output.split(/\r?\n/)[0].trim().slice(0, 120) || null;
+        } catch (error) {
+            global.logWarning(`${UUID}: could not read application version: ${error}`);
+            return null;
+        }
+    }
+
+    _commandVersion(executable) {
+        if (!executable) return null;
+        return this._readCommandVersion([executable, "--version"]);
+    }
+
+    _knownReleaseDate(version, knownVersion, releaseDate) {
+        return version === knownVersion ? releaseDate : null;
+    }
+
+    _chatGptAppVersion(appInfo) {
+        if (!appInfo) return null;
+        try {
+            const executable = appInfo.get_executable();
+            const commandVersion = this._commandVersion(executable);
+            if (commandVersion) return commandVersion;
+            for (const key of ["Version", "X-AppImage-Version", "X-Version"]) {
+                const desktopVersion = appInfo.get_string(key);
+                if (desktopVersion && String(desktopVersion).trim()) {
+                    return String(desktopVersion).trim();
+                }
+            }
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect ChatGPT app version: ${error}`);
+        }
+        return null;
+    }
+
     _chatGptAppInfo() {
         try {
             return Gio.DesktopAppInfo.new("chatgpt.desktop");
@@ -1420,8 +1504,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
-    _codexTerminalCommand() {
-        const codex = this._resolveCodexPath();
+    _codexTerminalCommand(codex = this._resolveCodexPath()) {
         if (!codex) return null;
         try {
             const terminalSettings = new Gio.Settings({
@@ -1801,7 +1884,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             );
             slot.accessible_name = UsageFormat.formatAccessibleTooltip(tooltipText);
             this._activityTooltips.push(
-                this._createActivityTooltip(slot, tooltipText)
+                this._createPositionedTooltip(slot, tooltipText)
             );
             plot.add_child(slot);
         });
@@ -1878,7 +1961,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
-    _createActivityTooltip(slot, text) {
+    _createPositionedTooltip(
+        slot,
+        text,
+        centerOnPointer = false,
+        showDelayMs = ACTIVITY_TOOLTIP_DELAY_MS
+    ) {
         const tooltip = new Tooltips.Tooltip(slot, text);
         tooltip.set_text(text);
         const nativeShow = tooltip.show.bind(tooltip);
@@ -1892,9 +1980,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 naturalWidth
             );
             const cursorSize = tooltip.desktop_settings.get_int("cursor-size");
-            const preferredLeft = tooltip.mousePosition[0] + Math.round(
-                cursorSize / 2
-            );
+            const preferredLeft = centerOnPointer
+                ? tooltip.mousePosition[0] - Math.round(naturalWidth / 2)
+                : tooltip.mousePosition[0] + Math.round(cursorSize / 2);
             const preferredTop = tooltip.mousePosition[1] - naturalHeight - Math.round(
                 cursorSize / 2
             );
@@ -1923,7 +2011,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         slot.connect("enter-event", () => {
             cancelFastShow();
             tooltip._fastShowTimeoutId = Mainloop.timeout_add(
-                ACTIVITY_TOOLTIP_DELAY_MS,
+                showDelayMs,
                 () => {
                     tooltip._fastShowTimeoutId = 0;
                     if (!slot.has_pointer || tooltip.visible) return GLib.SOURCE_REMOVE;

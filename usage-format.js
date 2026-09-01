@@ -540,6 +540,16 @@ function formatRelativeTime(epochSeconds, nowSeconds = null) {
     return `${Math.floor(elapsedSeconds / 86400)}d ago`;
 }
 
+function formatAppTooltip(installed, version = null, prefix = "", releaseDate = null) {
+    const status = installed
+        ? (String(version || "").trim() || "version unavailable")
+        : "not installed";
+    const datedStatus = installed && releaseDate
+        ? `${status} — ${releaseDate}`
+        : status;
+    return installed && prefix ? `${prefix} ${datedStatus}` : datedStatus;
+}
+
 module.exports = {
     summarizeWindows,
     listQuotaWindows,
@@ -563,5 +573,6 @@ module.exports = {
     formatActivityBucketTooltip,
     formatAccessibleTooltip,
     formatTimestamp,
-    formatRelativeTime
+    formatRelativeTime,
+    formatAppTooltip
 };
