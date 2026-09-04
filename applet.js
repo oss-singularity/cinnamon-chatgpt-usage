@@ -57,9 +57,10 @@ const RESET_EXPIRY_CRITICAL_SECONDS = 24 * 60 * 60;
 const RESET_EXPIRY_BREATHING_OPACITY = 150;
 const RESET_EXPIRY_BREATHING_DURATION_MS = 1100;
 const POPUP_SECONDARY_TEXT_COLOR = "rgba(255,255,255,0.68)";
+const POPUP_HEADING_STYLE = "font-size: 100%; font-weight: bold;";
 const AUTH_REQUIRED_TITLE = "No ChatGPT login found";
 const AUTH_REQUIRED_DESCRIPTION =
-    "Sign in to ChatGPT with the Codex App/CLI, then choose Refresh now.";
+    "Sign in to ChatGPT with the ChatGPT App or Codex CLI, then choose Refresh now.";
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -731,7 +732,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._snapshot) {
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             const limits = this._snapshot.limits || [];
-            const usageTitle = this._addInfoItem("Usage limits", "font-weight: bold;");
+            const usageTitle = this._addSectionHeading("Usage limits");
             usageTitle.actor.style = "padding-bottom: 2px;";
             const showLimitLabels = limits.length > 1;
             for (const limit of limits) {
@@ -795,7 +796,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         text.x_expand = true;
         const title = new St.Label({ text: "ChatGPT Work & Codex usage" });
-        title.style = "font-weight: bold;";
+        title.style = POPUP_HEADING_STYLE;
         text.add_child(title);
         if (this._snapshot) {
             this._updatedLabel = new St.Label({
@@ -951,7 +952,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.addMenuItem(item);
     }
 
-    _addLimitHeading(limit) {
+    _addIconHeading(limit, text, menu = this.menu) {
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
             activate: false
@@ -963,13 +964,18 @@ class ChatGptUsageApplet extends Applet.Applet {
         row.style = "spacing: 6px;";
         row.add_child(this._createPanelIcon(limit, 18));
         const label = new St.Label({
-            text: limit.label || limit.id,
+            text,
             y_align: Clutter.ActorAlign.CENTER
         });
         label.style = "font-weight: bold;";
         row.add_child(label);
-        item.addActor(row);
-        this.menu.addMenuItem(item);
+        item.addActor(row, { expand: true, span: -1 });
+        menu.addMenuItem(item);
+        return item;
+    }
+
+    _addLimitHeading(limit) {
+        this._addIconHeading(limit, limit.label || limit.id);
     }
 
     _createResetCountdown(window) {
@@ -1202,8 +1208,8 @@ class ChatGptUsageApplet extends Applet.Applet {
                 }
                 this._showInstallHelp(
                     "Install Codex CLI",
-                    "The Codex CLI was not found. Follow OpenAI's official getting-started " +
-                        "guide to install it, sign in, and then refresh this applet.",
+                    "No Codex CLI or ChatGPT App backend was found. Follow OpenAI's official " +
+                        "getting-started guide to install one, sign in, and then refresh this applet.",
                     CODEX_CLI_INSTALL_URL
                 );
             },
@@ -1597,6 +1603,49 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
+    _resolveBundledCodexPath() {
+        const appInfo = this._chatGptAppInfo();
+        if (!appInfo) return null;
+        try {
+            const executable = appInfo.get_executable();
+            const executablePath = GLib.find_program_in_path(executable);
+            if (!executablePath) return null;
+
+            const executableFile = Gio.File.new_for_path(executablePath);
+            const candidatePaths = [executablePath];
+            try {
+                const fileInfo = executableFile.query_info(
+                    "standard::symlink-target",
+                    Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                    null
+                );
+                const target = fileInfo.get_symlink_target();
+                if (target) {
+                    candidatePaths.push(
+                        target.startsWith("/")
+                            ? target
+                            : GLib.build_filenamev([
+                                executableFile.get_parent().get_path(),
+                                target
+                            ])
+                    );
+                }
+            } catch (error) {
+                global.logWarning(`${UUID}: could not resolve ChatGPT launcher link: ${error}`);
+            }
+
+            for (const candidatePath of candidatePaths) {
+                const parent = Gio.File.new_for_path(candidatePath).get_parent();
+                if (!parent) continue;
+                const bundled = parent.get_child("resources").get_child("codex").get_path();
+                if (GLib.file_test(bundled, GLib.FileTest.IS_EXECUTABLE)) return bundled;
+            }
+        } catch (error) {
+            global.logWarning(`${UUID}: could not inspect ChatGPT app backend: ${error}`);
+        }
+        return null;
+    }
+
     _codexTerminalCommand(codex = this._resolveCodexPath()) {
         if (!codex) return null;
         try {
@@ -1648,6 +1697,21 @@ class ChatGptUsageApplet extends Applet.Applet {
     _addInfoItem(text, style = null, menu = this.menu) {
         const item = new PopupMenu.PopupMenuItem(text, { reactive: false });
         if (style) item.label.style = style;
+        menu.addMenuItem(item);
+        return item;
+    }
+
+    _addSectionHeading(text, menu = this.menu) {
+        const item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            activate: false
+        });
+        const label = new St.Label({
+            text,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        label.style = POPUP_HEADING_STYLE;
+        item.addActor(label, { expand: true, span: -1 });
         menu.addMenuItem(item);
         return item;
     }
@@ -1889,7 +1953,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 this._resetErrorFeedback(
                     !python
                         ? "python3 was not found"
-                        : "Codex CLI was not found; configure its path in the applet settings"
+                        : "No Codex CLI or ChatGPT App backend was found; install one or configure its path in the applet settings"
                 ),
                 false
             );
@@ -1966,7 +2030,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._addInfoItem("Recent consumption", "font-weight: bold;");
+        this._addSectionHeading("Recent consumption");
         const windowsByLimit = new Map();
         for (const window of history.windows) {
             const limitId = window.id || "codex";
@@ -2076,13 +2140,15 @@ class ChatGptUsageApplet extends Applet.Applet {
         const today = UsageFormat.formatConsumedPercent(periods.today);
         const rollingDay = UsageFormat.formatConsumedPercent(activityTotal);
         const periodKeys = UsageFormat.historyPeriodKeys(window.durationMinutes);
-        const labelPrefix = showLimitLabel ? `${window.label || window.id} · ` : "";
-
-        this._addInfoItem(
-            `  ${labelPrefix}${duration} usage`,
-            "font-weight: bold;",
-            menu
-        );
+        if (showLimitLabel) {
+            this._addIconHeading(
+                window,
+                `${window.label || window.id} · ${duration} usage`,
+                menu
+            );
+        } else {
+            this._addInfoItem(`  ${duration} usage`, "font-weight: bold;", menu);
+        }
         const rollingDayText = periodKeys.includes("24h")
             ? `  ·  24h ${rollingDay}`
             : "";
@@ -2411,7 +2477,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._authenticationRequired = false;
             this._lastError = !python
                 ? "python3 was not found"
-                : "Codex CLI was not found; configure its path in the applet settings";
+                : "No Codex CLI or ChatGPT App backend was found; install one or configure its path in the applet settings";
             this._rebuildPanel();
             this._scheduleMenuRebuild();
             return;
@@ -2522,7 +2588,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (fromPath) return fromPath;
 
         const localPath = GLib.build_filenamev([GLib.get_home_dir(), ".local", "bin", "codex"]);
-        return GLib.file_test(localPath, GLib.FileTest.IS_EXECUTABLE) ? localPath : null;
+        if (GLib.file_test(localPath, GLib.FileTest.IS_EXECUTABLE)) return localPath;
+
+        return this._resolveBundledCodexPath();
     }
 
         on_applet_clicked() {

@@ -26,5 +26,16 @@ for (const path of ARGV) {
                 "Initial and synchronized activity-chart insets must share one layout path"
             );
         }
+        const requiredUiPaths = [
+            'this._addSectionHeading("Usage limits")',
+            'this._addSectionHeading("Recent consumption")',
+            "this._addIconHeading(\n                window,",
+            "_resolveBundledCodexPath()"
+        ];
+        for (const snippet of requiredUiPaths) {
+            if (!source.includes(snippet)) {
+                throw new Error(`Missing required UI path: ${snippet}`);
+            }
+        }
     }
 }
