@@ -36,7 +36,7 @@
 
 <p align="center"><strong>Explicit earned-reset confirmation</strong></p>
 <p align="center">
-  <img src="docs/model-limits/reset-confirmation.png" width="321" alt="Native confirmation dialog before using an earned rate-limit reset">
+  <img src="docs/model-limits/reset-confirmation.png" width="321" alt="Native confirmation dialog before using an earned limit reset">
 </p>
 <p align="center"><sub>An available reset is consumed only after this native confirmation.</sub></p>
 

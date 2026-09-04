@@ -1708,7 +1708,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             ? this._resetExpiryColor(resetDisplay.expiresAt)
             : null;
         this._addCreditItem(
-            "Rate-limit resets",
+            "Limit resets",
             resetDisplay.count,
             true,
             resetDisplay.suffix,
@@ -1757,8 +1757,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             separatorLabel.style = [
                 "padding-left: 6px",
                 "padding-right: 6px",
+                "font-size: 80%",
                 `color: ${POPUP_SECONDARY_TEXT_COLOR}`
             ].join("; ") + ";";
+            separatorLabel.translation_y = 2;
             const expiresLabel = new St.Label({
                 text: "expires ",
                 y_align: Clutter.ActorAlign.CENTER
@@ -1795,7 +1797,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._resetConfirmationDialog) this._resetConfirmationDialog.destroy();
 
         const content = new Dialog.MessageDialogContent({
-            title: "Use one rate-limit reset now?",
+            title: "Use one limit reset now?",
             description: [
                 `Available reset credits: ${details.count}`,
                 `Next expiry: ${details.expiryText || "unavailable"}`,

@@ -2,7 +2,7 @@
 
 ## 0.3.8 — 2026-09-04
 
-- Keep the `Rate-limit resets` label, separator, expiry text and countdown in
+- Keep the `Limit resets` label, separator, expiry text and countdown in
   the same muted treatment as `Credits:` while retaining the bright reset
   count.
 - Add native hover tooltips to every 5h and 7d reset-countdown circle, showing
