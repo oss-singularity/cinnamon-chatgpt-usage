@@ -783,6 +783,62 @@ if (/AM|PM/.test(timestamp24h) || !/:/.test(timestamp24h)) {
     throw new Error(`Expected system-local 24-hour timestamp, got ${timestamp24h}`);
 }
 assertEqual(
+    UsageFormat.formatExpiryCountdown(1000 + 10 * 86400 + 5 * 3600 + 59 * 60, 1000),
+    "~10d5h",
+    "Expiry countdown days and hours"
+);
+assertEqual(
+    UsageFormat.formatExpiryCountdown(1000 + 23 * 3600 + 59 * 60, 1000),
+    "~23h",
+    "Expiry countdown under one day"
+);
+assertEqual(
+    UsageFormat.formatExpiryCountdown(1000 - 1, 1000),
+    "~0h",
+    "Expired countdown"
+);
+assertEqual(
+    UsageFormat.formatExpiryCountdown(null, 1000),
+    null,
+    "Invalid expiry countdown"
+);
+const noResetDisplay = UsageFormat.buildResetCreditDisplay(
+    {
+        availableResetCount: 0,
+        nextResetExpiresAt: 1000 + 10 * 86400
+    },
+    true,
+    1000
+);
+assertEqual(noResetDisplay.count, "0", "No reset count stays visible");
+assertEqual(
+    noResetDisplay.suffix,
+    null,
+    "No reset count has no expiry suffix"
+);
+assertEqual(
+    noResetDisplay.expiresAt,
+    null,
+    "No reset count has no expiry timestamp"
+);
+const resetDisplay = UsageFormat.buildResetCreditDisplay(
+    {
+        availableResetCount: 1,
+        nextResetExpiresAt: 1000 + 10 * 86400 + 5 * 3600
+    },
+    true,
+    1000
+);
+assertEqual(resetDisplay.count, "1", "Available reset count is formatted");
+if (!resetDisplay.suffix || !/\(~10d5h\)$/.test(resetDisplay.suffix)) {
+    throw new Error(`Expected expiry suffix with countdown, got ${resetDisplay.suffix}`);
+}
+assertEqual(
+    resetDisplay.expiresAt,
+    1000 + 10 * 86400 + 5 * 3600,
+    "Available reset keeps expiry timestamp"
+);
+assertEqual(
     UsageFormat.formatRelativeTime(1000, 1000),
     "just now",
     "Current relative timestamp"
