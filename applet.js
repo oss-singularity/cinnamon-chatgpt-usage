@@ -56,6 +56,7 @@ const RESET_EXPIRY_WARNING_SECONDS = 7 * 24 * 60 * 60;
 const RESET_EXPIRY_CRITICAL_SECONDS = 24 * 60 * 60;
 const RESET_EXPIRY_BREATHING_OPACITY = 150;
 const RESET_EXPIRY_BREATHING_DURATION_MS = 1100;
+const POPUP_SECONDARY_TEXT_COLOR = "rgba(255,255,255,0.68)";
 const AUTH_REQUIRED_TITLE = "No ChatGPT login found";
 const AUTH_REQUIRED_DESCRIPTION =
     "Sign in to ChatGPT with the Codex App/CLI, then choose Refresh now.";
@@ -86,6 +87,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._rightPanelMenuBaseMarginRight = 0;
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
+        this._resetCancellable = null;
         this._menuRebuildTimeoutId = 0;
         this._rightPanelPopupClosedId = 0;
         this._rightPanelPopupOpenStateChangedId = 0;
@@ -101,6 +103,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._actionColumn = null;
         this._actionColumnWidth = POPUP_ACTION_GRID_WIDTH;
         this._installHelpDialog = null;
+        this._resetConfirmationDialog = null;
+        this._resetConsumeBusy = false;
+        this._resetFeedback = null;
+        this._refreshQueued = false;
         this._refreshConfirmed = false;
         this._busy = false;
         this._cancellable = null;
@@ -741,6 +747,12 @@ class ChatGptUsageApplet extends Applet.Applet {
 
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             this._addCreditItems();
+            if (this._resetFeedback) {
+                this._addStatusItem(
+                    this._resetFeedback.title,
+                    this._resetFeedback.description
+                );
+            }
         } else if (this._authenticationRequired) {
             this._addStatusItem(AUTH_REQUIRED_TITLE, AUTH_REQUIRED_DESCRIPTION);
         } else {
@@ -965,7 +977,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         const actor = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
             width: size,
-            height: size
+            height: size,
+            reactive: true,
+            track_hover: true
         });
         actor.translation_x = -POPUP_RESET_RING_LEFT_SHIFT;
         const area = new St.DrawingArea({ width: size, height: size });
@@ -985,8 +999,17 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         actor.add_child(area);
         actor.add_child(label);
-        this._countdownWidgets.push({ area, label, window });
-        this._updateResetCountdown({ area, label, window });
+        const tooltipText = UsageFormat.formatResetCountdownTooltip(window);
+        actor.accessible_name = UsageFormat.formatAccessibleTooltip(tooltipText);
+        const entry = {
+            actor,
+            area,
+            label,
+            window,
+            tooltip: this._createPositionedTooltip(actor, tooltipText)
+        };
+        this._countdownWidgets.push(entry);
+        this._updateResetCountdown(entry);
         return actor;
     }
 
@@ -1076,6 +1099,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         const model = UsageFormat.buildResetCountdown(entry.window);
         entry.label.set_text(model.label);
         entry.area.queue_repaint();
+        if (entry.tooltip) {
+            const tooltipText = UsageFormat.formatResetCountdownTooltip(entry.window);
+            entry.tooltip.set_text(tooltipText);
+            entry.actor.accessible_name = UsageFormat.formatAccessibleTooltip(tooltipText);
+        }
     }
 
     _updateResetCountdowns() {
@@ -1672,25 +1700,47 @@ class ChatGptUsageApplet extends Applet.Applet {
             credits,
             this._use24HourClock
         );
+        const resetConfirmation = UsageFormat.buildResetCreditConfirmation(
+            credits,
+            this._use24HourClock
+        );
         const resetExpiryColor = resetDisplay.suffix
             ? this._resetExpiryColor(resetDisplay.expiresAt)
             : null;
         this._addCreditItem(
-            "Rate-limit resets",
+            "Limit resets",
             resetDisplay.count,
             true,
             resetDisplay.suffix,
-            resetExpiryColor
+            resetExpiryColor,
+            resetConfirmation.available && !this._resetConsumeBusy
+                ? () => this._showResetConfirmation()
+                : null
         );
     }
 
-    _addCreditItem(label, value, emphasized = false, suffix = null, suffixColor = null) {
+    _addCreditItem(
+        label,
+        value,
+        emphasized = false,
+        suffix = null,
+        suffixColor = null,
+        action = null
+    ) {
+        const interactive = typeof action === "function";
         const item = new PopupMenu.PopupBaseMenuItem({
-            reactive: false,
-            activate: false
+            reactive: interactive,
+            activate: interactive
         });
+        if (interactive) {
+            item.connect("activate", () => {
+                if (!this._resetConsumeBusy) action();
+            });
+        }
         const row = new St.BoxLayout({ vertical: false });
-        row.add_child(new St.Label({ text: `${label}:` }));
+        const labelActor = new St.Label({ text: `${label}:` });
+        labelActor.style = `color: ${POPUP_SECONDARY_TEXT_COLOR};`;
+        row.add_child(labelActor);
         const valueLabel = new St.Label({ text: value });
         if (emphasized) {
             valueLabel.style = this._emphasizedValueStyle(this.normalColor, 4);
@@ -1704,16 +1754,23 @@ class ChatGptUsageApplet extends Applet.Applet {
                 text: "•",
                 y_align: Clutter.ActorAlign.CENTER
             });
-            separatorLabel.style = "padding-left: 6px; padding-right: 6px;";
+            separatorLabel.style = [
+                "padding-left: 6px",
+                "padding-right: 6px",
+                "font-size: 80%",
+                `color: ${POPUP_SECONDARY_TEXT_COLOR}`
+            ].join("; ") + ";";
+            separatorLabel.translation_y = 2;
             const expiresLabel = new St.Label({
                 text: "expires ",
                 y_align: Clutter.ActorAlign.CENTER
             });
+            expiresLabel.style = `color: ${POPUP_SECONDARY_TEXT_COLOR};`;
             const expiryDateLabel = new St.Label({
                 text: suffix,
                 y_align: Clutter.ActorAlign.CENTER
             });
-            if (suffixColor) expiryDateLabel.style = `color: ${suffixColor};`;
+            expiryDateLabel.style = `color: ${suffixColor || POPUP_SECONDARY_TEXT_COLOR};`;
             if (suffixColor === RESET_EXPIRY_CRITICAL_COLOR) {
                 this._resetExpiryBreathingLabels.push(expiryDateLabel);
                 expiryDateLabel.connect("notify::mapped", () => {
@@ -1726,6 +1783,176 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
         item.addActor(row);
         this.menu.addMenuItem(item);
+    }
+
+    _showResetConfirmation() {
+        if (this._destroyed || this._resetConsumeBusy || !this._snapshot) return;
+
+        const details = UsageFormat.buildResetCreditConfirmation(
+            this._snapshot.credits,
+            this._use24HourClock
+        );
+        if (!details.available) return;
+        if (this.menu && this.menu.isOpen) this.menu.close(false);
+        if (this._resetConfirmationDialog) this._resetConfirmationDialog.destroy();
+
+        const content = new Dialog.MessageDialogContent({
+            title: "Use one limit reset now?",
+            description: [
+                `Available reset credits: ${details.count}`,
+                `Next expiry: ${details.expiryText || "unavailable"}`,
+                "",
+                "One reset credit will be consumed."
+            ].join("\n")
+        });
+        const dialog = new ModalDialog.ModalDialog();
+        dialog.contentLayout.add_child(content);
+        dialog.connect("destroy", () => {
+            if (this._resetConfirmationDialog === dialog) {
+                this._resetConfirmationDialog = null;
+            }
+        });
+        const cancelButton = dialog.addButton({
+            label: "Cancel",
+            action: () => dialog.destroy(),
+            key: Clutter.KEY_Escape,
+            default: true
+        });
+        const useButton = dialog.addButton({
+            label: "Use reset now",
+            action: () => this._consumeResetCredit(
+                details,
+                dialog,
+                content,
+                [cancelButton, useButton]
+            ),
+            default: false,
+            destructive_action: true
+        });
+        this._resetConfirmationDialog = dialog;
+        dialog.open();
+    }
+
+    _setResetConfirmationBusy(dialog, content, buttons) {
+        for (const button of buttons) {
+            button.reactive = false;
+            button.can_focus = false;
+            button.add_style_pseudo_class("insensitive");
+        }
+        content.description = `${content.description}\n\nUsing reset…`;
+        dialog.buttonLayout.get_children().forEach(button => {
+            button.reactive = false;
+            button.can_focus = false;
+        });
+    }
+
+    _resetOutcomeFeedback(outcome) {
+        const feedback = UsageFormat.buildResetConsumeFeedback(outcome);
+        if (!feedback) {
+            throw new Error(`Unexpected reset outcome: ${outcome || "missing"}`);
+        }
+        return feedback;
+    }
+
+    _resetErrorFeedback(message) {
+        const detail = String(message || "The reset request failed.").slice(0, 180);
+        return {
+            title: "Reset failed",
+            description: `${detail} Usage limits are refreshing.`
+        };
+    }
+
+    _finishResetConsume(dialog, feedback, refresh) {
+        this._resetConsumeBusy = false;
+        this._resetCancellable = null;
+        if (dialog && !dialog.is_finalized()) dialog.destroy();
+        if (!feedback || this._destroyed) return;
+
+        this._resetFeedback = feedback;
+        this._rebuildPanel();
+        this._scheduleMenuRebuild();
+        if (refresh) this._refreshUsage();
+    }
+
+    _consumeResetCredit(details, dialog, content, buttons) {
+        if (this._destroyed || this._resetConsumeBusy) return;
+
+        this._resetConsumeBusy = true;
+        this._resetFeedback = null;
+        this._setResetConfirmationBusy(dialog, content, buttons);
+        const python = GLib.find_program_in_path("python3");
+        const helper = `${this.metadata.path}/chatgpt_usage.py`;
+        const codex = this._resolveCodexPath();
+        if (!python || !codex) {
+            this._finishResetConsume(
+                dialog,
+                this._resetErrorFeedback(
+                    !python
+                        ? "python3 was not found"
+                        : "Codex CLI was not found; configure its path in the applet settings"
+                ),
+                false
+            );
+            return;
+        }
+
+        const idempotencyKey = GLib.uuid_string_random();
+        const argv = [
+            python,
+            helper,
+            "--codex",
+            codex,
+            "--timeout",
+            "25",
+            "--consume-reset",
+            "--idempotency-key",
+            idempotencyKey
+        ];
+        if (details.creditId) argv.push("--credit-id", details.creditId);
+
+        this._resetCancellable = new Gio.Cancellable();
+        try {
+            const process = new Gio.Subprocess({
+                argv,
+                flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+            });
+            process.init(null);
+            process.communicate_utf8_async(
+                null,
+                this._resetCancellable,
+                (source, result) => {
+                    let feedback = null;
+                    let cancelled = false;
+                    try {
+                        const [ok, stdout, stderr] = source.communicate_utf8_finish(result);
+                        if (!ok || source.get_exit_status() !== 0) {
+                            const helperError = UsageFormat.parseUsageHelperError(stderr);
+                            const error = new Error(helperError.message);
+                            error.authenticationRequired = helperError.authenticationRequired;
+                            throw error;
+                        }
+                        const payload = JSON.parse(String(stdout || "").trim());
+                        feedback = this._resetOutcomeFeedback(payload && payload.outcome);
+                    } catch (error) {
+                        cancelled = typeof error.matches === "function" &&
+                            error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED);
+                        if (!cancelled) {
+                            global.logError(`${UUID}: reset consume failed: ${error}`);
+                            feedback = this._resetErrorFeedback(error.message || error);
+                        }
+                    }
+
+                    this._finishResetConsume(
+                        cancelled ? null : dialog,
+                        feedback,
+                        !cancelled
+                    );
+                }
+            );
+        } catch (error) {
+            global.logError(`${UUID}: could not start reset consume: ${error}`);
+            this._finishResetConsume(dialog, this._resetErrorFeedback(error), false);
+        }
     }
 
     _addHistoryItems() {
@@ -2171,7 +2398,11 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _refreshUsage(showConfirmation = false) {
-        if (this._destroyed || this._busy) return;
+        if (this._destroyed) return;
+        if (this._busy) {
+            this._refreshQueued = true;
+            return;
+        }
 
         const python = GLib.find_program_in_path("python3");
         const helper = `${this.metadata.path}/chatgpt_usage.py`;
@@ -2250,6 +2481,10 @@ class ChatGptUsageApplet extends Applet.Applet {
                     if (showConfirmation && succeeded) this._showRefreshConfirmation();
                     this._rebuildPanel();
                     this._scheduleMenuRebuild();
+                    if (this._refreshQueued) {
+                        this._refreshQueued = false;
+                        this._refreshUsage();
+                    }
                 }
             });
         } catch (error) {
@@ -2429,6 +2664,16 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (this._cancellable) {
             this._cancellable.cancel();
             this._cancellable = null;
+        }
+        this._refreshQueued = false;
+        if (this._resetCancellable) {
+            this._resetCancellable.cancel();
+            this._resetCancellable = null;
+        }
+        this._resetConsumeBusy = false;
+        if (this._resetConfirmationDialog) {
+            this._resetConfirmationDialog.destroy();
+            this._resetConfirmationDialog = null;
         }
         if (this._installHelpDialog) {
             this._installHelpDialog.destroy();

@@ -4,16 +4,119 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from chatgpt_usage import (
     build_usage_history,
+    consume_rate_limit_reset,
     is_authentication_error,
     normalise_rate_limits,
     update_usage_history,
 )
+from chatgpt_usage import UsageError
+
+
+class FakeStdin:
+    def __init__(self) -> None:
+        self.messages: list[dict] = []
+
+    def write(self, payload: str) -> int:
+        self.messages.append(json.loads(payload))
+        return len(payload)
+
+    def flush(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+class FakeStdout:
+    def __init__(self, response: dict) -> None:
+        self._lines = [json.dumps(response)]
+
+    @property
+    def has_data(self) -> bool:
+        return bool(self._lines)
+
+    def readline(self) -> str:
+        return f"{self._lines.pop(0)}\n" if self._lines else ""
+
+
+class FakeProcess:
+    def __init__(self, response: dict) -> None:
+        self.stdin = FakeStdin()
+        self.stdout = FakeStdout(response)
+        self._returncode = None
+
+    def poll(self) -> int | None:
+        return self._returncode
+
+    def terminate(self) -> None:
+        self._returncode = 0
+
+    def wait(self, timeout: float | None = None) -> int:
+        self._returncode = 0
+        return 0
+
+    def kill(self) -> None:
+        self._returncode = -9
+
+
+class ResetConsumeRequestTests(unittest.TestCase):
+    def test_consume_sends_idempotent_request_with_selected_credit(self) -> None:
+        process = FakeProcess({"id": 2, "result": {"outcome": "reset"}})
+
+        def select_ready(streams, _, __, timeout):
+            return (streams if process.stdout.has_data else [], [], [])
+
+        with (
+            patch("chatgpt_usage.subprocess.Popen", return_value=process),
+            patch("chatgpt_usage.select.select", side_effect=select_ready),
+        ):
+            result = consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-123", "credit-456")
+
+        self.assertEqual(result["outcome"], "reset")
+        self.assertEqual(process.stdin.messages[0]["method"], "initialize")
+        self.assertEqual(process.stdin.messages[1], {"method": "initialized", "params": {}})
+        self.assertEqual(
+            process.stdin.messages[2],
+            {
+                "method": "account/rateLimitResetCredit/consume",
+                "id": 2,
+                "params": {
+                    "idempotencyKey": "attempt-123",
+                    "creditId": "credit-456",
+                },
+            },
+        )
+
+    def test_consume_omits_missing_credit_id_and_rejects_empty_key(self) -> None:
+        process = FakeProcess({"id": 2, "result": {"outcome": "noCredit"}})
+
+        def select_ready(streams, _, __, timeout):
+            return (streams if process.stdout.has_data else [], [], [])
+
+        with (
+            patch("chatgpt_usage.subprocess.Popen", return_value=process),
+            patch("chatgpt_usage.select.select", side_effect=select_ready),
+        ):
+            result = consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-789")
+
+        self.assertEqual(result["outcome"], "noCredit")
+        self.assertEqual(
+            process.stdin.messages[2]["params"],
+            {"idempotencyKey": "attempt-789"},
+        )
+
+        with patch("chatgpt_usage.subprocess.Popen") as popen:
+            with self.assertRaises(UsageError):
+                consume_rate_limit_reset("/usr/bin/codex", 5, " ")
+            popen.assert_not_called()
 
 
 class AuthenticationErrorTests(unittest.TestCase):
@@ -85,9 +188,9 @@ class NormaliseRateLimitsTests(unittest.TestCase):
             "rateLimitResetCredits": {
                 "availableCount": 2,
                 "credits": [
-                    {"status": "available", "expiresAt": 1791079502},
-                    {"status": "available", "expiresAt": 1789000000},
-                    {"status": "redeemed", "expiresAt": 1788000000},
+                    {"id": "reset-later", "status": "available", "expiresAt": 1791079502},
+                    {"id": "reset-next", "status": "available", "expiresAt": 1789000000},
+                    {"id": "reset-used", "status": "redeemed", "expiresAt": 1788000000},
                 ],
             },
         }
@@ -108,6 +211,13 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         self.assertEqual(snapshot["credits"]["balance"], "0")
         self.assertEqual(snapshot["credits"]["availableResetCount"], 2)
         self.assertEqual(snapshot["credits"]["nextResetExpiresAt"], 1789000000)
+        self.assertEqual(
+            snapshot["credits"]["resetCredits"],
+            [
+                {"id": "reset-next", "expiresAt": 1789000000},
+                {"id": "reset-later", "expiresAt": 1791079502},
+            ],
+        )
 
     def test_unnamed_internal_bucket_is_ignored(self) -> None:
         result = {
@@ -146,6 +256,16 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         self.assertEqual(snapshot["limits"][0]["windows"][0]["remainingPercent"], 61)
         self.assertEqual(snapshot["credits"]["availableResetCount"], 0)
         self.assertIsNone(snapshot["credits"]["nextResetExpiresAt"])
+        self.assertIsNone(snapshot["credits"]["resetCredits"])
+
+    def test_reset_detail_rows_preserve_count_only_and_empty_states(self) -> None:
+        base = {"rateLimits": {"primary": {"usedPercent": 10, "windowDurationMins": 10080}}}
+
+        count_only = dict(base, rateLimitResetCredits={"availableCount": 2, "credits": None})
+        self.assertIsNone(normalise_rate_limits(count_only)["credits"]["resetCredits"])
+
+        no_details = dict(base, rateLimitResetCredits={"availableCount": 0, "credits": []})
+        self.assertEqual(normalise_rate_limits(no_details)["credits"]["resetCredits"], [])
 
     def test_optional_five_hour_window_when_canonical_api_exposes_it(self) -> None:
         result = {

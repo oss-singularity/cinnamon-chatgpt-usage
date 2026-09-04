@@ -34,6 +34,12 @@
 </p>
 <p align="center"><sub>The account-wide Codex 5h ring appears only when the signed-in account exposes that quota.</sub></p>
 
+<p align="center"><strong>Explicit earned-reset confirmation</strong></p>
+<p align="center">
+  <img src="docs/model-limits/reset-confirmation.png" width="321" alt="Native confirmation dialog before using an earned limit reset">
+</p>
+<p align="center"><sub>An available reset is consumed only after this native confirmation.</sub></p>
+
 | Precise hourly bucket details                                                                 | Every active quota at a glance                                                               |
 | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | ![Hourly bucket hover details beside both panel blocks](docs/model-limits/bucket-tooltip.png) | ![Compact panel hover summary beside both panel blocks](docs/model-limits/panel-tooltip.png) |
@@ -50,16 +56,18 @@
 
 - Mirrors account-level and named model-specific limits exposed by ChatGPT:
   remaining usage, reset times, credits and earned resets with the next expiry
-  date, time and remaining countdown when available. The expiry timestamp
-  turns orange within seven days and uses a neon-pink breathing alert within
-  24 hours; a zero reset count stays compact and shows only `0`.
+  date, time and remaining countdown when available. An available earned reset
+  can be selected in the popup and is consumed only after an explicit native
+  confirmation; a zero reset count stays compact and shows only `0`.
 - Detects dedicated GPT-5.3-Codex-Spark 5h and 7d quotas automatically when
   they are enabled for the signed-in account; model-specific limits stay in
   the popup by default, carry a distinct amber marker and can optionally be
   added to the panel.
 - Shows paired circular available-quota and reset-countdown indicators for
   every active 5h and 7d window without polling the API more often. Untouched
-  100%-remaining cycles stay at their exact full duration until usage begins.
+  100%-remaining cycles stay at their exact full duration until usage begins;
+  hovering a reset-countdown circle shows the elapsed percentage of its own
+  5h or 7d reset window.
 - Tracks observed consumption for the last 1h and 4h plus an exact rolling 24h
   total for active 5h quotas; weekly quotas retain 12h and Today context. The
   compact timeline offers per-bucket hover details for the last 24 hours, and
@@ -98,7 +106,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.3.6 is tested on Cinnamon 6.6.9 with Codex CLI 0.152.0.
+with ChatGPT. Version 0.3.8 is tested on Cinnamon 6.6.9 with Codex CLI 0.153.2.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
@@ -106,8 +114,11 @@ retaining its settings.
 ## How it works
 
 The helper makes one read-only `account/rateLimits/read` request through the
-official local Codex app-server and exits. There is no HTML scraping, API key,
-browser access, background daemon or reset-credit write. To calculate recent
+official local Codex app-server for normal refreshes and exits. An earned reset
+is never consumed in the background: the confirmed popup action starts a
+separate `account/rateLimitResetCredit/consume` request with one UUID
+idempotency key and then refetches the complete usage snapshot. There is no
+HTML scraping, API key, browser access or background daemon. To calculate recent
 consumption, it stores only timestamps, window durations, percentages and reset
 IDs for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
 (normally `~/.local/state/...`, mode `0600`). No prompts, credit details or
