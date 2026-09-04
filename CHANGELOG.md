@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.6 — 2026-09-04
+
+- Show the local expiry date and time of the next available earned rate-limit
+  reset on the same compact line as its reset count, keeping the timestamp in
+  the same regular text treatment as `expires` and adding a remaining
+  `(~XdYh)` countdown when details are supplied.
+- Color the expiry timestamp orange inside seven days and neon pink with a
+  breathing alert inside 24 hours; omit the separator, timestamp and countdown
+  entirely when no reset credit is available.
+
 ## 0.3.5 — 2026-09-01
 
 - Interpret the ChatGPT desktop version date segment (`YY.MDD`) for the

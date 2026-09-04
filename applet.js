@@ -50,6 +50,12 @@ const COMPACT_QUOTA_RING_SIZE = 40;
 const POPUP_HEADER_RING_LEFT_SHIFT = 13;
 const POPUP_RESET_RING_LEFT_SHIFT = 14;
 const SPARK_BADGE_COLOR = "#f2a15f";
+const RESET_EXPIRY_WARNING_COLOR = "#f2a15f";
+const RESET_EXPIRY_CRITICAL_COLOR = "#ff4d8d";
+const RESET_EXPIRY_WARNING_SECONDS = 7 * 24 * 60 * 60;
+const RESET_EXPIRY_CRITICAL_SECONDS = 24 * 60 * 60;
+const RESET_EXPIRY_BREATHING_OPACITY = 150;
+const RESET_EXPIRY_BREATHING_DURATION_MS = 1100;
 const AUTH_REQUIRED_TITLE = "No ChatGPT login found";
 const AUTH_REQUIRED_DESCRIPTION =
     "Sign in to ChatGPT with the Codex App/CLI, then choose Refresh now.";
@@ -67,6 +73,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._timeoutId = 0;
         this._countdownTimeoutId = 0;
         this._countdownWidgets = [];
+        this._resetExpiryBreathingLabels = [];
         this._quotaWidgets = [];
         this._activityTooltips = [];
         this._popupRightInsetRows = [];
@@ -375,7 +382,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 if (open) {
                     this._rightPanelPopupCloseSeq++;
                     this._rightPanelPopupCloseInProgress = false;
+                    this._startResetExpiryBreathing();
                 }
+                if (!open) this._stopResetExpiryBreathing();
                 if (!open) this._rightPanelPopupLockedWidth = 0;
                 if (!open && !this._rightPanelPopupCloseInProgress) {
                     this._normalizeRightPanelPopupCloseWidth();
@@ -644,11 +653,51 @@ class ChatGptUsageApplet extends Applet.Applet {
         return this.normalColor;
     }
 
+    _resetExpiryColor(expiresAt) {
+        const expiry = Number(expiresAt);
+        if (!Number.isFinite(expiry) || expiry <= 0) return null;
+        const remaining = expiry - GLib.get_real_time() / 1000000;
+        if (remaining <= RESET_EXPIRY_CRITICAL_SECONDS) {
+            return RESET_EXPIRY_CRITICAL_COLOR;
+        }
+        if (remaining <= RESET_EXPIRY_WARNING_SECONDS) {
+            return RESET_EXPIRY_WARNING_COLOR;
+        }
+        return null;
+    }
+
+    _startResetExpiryBreathing() {
+        for (const label of this._resetExpiryBreathingLabels) {
+            if (!label || !label.mapped || label._resetExpiryBreathing) continue;
+            label._resetExpiryBreathing = true;
+            label.opacity = 255;
+            label.ease({
+                opacity: RESET_EXPIRY_BREATHING_OPACITY,
+                duration: RESET_EXPIRY_BREATHING_DURATION_MS,
+                mode: Clutter.AnimationMode.EASE_IN_OUT_QUAD,
+                repeatCount: -1,
+                autoReverse: true,
+                animationRequired: false
+            });
+        }
+    }
+
+    _stopResetExpiryBreathing() {
+        for (const label of this._resetExpiryBreathingLabels) {
+            if (!label) continue;
+            label.remove_transition("opacity");
+            label.opacity = 255;
+            label._resetExpiryBreathing = false;
+        }
+    }
+
     _rebuildMenu() {
         if (!this.menu) return;
         const wasOpen = this.menu.isOpen;
         const expandedSubmenus = new Set();
         if (wasOpen) this.actor.grab_key_focus();
+        this._stopResetExpiryBreathing();
+        this._resetExpiryBreathingLabels = [];
         for (const entry of this._historySubmenus) {
             if (!entry.submenu.menu.isOpen) continue;
             expandedSubmenus.add(entry.id);
@@ -1619,16 +1668,23 @@ class ChatGptUsageApplet extends Applet.Applet {
             : "unavailable";
         if (credits && credits.unlimited) balance = "unlimited";
         this._addCreditItem("Credits", balance, true);
+        const resetDisplay = UsageFormat.buildResetCreditDisplay(
+            credits,
+            this._use24HourClock
+        );
+        const resetExpiryColor = resetDisplay.suffix
+            ? this._resetExpiryColor(resetDisplay.expiresAt)
+            : null;
         this._addCreditItem(
             "Rate-limit resets",
-            credits
-                ? UsageFormat.formatWholeNumber(credits.availableResetCount)
-                : "unavailable",
-            true
+            resetDisplay.count,
+            true,
+            resetDisplay.suffix,
+            resetExpiryColor
         );
     }
 
-    _addCreditItem(label, value, emphasized = false) {
+    _addCreditItem(label, value, emphasized = false, suffix = null, suffixColor = null) {
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
             activate: false
@@ -1643,6 +1699,31 @@ class ChatGptUsageApplet extends Applet.Applet {
             valueLabel.style = "padding-left: 4px;";
         }
         row.add_child(valueLabel);
+        if (suffix) {
+            const separatorLabel = new St.Label({
+                text: "•",
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            separatorLabel.style = "padding-left: 6px; padding-right: 6px;";
+            const expiresLabel = new St.Label({
+                text: "expires ",
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            const expiryDateLabel = new St.Label({
+                text: suffix,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            if (suffixColor) expiryDateLabel.style = `color: ${suffixColor};`;
+            if (suffixColor === RESET_EXPIRY_CRITICAL_COLOR) {
+                this._resetExpiryBreathingLabels.push(expiryDateLabel);
+                expiryDateLabel.connect("notify::mapped", () => {
+                    if (expiryDateLabel.mapped) this._startResetExpiryBreathing();
+                });
+            }
+            row.add_child(separatorLabel);
+            row.add_child(expiresLabel);
+            row.add_child(expiryDateLabel);
+        }
         item.addActor(row);
         this.menu.addMenuItem(item);
     }
@@ -2357,6 +2438,8 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._clockSettings.disconnect(this._clockChangedId);
             this._clockChangedId = 0;
         }
+        this._stopResetExpiryBreathing();
+        this._resetExpiryBreathingLabels = [];
         this._clockSettings = null;
         if (this.settings) this.settings.finalize();
     }

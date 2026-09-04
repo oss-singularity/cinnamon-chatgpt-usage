@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 import os
 import select
 import shutil
@@ -82,6 +83,25 @@ def _normalise_window(window: Any) -> dict[str, Any] | None:
     }
 
 
+def _next_reset_expiry(resets: Any) -> int | None:
+    """Return the earliest expiry among available reset-credit details."""
+
+    if not isinstance(resets, dict) or not isinstance(resets.get("credits"), list):
+        return None
+
+    expiries = []
+    for credit in resets["credits"]:
+        if not isinstance(credit, dict):
+            continue
+        status = str(credit.get("status") or "").casefold()
+        if status and status != "available":
+            continue
+        expires_at = _number(credit.get("expiresAt"), -1)
+        if math.isfinite(expires_at) and expires_at > 0:
+            expiries.append(int(expires_at))
+    return min(expiries, default=None)
+
+
 def normalise_rate_limits(result: dict[str, Any], now: int | None = None) -> dict[str, Any]:
     """Convert user-facing account and named model limits into an applet snapshot."""
 
@@ -135,6 +155,7 @@ def normalise_rate_limits(result: dict[str, Any], now: int | None = None) -> dic
 
     credits = {
         "availableResetCount": available_resets,
+        "nextResetExpiresAt": _next_reset_expiry(resets),
         "balance": None,
         "hasCredits": False,
         "unlimited": False,

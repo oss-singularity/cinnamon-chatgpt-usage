@@ -82,7 +82,14 @@ class NormaliseRateLimitsTests(unittest.TestCase):
                     },
                 },
             },
-            "rateLimitResetCredits": {"availableCount": 2, "credits": []},
+            "rateLimitResetCredits": {
+                "availableCount": 2,
+                "credits": [
+                    {"status": "available", "expiresAt": 1791079502},
+                    {"status": "available", "expiresAt": 1789000000},
+                    {"status": "redeemed", "expiresAt": 1788000000},
+                ],
+            },
         }
 
         snapshot = normalise_rate_limits(result, now=123)
@@ -100,6 +107,7 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         )
         self.assertEqual(snapshot["credits"]["balance"], "0")
         self.assertEqual(snapshot["credits"]["availableResetCount"], 2)
+        self.assertEqual(snapshot["credits"]["nextResetExpiresAt"], 1789000000)
 
     def test_unnamed_internal_bucket_is_ignored(self) -> None:
         result = {
@@ -137,6 +145,7 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         self.assertEqual(len(snapshot["limits"][0]["windows"]), 1)
         self.assertEqual(snapshot["limits"][0]["windows"][0]["remainingPercent"], 61)
         self.assertEqual(snapshot["credits"]["availableResetCount"], 0)
+        self.assertIsNone(snapshot["credits"]["nextResetExpiresAt"])
 
     def test_optional_five_hour_window_when_canonical_api_exposes_it(self) -> None:
         result = {

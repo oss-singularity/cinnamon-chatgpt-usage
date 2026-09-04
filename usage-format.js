@@ -520,6 +520,47 @@ function formatTimestamp(epochSeconds, use24Hour) {
     return dateTime.format(`%x ${timeFormat}`);
 }
 
+function formatExpiryCountdown(expiresAt, nowSeconds = null) {
+    const expiry = Number(expiresAt);
+    const current = nowSeconds === null
+        ? GLib.get_real_time() / 1000000
+        : Number(nowSeconds);
+    if (
+        !Number.isFinite(expiry) || expiry <= 0 ||
+        !Number.isFinite(current)
+    ) {
+        return null;
+    }
+
+    const remainingSeconds = Math.max(0, Math.floor(expiry - current));
+    const days = Math.floor(remainingSeconds / 86400);
+    const hours = Math.floor((remainingSeconds % 86400) / 3600);
+    return days > 0 ? `~${days}d${hours}h` : `~${hours}h`;
+}
+
+function buildResetCreditDisplay(credits, use24Hour, nowSeconds = null) {
+    const count = credits
+        ? formatWholeNumber(credits.availableResetCount)
+        : "unavailable";
+    const availableCount = Number(credits && credits.availableResetCount);
+    if (!Number.isFinite(availableCount) || availableCount <= 0) {
+        return { count, suffix: null, expiresAt: null };
+    }
+
+    const expiresAt = Number(credits.nextResetExpiresAt);
+    const timestamp = formatTimestamp(expiresAt, use24Hour);
+    if (timestamp === "unknown") {
+        return { count, suffix: null, expiresAt: null };
+    }
+
+    const countdown = formatExpiryCountdown(expiresAt, nowSeconds);
+    return {
+        count,
+        suffix: countdown ? `${timestamp} (${countdown})` : timestamp,
+        expiresAt
+    };
+}
+
 function formatLocalDate(epochSeconds) {
     const seconds = Number(epochSeconds);
     if (!Number.isFinite(seconds) || seconds <= 0) return null;
@@ -601,6 +642,8 @@ module.exports = {
     formatActivityBucketTooltip,
     formatAccessibleTooltip,
     formatTimestamp,
+    formatExpiryCountdown,
+    buildResetCreditDisplay,
     formatLocalDate,
     formatChatGptVersionDate,
     formatRelativeTime,
