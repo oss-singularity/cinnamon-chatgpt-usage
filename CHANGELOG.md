@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.3.9 — 2026-09-04
+
 - Add the Codex icon to model-labelled recent-consumption headings and give
   `Usage limits` and `Recent consumption` the same heading treatment as the
   popup title.
@@ -13,6 +17,10 @@
 - Refresh the README's Cinnamon captures with visible panel anchors and
   model-specific panel indicators, including the common Codex-only 5h + 7d
   state alongside the horizontal, vertical, Spark and four-ring examples.
+
+- Re-capture the complete README image series with the transparent panel
+  treatment, keeping the desktop visible around the applet and preserving
+  readable horizontal and vertical panel anchors.
 
 ## 0.3.8 — 2026-09-04
 

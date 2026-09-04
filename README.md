@@ -122,7 +122,7 @@ package can provide the local app-server backend by itself; the applet discovers
 its bundled `resources/codex` binary when no configured/PATH CLI is available.
 If neither option is installed, both native launch/install buttons remain
 available as the initial setup choice.
-Version 0.3.8 is tested on Cinnamon 6.6.9 with Codex CLI 0.153.2 and ChatGPT
+Version 0.3.9 is tested on Cinnamon 6.6.9 with Codex CLI 0.153.2 and ChatGPT
 desktop 26.901.31953.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
