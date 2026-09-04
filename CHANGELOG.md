@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.7 — 2026-09-04
+
+- Make an available earned rate-limit reset explicitly actionable from the
+  popup, with a native confirmation dialog showing the available count and
+  selected expiry when supplied.
+- Consume a reset only after the user confirms, using the local Codex
+  app-server, one UUID idempotency key per attempt and the selected opaque
+  credit ID when detail rows are available.
+- Refresh the full usage snapshot after every terminal consume response and
+  keep success, stale-count, no-credit and error outcomes visible without
+  adding background redemption or credential access.
+
 ## 0.3.6 — 2026-09-04
 
 - Show the local expiry date and time of the next available earned rate-limit

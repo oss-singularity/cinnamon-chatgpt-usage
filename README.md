@@ -50,9 +50,9 @@
 
 - Mirrors account-level and named model-specific limits exposed by ChatGPT:
   remaining usage, reset times, credits and earned resets with the next expiry
-  date, time and remaining countdown when available. The expiry timestamp
-  turns orange within seven days and uses a neon-pink breathing alert within
-  24 hours; a zero reset count stays compact and shows only `0`.
+  date, time and remaining countdown when available. An available earned reset
+  can be selected in the popup and is consumed only after an explicit native
+  confirmation; a zero reset count stays compact and shows only `0`.
 - Detects dedicated GPT-5.3-Codex-Spark 5h and 7d quotas automatically when
   they are enabled for the signed-in account; model-specific limits stay in
   the popup by default, carry a distinct amber marker and can optionally be
@@ -98,7 +98,7 @@ cd cinnamon-chatgpt-usage
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
 Requirements: Cinnamon 5.8+, Python 3 and a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
-with ChatGPT. Version 0.3.6 is tested on Cinnamon 6.6.9 with Codex CLI 0.152.0.
+with ChatGPT. Version 0.3.7 is tested on Cinnamon 6.6.9 with Codex CLI 0.153.2.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
@@ -106,8 +106,11 @@ retaining its settings.
 ## How it works
 
 The helper makes one read-only `account/rateLimits/read` request through the
-official local Codex app-server and exits. There is no HTML scraping, API key,
-browser access, background daemon or reset-credit write. To calculate recent
+official local Codex app-server for normal refreshes and exits. An earned reset
+is never consumed in the background: the confirmed popup action starts a
+separate `account/rateLimitResetCredit/consume` request with one UUID
+idempotency key and then refetches the complete usage snapshot. There is no
+HTML scraping, API key, browser access or background daemon. To calculate recent
 consumption, it stores only timestamps, window durations, percentages and reset
 IDs for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
 (normally `~/.local/state/...`, mode `0600`). No prompts, credit details or

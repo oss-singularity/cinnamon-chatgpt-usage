@@ -838,6 +838,57 @@ assertEqual(
     1000 + 10 * 86400 + 5 * 3600,
     "Available reset keeps expiry timestamp"
 );
+const selectedReset = UsageFormat.buildResetCreditConfirmation(
+    {
+        availableResetCount: 2,
+        nextResetExpiresAt: 1000 + 8 * 86400,
+        resetCredits: [
+            { id: "reset-later", expiresAt: 1000 + 8 * 86400 },
+            { id: "reset-next", expiresAt: 1000 + 2 * 86400 }
+        ]
+    },
+    true,
+    1000
+);
+assertEqual(selectedReset.available, true, "Available reset opens confirmation");
+assertEqual(selectedReset.count, "2", "Confirmation shows available reset count");
+assertEqual(selectedReset.creditId, "reset-next", "Confirmation selects earliest expiry");
+assertEqual(
+    selectedReset.expiresAt,
+    1000 + 2 * 86400,
+    "Confirmation keeps selected credit expiry"
+);
+if (!selectedReset.expiryText || !/\(~2d0h\)$/.test(selectedReset.expiryText)) {
+    throw new Error(`Expected selected reset expiry, got ${selectedReset.expiryText}`);
+}
+const countOnlyReset = UsageFormat.buildResetCreditConfirmation(
+    { availableResetCount: 1, resetCredits: null },
+    true,
+    1000
+);
+assertEqual(countOnlyReset.available, true, "Count-only reset still opens confirmation");
+assertEqual(countOnlyReset.creditId, null, "Count-only reset omits credit ID");
+assertEqual(countOnlyReset.expiryText, null, "Count-only reset shows no unknown expiry");
+assertEqual(
+    UsageFormat.buildResetCreditConfirmation(
+        { availableResetCount: 0, resetCredits: [] },
+        true,
+        1000
+    ).available,
+    false,
+    "Zero reset count stays non-reactive"
+);
+for (const outcome of ["reset", "alreadyRedeemed", "nothingToReset", "noCredit"]) {
+    const feedback = UsageFormat.buildResetConsumeFeedback(outcome);
+    if (!feedback || !feedback.title || !feedback.description) {
+        throw new Error(`Missing user feedback for reset outcome ${outcome}`);
+    }
+}
+assertEqual(
+    UsageFormat.buildResetConsumeFeedback("unexpected"),
+    null,
+    "Unexpected reset outcome is not treated as success"
+);
 assertEqual(
     UsageFormat.formatRelativeTime(1000, 1000),
     "just now",

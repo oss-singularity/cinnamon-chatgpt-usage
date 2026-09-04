@@ -102,6 +102,36 @@ def _next_reset_expiry(resets: Any) -> int | None:
     return min(expiries, default=None)
 
 
+def _reset_credit_details(resets: Any) -> list[dict[str, Any]] | None:
+    """Return selectable available reset details without persisting them."""
+
+    if not isinstance(resets, dict) or not isinstance(resets.get("credits"), list):
+        return None
+
+    details = []
+    for credit in resets["credits"]:
+        if not isinstance(credit, dict) or str(credit.get("status") or "").casefold() != "available":
+            continue
+        credit_id = str(credit.get("id") or "").strip()
+        if not credit_id:
+            continue
+        expires_at = _number(credit.get("expiresAt"), -1)
+        details.append(
+            {
+                "id": credit_id,
+                "expiresAt": int(expires_at) if math.isfinite(expires_at) and expires_at > 0 else None,
+            }
+        )
+
+    details.sort(
+        key=lambda credit: (
+            credit["expiresAt"] is None,
+            credit["expiresAt"] or 0,
+        )
+    )
+    return details
+
+
 def normalise_rate_limits(result: dict[str, Any], now: int | None = None) -> dict[str, Any]:
     """Convert user-facing account and named model limits into an applet snapshot."""
 
@@ -156,6 +186,7 @@ def normalise_rate_limits(result: dict[str, Any], now: int | None = None) -> dic
     credits = {
         "availableResetCount": available_resets,
         "nextResetExpiresAt": _next_reset_expiry(resets),
+        "resetCredits": _reset_credit_details(resets),
         "balance": None,
         "hasCredits": False,
         "unlimited": False,
@@ -414,8 +445,14 @@ def resolve_codex(explicit: str | None) -> str:
     raise UsageError("Codex CLI was not found")
 
 
-def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
-    """Perform one initialized, read-only app-server request."""
+def _run_app_server_request(
+    codex: str,
+    timeout: float,
+    request: dict[str, Any],
+    empty_result_message: str,
+    timeout_message: str,
+) -> dict[str, Any]:
+    """Perform one initialized app-server request and return its result."""
 
     process = subprocess.Popen(
         [codex, "app-server", "--listen", "stdio://"],
@@ -433,7 +470,7 @@ def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
     messages = (
         {"method": "initialize", "id": 1, "params": {"clientInfo": CLIENT_INFO}},
         {"method": "initialized", "params": {}},
-        {"method": "account/rateLimits/read", "id": 2},
+        request,
     )
     for message in messages:
         process.stdin.write(json.dumps(message, separators=(",", ":")) + "\n")
@@ -453,7 +490,7 @@ def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
                 message = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if message.get("id") != 2:
+            if message.get("id") != request.get("id"):
                 continue
             if "error" in message:
                 error = message["error"]
@@ -463,9 +500,9 @@ def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
                 raise UsageError(f"Codex app-server rejected the request: {detail}")
             result = message.get("result")
             if not isinstance(result, dict):
-                raise UsageError("Codex app-server returned no usage data")
+                raise UsageError(empty_result_message)
             return result
-        raise UsageError("Timed out while reading ChatGPT usage limits")
+        raise UsageError(timeout_message)
     finally:
         try:
             process.stdin.close()
@@ -480,10 +517,65 @@ def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
                 process.wait(timeout=2)
 
 
+def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
+    """Perform one initialized, read-only app-server request."""
+
+    return _run_app_server_request(
+        codex,
+        timeout,
+        {"method": "account/rateLimits/read", "id": 2},
+        "Codex app-server returned no usage data",
+        "Timed out while reading ChatGPT usage limits",
+    )
+
+
+def consume_rate_limit_reset(
+    codex: str,
+    timeout: float,
+    idempotency_key: str,
+    credit_id: str | None = None,
+) -> dict[str, Any]:
+    """Consume one reset credit through an explicitly requested app-server action."""
+
+    key = str(idempotency_key or "").strip()
+    if not key:
+        raise UsageError("Reset consume requires a non-empty idempotency key")
+
+    params: dict[str, str] = {"idempotencyKey": key}
+    selected_credit_id = str(credit_id or "").strip()
+    if selected_credit_id:
+        params["creditId"] = selected_credit_id
+
+    result = _run_app_server_request(
+        codex,
+        timeout,
+        {
+            "method": "account/rateLimitResetCredit/consume",
+            "id": 2,
+            "params": params,
+        },
+        "Codex app-server returned no reset outcome",
+        "Timed out while consuming a rate-limit reset",
+    )
+    if not isinstance(result.get("outcome"), str) or not result["outcome"]:
+        raise UsageError("Codex app-server returned an invalid reset outcome")
+    return result
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--codex", help="Path to the Codex CLI")
     parser.add_argument("--timeout", type=float, default=25, help="Request timeout in seconds")
+    parser.add_argument(
+        "--consume-reset",
+        action="store_true",
+        help="Explicitly consume one earned rate-limit reset credit",
+    )
+    parser.add_argument(
+        "--idempotency-key",
+        help="Stable key for one explicit reset-redemption attempt",
+    )
+    parser.add_argument("--credit-id", help="Optional opaque reset-credit ID")
     parser.add_argument("--history-file", type=Path, help="Override the local history path")
     parser.add_argument(
         "--activity-bucket-minutes",
@@ -500,6 +592,16 @@ def main() -> int:
     args = parse_args()
     try:
         codex = resolve_codex(args.codex)
+        if args.consume_reset:
+            result = consume_rate_limit_reset(
+                codex,
+                max(1.0, args.timeout),
+                args.idempotency_key or "",
+                args.credit_id,
+            )
+            print(json.dumps(result, separators=(",", ":")))
+            return 0
+
         result = fetch_rate_limits(codex, max(1.0, args.timeout))
         snapshot = normalise_rate_limits(result)
         if not args.no_history:

@@ -561,6 +561,92 @@ function buildResetCreditDisplay(credits, use24Hour, nowSeconds = null) {
     };
 }
 
+function selectResetCredit(credits) {
+    if (!credits || !Array.isArray(credits.resetCredits)) return null;
+
+    const candidates = [];
+    for (const credit of credits.resetCredits) {
+        const id = String(credit && credit.id || "").trim();
+        if (!id) continue;
+        const expiresAt = Number(credit.expiresAt);
+        candidates.push({
+            id,
+            expiresAt: Number.isFinite(expiresAt) && expiresAt > 0
+                ? Math.floor(expiresAt)
+                : null
+        });
+    }
+    candidates.sort((left, right) => {
+        if (left.expiresAt === right.expiresAt) return 0;
+        if (left.expiresAt === null) return 1;
+        if (right.expiresAt === null) return -1;
+        return left.expiresAt - right.expiresAt;
+    });
+    return candidates[0] || null;
+}
+
+function buildResetCreditConfirmation(credits, use24Hour, nowSeconds = null) {
+    const count = credits
+        ? formatWholeNumber(credits.availableResetCount)
+        : "unavailable";
+    const availableCount = Number(credits && credits.availableResetCount);
+    if (!Number.isFinite(availableCount) || availableCount <= 0) {
+        return {
+            available: false,
+            count,
+            creditId: null,
+            expiresAt: null,
+            expiryText: null
+        };
+    }
+
+    const selected = selectResetCredit(credits);
+    const fallbackExpiresAt = Number(credits.nextResetExpiresAt);
+    const expiresAt = selected
+        ? selected.expiresAt
+        : Number.isFinite(fallbackExpiresAt) && fallbackExpiresAt > 0
+            ? Math.floor(fallbackExpiresAt)
+            : null;
+    const timestamp = formatTimestamp(expiresAt, use24Hour);
+    const countdown = formatExpiryCountdown(expiresAt, nowSeconds);
+    return {
+        available: true,
+        count,
+        creditId: selected ? selected.id : null,
+        expiresAt,
+        expiryText: timestamp === "unknown"
+            ? null
+            : countdown ? `${timestamp} (${countdown})` : timestamp
+    };
+}
+
+function buildResetConsumeFeedback(outcome) {
+    switch (outcome) {
+    case "reset":
+        return {
+            title: "Reset applied",
+            description: "One reset credit was consumed. Usage limits are refreshing."
+        };
+    case "alreadyRedeemed":
+        return {
+            title: "Reset already applied",
+            description: "This redemption was already completed. Usage limits are refreshing."
+        };
+    case "nothingToReset":
+        return {
+            title: "Reset not applied",
+            description: "No usage window was eligible for this reset. Usage limits are refreshing."
+        };
+    case "noCredit":
+        return {
+            title: "No reset credit available",
+            description: "The displayed count was stale. The available reset count is refreshing."
+        };
+    default:
+        return null;
+    }
+}
+
 function formatLocalDate(epochSeconds) {
     const seconds = Number(epochSeconds);
     if (!Number.isFinite(seconds) || seconds <= 0) return null;
@@ -644,6 +730,9 @@ module.exports = {
     formatTimestamp,
     formatExpiryCountdown,
     buildResetCreditDisplay,
+    selectResetCredit,
+    buildResetCreditConfirmation,
+    buildResetConsumeFeedback,
     formatLocalDate,
     formatChatGptVersionDate,
     formatRelativeTime,
