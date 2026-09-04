@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Add the Codex icon to model-labelled recent-consumption headings and give
+  `Usage limits` and `Recent consumption` the same heading treatment as the
+  popup title.
+- Discover the app-server binary bundled with the ChatGPT desktop app when no
+  explicit or PATH-based Codex CLI is available; the existing CLI preference
+  and signed-in local-app-server flow remain unchanged. When neither backend
+  exists, both native launch/install buttons remain available as the initial
+  setup choice.
+- Refresh the README's Cinnamon captures with visible panel anchors and
+  model-specific panel indicators, including the common Codex-only 5h + 7d
+  state alongside the horizontal, vertical, Spark and four-ring examples.
+
 ## 0.3.8 — 2026-09-04
 
 - Keep the `Limit resets` label, separator, expiry text and countdown in
