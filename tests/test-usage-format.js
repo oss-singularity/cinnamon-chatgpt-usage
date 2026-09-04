@@ -128,6 +128,14 @@ assertEqual(fiveHourCountdown.remainingSeconds, 9000, "Five-hour seconds remaini
 assertEqual(fiveHourCountdown.fractionRemaining, 0.5, "Five-hour ring fraction");
 assertEqual(fiveHourCountdown.fractionElapsed, 0.5, "Five-hour elapsed fraction");
 assertEqual(fiveHourCountdown.label, "2h\n30m", "Five-hour countdown label");
+assertEqual(
+    UsageFormat.formatResetCountdownTooltip(
+        { durationMinutes: 300, resetsAt: 10000 },
+        1000
+    ),
+    "Reset window: 5h\nElapsed: 50%\nRemaining: 2h 30m",
+    "Five-hour reset tooltip"
+);
 
 const earlyFiveHourCountdown = UsageFormat.buildResetCountdown(
     { durationMinutes: 300, resetsAt: 1000 + (4 * 3600) },
@@ -156,6 +164,18 @@ assertEqual(
     unusedFiveHourCountdown.fractionElapsed,
     0,
     "Unused five-hour cycle has no reset progress"
+);
+assertEqual(
+    UsageFormat.formatResetCountdownTooltip(
+        {
+            durationMinutes: 300,
+            remainingPercent: 100,
+            resetsAt: 1000 + (5 * 3600)
+        },
+        1002
+    ),
+    "Reset window: 5h\nElapsed: 0%\nRemaining: 5h",
+    "Unused five-hour reset tooltip"
 );
 
 const unusedWeeklyCountdown = UsageFormat.buildResetCountdown(
@@ -215,6 +235,14 @@ assertEqual(
     UsageFormat.buildResetCountdown({ durationMinutes: 300, resetsAt: null }, 1000).valid,
     false,
     "Missing reset countdown"
+);
+assertEqual(
+    UsageFormat.formatResetCountdownTooltip(
+        { durationMinutes: 10080, resetsAt: null },
+        1000
+    ),
+    "Reset window: 7d\nElapsed: unavailable",
+    "Invalid reset tooltip"
 );
 const weeklyQuota = UsageFormat.buildQuotaIndicator({
     durationMinutes: 10080,

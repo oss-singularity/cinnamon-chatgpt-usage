@@ -56,6 +56,7 @@ const RESET_EXPIRY_WARNING_SECONDS = 7 * 24 * 60 * 60;
 const RESET_EXPIRY_CRITICAL_SECONDS = 24 * 60 * 60;
 const RESET_EXPIRY_BREATHING_OPACITY = 150;
 const RESET_EXPIRY_BREATHING_DURATION_MS = 1100;
+const POPUP_SECONDARY_TEXT_COLOR = "rgba(255,255,255,0.68)";
 const AUTH_REQUIRED_TITLE = "No ChatGPT login found";
 const AUTH_REQUIRED_DESCRIPTION =
     "Sign in to ChatGPT with the Codex App/CLI, then choose Refresh now.";
@@ -976,7 +977,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         const actor = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
             width: size,
-            height: size
+            height: size,
+            reactive: true,
+            track_hover: true
         });
         actor.translation_x = -POPUP_RESET_RING_LEFT_SHIFT;
         const area = new St.DrawingArea({ width: size, height: size });
@@ -996,8 +999,17 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         actor.add_child(area);
         actor.add_child(label);
-        this._countdownWidgets.push({ area, label, window });
-        this._updateResetCountdown({ area, label, window });
+        const tooltipText = UsageFormat.formatResetCountdownTooltip(window);
+        actor.accessible_name = UsageFormat.formatAccessibleTooltip(tooltipText);
+        const entry = {
+            actor,
+            area,
+            label,
+            window,
+            tooltip: this._createPositionedTooltip(actor, tooltipText)
+        };
+        this._countdownWidgets.push(entry);
+        this._updateResetCountdown(entry);
         return actor;
     }
 
@@ -1087,6 +1099,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         const model = UsageFormat.buildResetCountdown(entry.window);
         entry.label.set_text(model.label);
         entry.area.queue_repaint();
+        if (entry.tooltip) {
+            const tooltipText = UsageFormat.formatResetCountdownTooltip(entry.window);
+            entry.tooltip.set_text(tooltipText);
+            entry.actor.accessible_name = UsageFormat.formatAccessibleTooltip(tooltipText);
+        }
     }
 
     _updateResetCountdowns() {
@@ -1721,7 +1738,9 @@ class ChatGptUsageApplet extends Applet.Applet {
             });
         }
         const row = new St.BoxLayout({ vertical: false });
-        row.add_child(new St.Label({ text: `${label}:` }));
+        const labelActor = new St.Label({ text: `${label}:` });
+        labelActor.style = `color: ${POPUP_SECONDARY_TEXT_COLOR};`;
+        row.add_child(labelActor);
         const valueLabel = new St.Label({ text: value });
         if (emphasized) {
             valueLabel.style = this._emphasizedValueStyle(this.normalColor, 4);
@@ -1735,16 +1754,21 @@ class ChatGptUsageApplet extends Applet.Applet {
                 text: "•",
                 y_align: Clutter.ActorAlign.CENTER
             });
-            separatorLabel.style = "padding-left: 6px; padding-right: 6px;";
+            separatorLabel.style = [
+                "padding-left: 6px",
+                "padding-right: 6px",
+                `color: ${POPUP_SECONDARY_TEXT_COLOR}`
+            ].join("; ") + ";";
             const expiresLabel = new St.Label({
                 text: "expires ",
                 y_align: Clutter.ActorAlign.CENTER
             });
+            expiresLabel.style = `color: ${POPUP_SECONDARY_TEXT_COLOR};`;
             const expiryDateLabel = new St.Label({
                 text: suffix,
                 y_align: Clutter.ActorAlign.CENTER
             });
-            if (suffixColor) expiryDateLabel.style = `color: ${suffixColor};`;
+            expiryDateLabel.style = `color: ${suffixColor || POPUP_SECONDARY_TEXT_COLOR};`;
             if (suffixColor === RESET_EXPIRY_CRITICAL_COLOR) {
                 this._resetExpiryBreathingLabels.push(expiryDateLabel);
                 expiryDateLabel.connect("notify::mapped", () => {

@@ -160,6 +160,23 @@ function buildResetCountdown(window, nowSeconds = null) {
     };
 }
 
+function formatResetCountdownTooltip(window, nowSeconds = null) {
+    const durationLabel = formatDuration(window && window.durationMinutes);
+    const model = buildResetCountdown(window, nowSeconds);
+    if (!model.valid) {
+        return `Reset window: ${durationLabel}\nElapsed: unavailable`;
+    }
+
+    const remaining = [model.primary, model.secondary]
+        .filter(Boolean)
+        .join(" ");
+    return [
+        `Reset window: ${durationLabel}`,
+        `Elapsed: ${formatPercent(model.fractionElapsed * 100)}`,
+        `Remaining: ${remaining}`
+    ].join("\n");
+}
+
 function buildQuotaIndicator(window) {
     const durationMinutes = Number(window && window.durationMinutes);
     const remainingPercent = Number(window && window.remainingPercent);
@@ -714,6 +731,7 @@ module.exports = {
     formatPercent,
     formatConsumedPercent,
     buildResetCountdown,
+    formatResetCountdownTooltip,
     buildQuotaIndicator,
     buildActivityChart,
     formatWholeNumber,
