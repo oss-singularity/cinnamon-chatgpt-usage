@@ -15,6 +15,7 @@ from chatgpt_usage import (
     consume_rate_limit_reset,
     is_authentication_error,
     normalise_rate_limits,
+    resolve_codex,
     update_usage_history,
 )
 from chatgpt_usage import UsageError
@@ -140,6 +141,25 @@ class AuthenticationErrorTests(unittest.TestCase):
         for message in messages:
             with self.subTest(message=message):
                 self.assertFalse(is_authentication_error(message))
+
+
+class CodexResolutionTests(unittest.TestCase):
+    def test_chatgpt_bundle_is_used_when_cli_is_unavailable(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            launcher = root / "chatgpt-launcher"
+            bundled = root / "resources" / "codex"
+            bundled.parent.mkdir()
+            launcher.touch()
+            bundled.touch()
+            launcher.chmod(0o755)
+            bundled.chmod(0o755)
+
+            def fake_which(name: str) -> str | None:
+                return str(launcher) if name == "chatgpt" else None
+
+            with patch("chatgpt_usage.shutil.which", side_effect=fake_which):
+                self.assertEqual(resolve_codex(None), str(bundled))
 
 
 class NormaliseRateLimitsTests(unittest.TestCase):

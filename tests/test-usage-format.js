@@ -440,7 +440,7 @@ assertEqual(
     "Whole reset count omits decimal zeroes"
 );
 const authenticationError = UsageFormat.parseUsageHelperError(
-    "AUTH_REQUIRED: Sign in to ChatGPT with the Codex App/CLI."
+    "AUTH_REQUIRED: Sign in to ChatGPT with the ChatGPT App or Codex CLI."
 );
 assertEqual(
     authenticationError.authenticationRequired,
@@ -449,7 +449,7 @@ assertEqual(
 );
 assertEqual(
     authenticationError.message,
-    "Sign in to ChatGPT with the Codex App/CLI.",
+    "Sign in to ChatGPT with the ChatGPT App or Codex CLI.",
     "Authentication marker is hidden from the user"
 );
 const refreshError = UsageFormat.parseUsageHelperError("Network unavailable");

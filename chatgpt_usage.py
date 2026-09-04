@@ -30,7 +30,7 @@ ACTIVITY_WINDOW_SECONDS = 24 * 60 * 60
 DEFAULT_ACTIVITY_BUCKET_MINUTES = 60
 RESET_TIMESTAMP_JITTER_SECONDS = 60
 AUTH_REQUIRED_PREFIX = "AUTH_REQUIRED:"
-AUTH_REQUIRED_MESSAGE = "Sign in to ChatGPT with the Codex App/CLI, then refresh this applet."
+AUTH_REQUIRED_MESSAGE = "Sign in to ChatGPT with the ChatGPT App or Codex CLI, then refresh this applet."
 
 
 class UsageError(RuntimeError):
@@ -427,8 +427,30 @@ def update_usage_history(
     return snapshot
 
 
+def _resolve_bundled_chatgpt_codex() -> str | None:
+    """Find the app-server binary shipped beside the ChatGPT desktop launcher."""
+
+    launcher = shutil.which("chatgpt")
+    if not launcher:
+        return None
+
+    resolved_launcher = Path(launcher).resolve()
+    candidates = (
+        resolved_launcher.parent / "resources" / "codex",
+        resolved_launcher.parent.parent / "resources" / "codex",
+    )
+    seen: set[Path] = set()
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
 def resolve_codex(explicit: str | None) -> str:
-    """Resolve an executable Codex CLI without inspecting credential storage."""
+    """Resolve an explicit, installed, or ChatGPT-bundled app-server binary."""
 
     if explicit:
         candidate = os.path.abspath(os.path.expanduser(explicit))
@@ -442,7 +464,10 @@ def resolve_codex(explicit: str | None) -> str:
     local_candidate = os.path.expanduser("~/.local/bin/codex")
     if os.path.isfile(local_candidate) and os.access(local_candidate, os.X_OK):
         return local_candidate
-    raise UsageError("Codex CLI was not found")
+    bundled_candidate = _resolve_bundled_chatgpt_codex()
+    if bundled_candidate:
+        return bundled_candidate
+    raise UsageError("Codex CLI or ChatGPT App backend was not found")
 
 
 def _run_app_server_request(
