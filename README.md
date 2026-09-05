@@ -24,9 +24,9 @@
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | ![Spark and Codex limits in a horizontal top bar with both panel indicators](docs/model-limits/topbar.png) | ![Spark and Codex limits in a vertical panel with both panel indicators](docs/model-limits/vertical-panel.png) |
 
-| Default overview with unused Spark collapsed                                                                             | Spark quotas and recent activity                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![Usage menu with both model-specific panel indicators and a full hourly demo history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories sharing one activity chart with the panel anchor visible](docs/model-limits/usage-menu-spark.png) |
+| Usage overview                                                                                          | Spark quotas and recent activity                                                                                                            |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Usage menu with model-specific panel indicators and hourly history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories sharing one activity chart with the panel anchor visible](docs/model-limits/usage-menu-spark.png) |
 
 <p align="center"><sub>Public usage-menu captures keep the live panel edge and applet indicators visible as the visual anchor; general dual-model examples show both model-specific indicators.</sub></p>
 
