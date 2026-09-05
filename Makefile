@@ -4,6 +4,7 @@ check:
 	cjs tests/check-source.js applet.js usage-format.js
 	cjs tests/test-usage-format.js
 	cjs tests/test-spark-disclosure.js
+	cjs tests/test-action-centering.js
 	cjs tests/test-settings-schema.js
 	python3 -m unittest tests/test_chatgpt_usage.py
 	python3 -m json.tool metadata.json >/dev/null

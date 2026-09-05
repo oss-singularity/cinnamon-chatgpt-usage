@@ -109,6 +109,8 @@
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
+- Highlights critical remaining-usage text (10% or less by default) in static
+  neon pink for readability; quota-ring colors remain configurable.
 - Can notify once when selected 7d limits refresh and when enabled 5h or 7d
   quotas cross configurable warning and critical remaining-usage thresholds;
   all detection happens only on successful data refreshes.
@@ -166,6 +168,9 @@ formatting, JSON, assets and shell scripts.
 ## License
 
 Licensed under GPL-3.0-or-later. See [LICENSE](LICENSE).
+
+The bundled Yaru action icons retain their CC-BY-SA-4.0 license;
+see [icon attribution](icons/ATTRIBUTION.md).
 Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 The adaptive layout follows the OSS-SINGULARITY

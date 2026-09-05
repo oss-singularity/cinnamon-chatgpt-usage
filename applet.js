@@ -491,8 +491,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         const [menuWidth] = this.menu.actor.get_transformed_size();
         const [gridX] = this._actionWidthFrame.get_transformed_position();
         const [gridWidth] = this._actionWidthFrame.get_transformed_size();
-        const menuCenter = menuX + menuWidth / 2;
-        const gridCenter = gridX + gridWidth / 2;
+        // Transformed coordinates can differ by tiny float errors between
+        // opening and rebuilding. Snap to pixels before the half-width math
+        // so an odd popup width cannot flip the translation by one pixel.
+        const menuCenter = Math.round(menuX) + Math.round(menuWidth) / 2;
+        const gridCenter = Math.round(gridX) + Math.round(gridWidth) / 2;
         this._actionWidthFrame.translation_x = Math.round(menuCenter - gridCenter);
     }
 
@@ -662,7 +665,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _remainingColor(remaining) {
         if (!this.showColors || !Number.isFinite(remaining)) return this.normalColor;
-        if (remaining <= this.criticalRemaining) return this.criticalColor;
+        if (remaining <= this.criticalRemaining) return RESET_EXPIRY_CRITICAL_COLOR;
         if (remaining <= this.warningRemaining) return this.warningColor;
         return this.normalColor;
     }
@@ -961,7 +964,9 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._remainingColor(window.remainingPercent),
             12
         );
-        remainingLabel.opacity = 195;
+        remainingLabel.opacity = this.showColors &&
+            Number.isFinite(window.remainingPercent) &&
+            window.remainingPercent <= this.criticalRemaining ? 255 : 195;
         headline.add_child(durationLabel);
         headline.add_child(remainingLabel);
         const resetLabel = new St.Label({
@@ -1307,9 +1312,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshButton = this._createLaunchButton(
             refreshConfirmed ? "Updated" : "Refresh now",
             {
-                iconName: refreshConfirmed
-                    ? "emblem-ok-symbolic"
-                    : "view-refresh-symbolic",
+                fileName: refreshConfirmed
+                    ? "emblem-ok-symbolic.svg"
+                    : "view-refresh-symbolic.svg",
                 symbolic: true,
                 compact: true,
                 keepMenuOpen: true,
@@ -1340,7 +1345,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const analyticsButton = this._createLaunchButton(
             "Analytics",
             {
-                iconName: "utilities-system-monitor-symbolic",
+                fileName: "utilities-system-monitor-symbolic.svg",
                 symbolic: true,
                 compact: true
             },
@@ -1350,7 +1355,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const chatGptWebButton = this._createLaunchButton(
             "ChatGPT",
             {
-                iconName: "web-browser-symbolic",
+                fileName: "web-browser-symbolic.svg",
                 symbolic: true,
                 compact: true,
                 transparent: true
@@ -1361,7 +1366,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const codexCloudButton = this._createLaunchButton(
             "Codex Cloud",
             {
-                iconName: "web-browser-symbolic",
+                fileName: "web-browser-symbolic.svg",
                 symbolic: true,
                 compact: true,
                 transparent: true
@@ -1400,6 +1405,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 ? St.IconType.SYMBOLIC
                 : St.IconType.FULLCOLOR;
         }
+        if (iconSpec.symbolic) iconProperties.icon_type = St.IconType.SYMBOLIC;
         const icon = new St.Icon(iconProperties);
         icon.y_align = Clutter.ActorAlign.CENTER;
         content.add_child(icon);
@@ -1511,9 +1517,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._stopRefreshSpinner();
         spinner.hide();
         icon.show();
-        icon.icon_name = this._refreshConfirmed
-            ? "emblem-ok-symbolic"
-            : "view-refresh-symbolic";
+        const fileName = this._refreshConfirmed
+            ? "emblem-ok-symbolic.svg"
+            : "view-refresh-symbolic.svg";
+        icon.gicon = new Gio.FileIcon({
+            file: Gio.File.new_for_path(`${this.metadata.path}/icons/${fileName}`)
+        });
         icon.icon_type = St.IconType.SYMBOLIC;
         label.set_text(this._refreshConfirmed ? "Updated" : "Refresh now");
         const successStyle = this._refreshConfirmed
