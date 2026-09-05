@@ -129,7 +129,7 @@
   },
   "normal-color": {
     "type": "colorchooser",
-    "default": "#ffffff",
+    "default": "#62c7f5",
     "description": "Normal color"
   },
   "warning-color": {
