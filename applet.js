@@ -491,8 +491,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         const [menuWidth] = this.menu.actor.get_transformed_size();
         const [gridX] = this._actionWidthFrame.get_transformed_position();
         const [gridWidth] = this._actionWidthFrame.get_transformed_size();
-        const menuCenter = menuX + menuWidth / 2;
-        const gridCenter = gridX + gridWidth / 2;
+        // Transformed coordinates can differ by tiny float errors between
+        // opening and rebuilding. Snap to pixels before the half-width math
+        // so an odd popup width cannot flip the translation by one pixel.
+        const menuCenter = Math.round(menuX) + Math.round(menuWidth) / 2;
+        const gridCenter = Math.round(gridX) + Math.round(gridWidth) / 2;
         this._actionWidthFrame.translation_x = Math.round(menuCenter - gridCenter);
     }
 

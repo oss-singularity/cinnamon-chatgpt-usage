@@ -6,6 +6,8 @@
 
 ## 0.3.11 — 2026-09-05
 
+- Fix the existing one-pixel leftward shift of all six action buttons after
+  the first refresh by stabilizing popup-centering coordinate rounding.
 - Bundle the Yaru symbolic icons for Refresh now, Analytics, ChatGPT and
   Codex Cloud so their shapes stay consistent across system icon themes.
 - Use the bundled confirmation checkmark after refreshing, while preserving
