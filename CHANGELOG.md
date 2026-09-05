@@ -4,6 +4,13 @@
 
 - Nothing yet.
 
+## 0.3.12 — 2026-09-05
+
+- Add a separate Panel text color setting, defaulting to white for panel
+  percentages, window labels, separators and loading placeholders in both
+  panel orientations and model display modes. Menu usage colors remain
+  independently configurable.
+
 ## 0.3.11 — 2026-09-05
 
 - Align all four model headings using equal-width icon slots; retain their

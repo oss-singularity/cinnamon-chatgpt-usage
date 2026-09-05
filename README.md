@@ -112,6 +112,8 @@
 - Uses the same configured usage colors for quota rings, their labels and
   values with or without model-specific panel limits; normal usage defaults
   to blue (`#62c7f5`).
+- Offers a separate **Panel text color** setting under **Colors**, defaulting
+  to white for panel percentages, window labels and separators.
 - Highlights critical remaining usage (10% or less by default) with one
   configurable color shared by the quota ring, its label and the remaining
   text. The default is static neon pink for readability.
