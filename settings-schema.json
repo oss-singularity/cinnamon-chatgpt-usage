@@ -10,7 +10,7 @@
     "colors-page": {
       "type": "page",
       "title": "Colors",
-      "sections": ["color-section", "threshold-section"]
+      "sections": ["panel-color-section", "color-section", "threshold-section"]
     },
     "notifications-page": {
       "type": "page",
@@ -33,6 +33,11 @@
         "font-size",
         "separator"
       ]
+    },
+    "panel-color-section": {
+      "type": "section",
+      "title": "Panel text",
+      "keys": ["panel-text-color"]
     },
     "color-section": {
       "type": "section",
@@ -121,6 +126,12 @@
     "default": "·",
     "description": "Separator in horizontal panels",
     "tooltip": "Separators are hidden automatically in vertical panels."
+  },
+  "panel-text-color": {
+    "type": "colorchooser",
+    "default": "#ffffff",
+    "description": "Panel text color",
+    "tooltip": "Color of panel percentages, window labels and separators, independent of the usage colors in the menu."
   },
   "show-colors": {
     "type": "switch",

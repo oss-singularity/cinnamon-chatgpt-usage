@@ -142,6 +142,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.fontSize = 100;
         this.separator = "·";
         this.showColors = true;
+        this.panelTextColor = "#ffffff";
         this.normalColor = "#62c7f5";
         this.warningColor = "#f6d32d";
         this.criticalColor = RESET_EXPIRY_CRITICAL_COLOR;
@@ -189,6 +190,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.settings.bind("font-size", "fontSize", styleChanged);
         this.settings.bind("separator", "separator", layoutChanged);
         this.settings.bind("show-colors", "showColors", styleChanged);
+        this.settings.bind("panel-text-color", "panelTextColor", styleChanged);
         this.settings.bind("normal-color", "normalColor", styleChanged);
         this.settings.bind("warning-color", "warningColor", styleChanged);
         this.settings.bind("critical-color", "criticalColor", styleChanged);
@@ -521,7 +523,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 text: this._busy ? "…" : "--",
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-                style: `font-size: ${fontSize}%;`
+                style: `font-size: ${fontSize}%; color: ${this.panelTextColor};`
             });
             this._root.add_child(placeholder);
         } else {
@@ -530,7 +532,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                     this._root.add_child(new St.Label({
                         text: this.separator,
                         y_align: Clutter.ActorAlign.CENTER,
-                        style: "padding-left: 4px; padding-right: 4px;"
+                        style: `padding-left: 4px; padding-right: 4px; color: ${this.panelTextColor};`
                     }));
                 }
                 this._root.add_child(
@@ -614,7 +616,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 text: UsageFormat.formatDuration(summary.durationMinutes),
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-                style: `font-size: ${labelFontSize}%;`
+                style: `font-size: ${labelFontSize}%; color: ${this.panelTextColor};`
             });
             label.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
             labelRow.add_child(label);
@@ -627,7 +629,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             text: UsageFormat.formatPercent(summary.remainingPercent),
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
-            style: `min-width: 32px; font-size: ${fontSize}%; color: ${this._remainingColor(summary.remainingPercent)};`
+            style: `min-width: 32px; font-size: ${fontSize}%; color: ${this.panelTextColor};`
         });
         value.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
         actor.add_child(value);
