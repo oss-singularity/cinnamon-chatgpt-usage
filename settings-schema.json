@@ -140,7 +140,7 @@
   "critical-color": {
     "type": "colorchooser",
     "default": "#ed333b",
-    "description": "Critical color"
+    "description": "Critical ring color"
   },
   "warning-remaining": {
     "type": "spinbutton",

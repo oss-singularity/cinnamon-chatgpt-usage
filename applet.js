@@ -665,7 +665,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _remainingColor(remaining) {
         if (!this.showColors || !Number.isFinite(remaining)) return this.normalColor;
-        if (remaining <= this.criticalRemaining) return this.criticalColor;
+        if (remaining <= this.criticalRemaining) return RESET_EXPIRY_CRITICAL_COLOR;
         if (remaining <= this.warningRemaining) return this.warningColor;
         return this.normalColor;
     }
@@ -964,7 +964,9 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._remainingColor(window.remainingPercent),
             12
         );
-        remainingLabel.opacity = 195;
+        remainingLabel.opacity = this.showColors &&
+            Number.isFinite(window.remainingPercent) &&
+            window.remainingPercent <= this.criticalRemaining ? 255 : 195;
         headline.add_child(durationLabel);
         headline.add_child(remainingLabel);
         const resetLabel = new St.Label({
