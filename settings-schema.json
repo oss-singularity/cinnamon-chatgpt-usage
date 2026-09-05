@@ -139,8 +139,8 @@
   },
   "critical-color": {
     "type": "colorchooser",
-    "default": "#ed333b",
-    "description": "Critical ring color"
+    "default": "#ff4d8d",
+    "description": "Critical color"
   },
   "warning-remaining": {
     "type": "spinbutton",
