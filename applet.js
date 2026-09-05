@@ -144,7 +144,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.showColors = true;
         this.normalColor = "#ffffff";
         this.warningColor = "#f6d32d";
-        this.criticalColor = "#ed333b";
+        this.criticalColor = RESET_EXPIRY_CRITICAL_COLOR;
         this.warningRemaining = 25;
         this.criticalRemaining = 10;
         this.notifyAllWeeklyResets = false;
@@ -665,7 +665,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _remainingColor(remaining) {
         if (!this.showColors || !Number.isFinite(remaining)) return this.normalColor;
-        if (remaining <= this.criticalRemaining) return RESET_EXPIRY_CRITICAL_COLOR;
+        if (remaining <= this.criticalRemaining) return this.criticalColor;
         if (remaining <= this.warningRemaining) return this.warningColor;
         return this.normalColor;
     }
@@ -895,10 +895,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         label.translation_x = badgeText ? 2 : 0;
         label.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
+        const critical = this.showColors && Number.isFinite(window.remainingPercent) &&
+            window.remainingPercent <= this.criticalRemaining;
         label.style = [
             `font-size: ${size < QUOTA_RING_SIZE ? 60 : 72}%`,
             "font-weight: bold",
-            "color: rgba(255,255,255,0.96)",
+            `color: ${critical ? this.criticalColor : "rgba(255,255,255,0.96)"}`,
             "text-align: center"
         ].join("; ") + ";";
         area.connect("repaint", drawingArea => {

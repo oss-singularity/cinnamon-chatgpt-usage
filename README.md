@@ -109,8 +109,9 @@
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
-- Highlights critical remaining-usage text (10% or less by default) in static
-  neon pink for readability; quota-ring colors remain configurable.
+- Highlights critical remaining usage (10% or less by default) with one
+  configurable color shared by the quota ring, its label and the remaining
+  text. The default is static neon pink for readability.
 - Can notify once when selected 7d limits refresh and when enabled 5h or 7d
   quotas cross configurable warning and critical remaining-usage thresholds;
   all detection happens only on successful data refreshes.

@@ -6,8 +6,9 @@
 
 ## 0.3.11 — 2026-09-05
 
-- Render critical remaining-usage text (10% or less by default) in the same
-  static neon pink as an imminent reset expiry, with full popup text opacity.
+- Use one configurable critical color for the quota ring, its label and the
+  remaining-usage text (10% or less by default). Default to the same static
+  neon pink as an imminent reset expiry, with full popup text opacity.
 - Fix the existing one-pixel leftward shift of all six action buttons after
   the first refresh by stabilizing popup-centering coordinate rounding.
 - Bundle the Yaru symbolic icons for Refresh now, Analytics, ChatGPT and
