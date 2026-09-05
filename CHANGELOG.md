@@ -4,6 +4,19 @@
 
 - Nothing yet.
 
+## 0.3.10 — 2026-09-05
+
+- Collapse the upper Spark quota rows by default when both windows have no
+  consumption; open them when either window has positive usage, including
+  fractional usage. The heading can be toggled with the mouse or keyboard.
+- Mute both Spark header rings when neither quota window has consumption and
+  restore their normal opacity as soon as either window is in use.
+- Preserve a manual choice during an open-popup refresh and restore the
+  usage-based default on the next opening. Keep the existing quota rows,
+  countdown sizes and surrounding spacing unchanged.
+- Refresh the default and expanded Spark screenshots using isolated Cinnamon
+  sessions with horizontal and vertical panel geometry regression checks.
+
 ## 0.3.9 — 2026-09-04
 
 - Add the Codex icon to model-labelled recent-consumption headings and give

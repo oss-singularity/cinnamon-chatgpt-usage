@@ -19,6 +19,7 @@ const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
 const Pango = imports.gi.Pango;
 const Cairo = imports.cairo;
+const Atk = imports.gi.Atk;
 
 const UsageFormat = require("./usage-format");
 
@@ -99,6 +100,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._updatedLabel = null;
         this._refreshSpinnerFrame = 0;
         this._historySubmenus = [];
+        this._limitSections = [];
         this._actionFrame = null;
         this._actionWidthFrame = null;
         this._actionColumn = null;
@@ -318,6 +320,11 @@ class ChatGptUsageApplet extends Applet.Applet {
                 this.menu.actor.translation_x = 0;
             }
             this._openActiveSparkHistory();
+            if (!this.menu.isOpen) {
+                for (const section of this._limitSections) {
+                    section.setExpanded(UsageFormat.hasQuotaUsage(section.limit.windows));
+                }
+            }
             const result = this._menuOpenOriginal(animate);
             if (this._isRightPanel) {
                 this._lockRightPanelPopupLayoutWidth();
@@ -702,6 +709,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (!this.menu) return;
         const wasOpen = this.menu.isOpen;
         const expandedSubmenus = new Set();
+        const limitStates = new Map(
+            this._limitSections.map(section => [section.limit.id, section.expanded])
+        );
         if (wasOpen) this.actor.grab_key_focus();
         this._stopResetExpiryBreathing();
         this._resetExpiryBreathingLabels = [];
@@ -717,6 +727,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshSpinnerLabel = null;
         this._updatedLabel = null;
         this._historySubmenus = [];
+        this._limitSections = [];
         this._actionFrame = null;
         this._actionWidthFrame = null;
         this._actionColumn = null;
@@ -736,6 +747,15 @@ class ChatGptUsageApplet extends Applet.Applet {
             usageTitle.actor.style = "padding-bottom: 2px;";
             const showLimitLabels = limits.length > 1;
             for (const limit of limits) {
+                if (this._modelBadge(limit) === "S") {
+                    this._addCollapsibleLimit(
+                        limit,
+                        wasOpen && limitStates.has(limit.id)
+                            ? limitStates.get(limit.id)
+                            : UsageFormat.hasQuotaUsage(limit.windows)
+                    );
+                    continue;
+                }
                 if (showLimitLabels) {
                     this._addLimitHeading(limit);
                 }
@@ -845,6 +865,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.addMenuItem(item);
     }
 
+    _quotaRingOpacity(window) {
+        if (this._modelBadge(window) !== "S") return 255;
+        const limit = (this._snapshot.limits || []).find(
+            candidate => candidate.id === window.limitId
+        );
+        return limit && !UsageFormat.hasQuotaUsage(limit.windows) ? 128 : 255;
+    }
+
     _createQuotaRing(window, size = QUOTA_RING_SIZE) {
         const actor = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
@@ -852,12 +880,15 @@ class ChatGptUsageApplet extends Applet.Applet {
             height: size
         });
         const area = new St.DrawingArea({ width: size, height: size });
+        const opacity = this._quotaRingOpacity(window);
+        area.opacity = opacity;
         const model = UsageFormat.buildQuotaIndicator(window);
         const badgeText = this._modelBadge(window);
         const label = new St.Label({
             text: `${model.durationLabel}\n${model.percentLabel}`,
             x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER
+            y_align: Clutter.ActorAlign.CENTER,
+            opacity
         });
         label.translation_x = badgeText ? 2 : 0;
         label.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
@@ -888,6 +919,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             badge.style = this._modelBadgeStyle(
                 size < QUOTA_RING_SIZE ? 50 : 60
             );
+            badge.opacity = opacity < 255 ? 204 : 255;
             badge.translation_x = size < QUOTA_RING_SIZE ? 6 : 8;
             badge.translation_y = size < QUOTA_RING_SIZE ? 8 : 11;
             actor.add_child(badge);
@@ -950,12 +982,13 @@ class ChatGptUsageApplet extends Applet.Applet {
         row.add_child(countdown);
         item.addActor(row, { expand: true, span: -1 });
         this.menu.addMenuItem(item);
+        return item;
     }
 
-    _addIconHeading(limit, text, menu = this.menu) {
+    _addIconHeading(limit, text, menu = this.menu, collapsible = false) {
         const item = new PopupMenu.PopupBaseMenuItem({
-            reactive: false,
-            activate: false
+            reactive: collapsible,
+            activate: collapsible
         });
         const row = new St.BoxLayout({
             vertical: false,
@@ -969,13 +1002,59 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         label.style = "font-weight: bold;";
         row.add_child(label);
-        item.addActor(row, { expand: true, span: -1 });
+        item.addActor(row, { expand: !collapsible, span: collapsible ? 1 : -1 });
+        if (collapsible) {
+            label.opacity = 128;
+            item.actor.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
+            const arrowBin = new St.Bin({ x_align: St.Align.END });
+            item.addActor(arrowBin, { expand: true, span: -1, align: St.Align.END });
+            item.arrow = PopupMenu.arrowIcon(St.Side.RIGHT);
+            item.arrow.set_pivot_point(0.5, 0.5);
+            item.arrow.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
+            arrowBin.child = item.arrow;
+            item.actor.label_actor = label;
+        }
         menu.addMenuItem(item);
         return item;
     }
 
     _addLimitHeading(limit) {
         this._addIconHeading(limit, limit.label || limit.id);
+    }
+
+    _addCollapsibleLimit(limit, expanded) {
+        const heading = this._addIconHeading(
+            limit, limit.label || limit.id, this.menu, true
+        );
+        // Keep the original rows in the same menu: a nested submenu would
+        // introduce theme padding and change the countdown/chart alignment.
+        const rows = limit.windows.map(window => this._addLimitWindowItem(window));
+        const section = {
+            limit,
+            heading,
+            rows,
+            expanded: false,
+            setExpanded: open => {
+                section.expanded = open;
+                for (const row of rows) row.actor.visible = open;
+                heading.arrow.rotation_angle_z = open ? 90 : 0;
+                if (open) heading.actor.add_accessible_state(Atk.StateType.EXPANDED);
+                else heading.actor.remove_accessible_state(Atk.StateType.EXPANDED);
+            }
+        };
+        heading.actor.add_accessible_state(Atk.StateType.EXPANDABLE);
+        // The native base activation emits the menu-closing signal. A
+        // disclosure must instead keep the popup open for mouse and keyboard.
+        heading.activate = () => section.setExpanded(!section.expanded);
+        heading.actor.connect("key-press-event", (actor, event) => {
+            const key = event.get_key_symbol();
+            const rtl = actor.get_direction() === St.TextDirection.RTL;
+            if (key !== Clutter.KEY_Left && key !== Clutter.KEY_Right) return false;
+            section.setExpanded((key === Clutter.KEY_Right) !== rtl);
+            return true;
+        });
+        section.setExpanded(expanded);
+        this._limitSections.push(section);
     }
 
     _createResetCountdown(window) {
