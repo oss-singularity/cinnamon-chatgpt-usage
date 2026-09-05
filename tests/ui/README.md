@@ -38,6 +38,11 @@ explicit example; all other general controls retain their defaults. Notification
 also shows defaults, with optional threshold controls revealed by their switches.
 
 Every screenshot must be inspected before copying it to `docs/model-limits`.
+Menu captures must measure 419 px on the native actor, plus Cinnamon's 1 px
+visible edge (420 px total at scale 1). The capture fails on a width mismatch
+and records actor geometry in the inventory. PNG dimensions additionally
+include the crop margin and panel; dialogs, settings and panel-only images
+have their own native dimensions. Never resize a screenshot to hide a layout bug.
 Copy its corresponding inventory entry too. A valid PNG alone is not freshness
 proof. Update captures when runtime visuals, schema or fixture behavior changes.
 For public approval, show the final captures in the task before pushing them.

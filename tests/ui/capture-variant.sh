@@ -241,6 +241,22 @@ else
 fi
 sleep 1
 
+case "$variant" in
+    basic|overview|spark|bucket|four|codex-two)
+        for lifecycle in rebuild reopen; do
+            if [[ "$lifecycle" == rebuild ]]; then
+                eval_cinnamon 'Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0]._rebuildMenu()' >/dev/null
+            else
+                eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];a.menu.close(false);a.on_applet_clicked();return true;})())' >/dev/null
+            fi
+            sleep 0.3
+            popup_width=$(eval_cinnamon 'String(Math.round(Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0].menu.actor.get_transformed_size()[0]))' | grep -oE '[0-9]+' | tail -1)
+            [[ "$popup_width" == 419 ]] || { printf 'Unexpected popup width after %s: %s\n' "$lifecycle" "$popup_width" >&2; exit 1; }
+            printf 'popup-width-%s=%s\n' "$lifecycle" "$popup_width"
+        done
+        ;;
+esac
+
 if [[ "$variant" == "panel-tooltip" ]]; then
     point=$(eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0],p=a.actor.get_transformed_position(),s=a.actor.get_transformed_size();return [Math.round(p[0]+s[0]/2),Math.round(p[1]+s[1]/2)].join(",");})())' | grep -oE '[0-9]+,[0-9]+' | tail -1)
     IFS=, read -r hover_x hover_y <<< "$point"

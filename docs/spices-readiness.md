@@ -38,8 +38,13 @@ minimum/current environments or explicitly narrow the declared support range
 with maintainer review. Do not silently relabel untested compatibility as proven.
 
 The current source uses private popup instance methods, menu stack bookkeeping
-and a fixed right-panel layout. Review these against each supported Cinnamon
+and a fixed popup width across panel orientations. Review these against each supported Cinnamon
 version; existing centering/disclosure tests do not prove shell compatibility.
+The width regression is covered by production-method tests for all four panel
+positions and native right/top captures after rebuild and reopen. At scale 1,
+the actor measures 419 px plus the visible 1 px edge. Expanded horizontal Spark
+and light-theme captures also retain that width. This does not complete the
+broader compatibility matrix below.
 A matrix must cover top/bottom/left/right panels, small displays, multiple
 monitors, 125–200% scale, large fonts and RTL. Critical quota text stays static.
 Cinnamon's current `environment.js` respects disabled animations when

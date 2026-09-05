@@ -37,7 +37,7 @@ const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const LAUNCH_TOOLTIP_DELAY_MS = 420;
 const POPUP_ACTION_GRID_WIDTH = 352;
 // Cinnamon's one-pixel menu edge brings the visible popup width to 420 px.
-const POPUP_RIGHT_PANEL_WIDTH = 419;
+const POPUP_WIDTH = 419;
 const POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM = 1;
 const POPUP_RIGHT_INSET = 17;
 const POPUP_CHART_RIGHT_INSET = 39;
@@ -323,9 +323,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._menuOpenOriginal = this.menu.open.bind(this.menu);
         this._menuCloseOriginal = this.menu.close.bind(this.menu);
         this.menu.open = animate => {
+            this._applyPopupWidth();
             if (this._isRightPanel) {
-                this._applyRightPanelPopupWidth();
-                this._rightPanelPopupLockedWidth = POPUP_RIGHT_PANEL_WIDTH;
+                this._rightPanelPopupLockedWidth = POPUP_WIDTH;
                 this.menu.actor.set_width(this._rightPanelPopupLockedWidth);
                 this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
                 this.menu.actor.translation_x = 0;
@@ -337,9 +337,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 }
             }
             const result = this._menuOpenOriginal(animate);
-            if (this._isRightPanel) {
-                this._lockRightPanelPopupLayoutWidth();
-            }
+            this._lockPopupLayoutWidth();
             return result;
         };
         this.menu.close = animate => {
@@ -2544,12 +2542,8 @@ class ChatGptUsageApplet extends Applet.Applet {
         for (const triangle of this._submenuTriangles) {
             triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
         }
-        if (
-            this._isRightPanel &&
-            this.menu.isOpen &&
-            this._rightPanelPopupLockedWidth > 0
-        ) {
-            this._lockRightPanelPopupLayoutWidth();
+        if (this.menu.isOpen) {
+            this._lockPopupLayoutWidth();
         }
     }
 
@@ -2833,21 +2827,21 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
-    _applyRightPanelPopupWidth() {
-        if (!this._isRightPanel || !this.menu) return;
+    _applyPopupWidth() {
+        if (!this.menu) return;
         const baseStyle = this._rightPanelMenuStyleBase
             ? `${this._rightPanelMenuStyleBase}; `
             : "";
-        this.menu.actor.style = `${baseStyle}min-width: ${POPUP_RIGHT_PANEL_WIDTH}px;`;
+        this.menu.actor.style = `${baseStyle}min-width: ${POPUP_WIDTH}px;`;
         this.menu.actor.translation_x = 0;
-        this._lockRightPanelPopupLayoutWidth();
+        this._lockPopupLayoutWidth();
     }
 
-    _lockRightPanelPopupLayoutWidth() {
-        if (!this._isRightPanel || !this.menu) return;
+    _lockPopupLayoutWidth() {
+        if (!this.menu) return;
         const width = this._rightPanelPopupLockedWidth > 0
             ? this._rightPanelPopupLockedWidth
-            : POPUP_RIGHT_PANEL_WIDTH;
+            : POPUP_WIDTH;
         this.menu.actor.set_width(width);
         this.menu.box.set_width(width);
         this.menu.box.clip_to_allocation = true;

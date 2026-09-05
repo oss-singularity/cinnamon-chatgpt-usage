@@ -13,6 +13,9 @@ referenced = set(re.findall(r"docs/model-limits/([a-z0-9-]+\.png)", (ROOT / "REA
 if referenced != set(manifest):
     raise SystemExit(f"Screenshot inventory mismatch: {referenced.symmetric_difference(manifest)}")
 for name, record in manifest.items():
+    if name.startswith("usage-menu") or name == "bucket-tooltip.png":
+        if record.get("surface") != "popup" or record.get("actorGeometry", [0, 0, 0])[2] != 419:
+            raise SystemExit(f"Screenshot has no verified 420 px popup width (419 px actor + edge): {name}")
     if hashlib.sha256((DIRECTORY / name).read_bytes()).hexdigest() != record["sha256"]:
         raise SystemExit(f"Screenshot changed without a reviewed inventory: {name}")
     for source, digest in record["sourceSha256"].items():

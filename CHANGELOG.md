@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep the popup at the same 420 px visible width on horizontal and vertical panels; verify native capture widths after rebuild and reopen.
+
 - Bound JSON-lines app-server transport and local version probes; keep version
   discovery off Cinnamon's UI thread and share Python's backend path resolution.
 - Preserve an unresolved, explicitly confirmed reset attempt through reloads,

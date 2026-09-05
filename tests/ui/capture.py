@@ -91,7 +91,13 @@ def main():
         else:
             crop = [str(UI / "crop-menu.sh"), str(raw), str(geometry), str(image), str(panel), mode]
         subprocess.run(crop, check=True)
+        actor_geometry = [int(value) for value in geometry.read_text().strip().split(",")]
+        is_popup = variant in {"overview", "basic", "spark", "four", "codex-two", "bucket"}
+        if is_popup and actor_geometry[2] != 419:
+            raise RuntimeError(f"{name}: expected 419 px popup actor plus 1 px edge, got {actor_geometry[2]}")
         manifest[name + ".png"] = {
+            "surface": "popup" if is_popup else "panel" if variant == "panel" else "dialog-or-tooltip",
+            "actorGeometry": actor_geometry,
             "variant": variant,
             "panel": mode,
             "theme": args.theme,
