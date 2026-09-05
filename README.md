@@ -166,6 +166,9 @@ formatting, JSON, assets and shell scripts.
 ## License
 
 Licensed under GPL-3.0-or-later. See [LICENSE](LICENSE).
+
+The bundled Yaru action icons retain their CC-BY-SA-4.0 license;
+see [icon attribution](icons/ATTRIBUTION.md).
 Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 The adaptive layout follows the OSS-SINGULARITY

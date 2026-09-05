@@ -4,6 +4,14 @@
 
 - Nothing yet.
 
+## 0.3.11 — 2026-09-05
+
+- Bundle the Yaru symbolic icons for Refresh now, Analytics, ChatGPT and
+  Codex Cloud so their shapes stay consistent across system icon themes.
+- Use the bundled confirmation checkmark after refreshing, while preserving
+  symbolic foreground colors, hover states and the busy indicator.
+- Include the original icon attribution and CC-BY-SA-4.0 license.
+
 ## 0.3.10 — 2026-09-05
 
 - Collapse the upper Spark quota rows by default when both windows have no

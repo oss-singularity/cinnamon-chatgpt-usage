@@ -1307,9 +1307,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshButton = this._createLaunchButton(
             refreshConfirmed ? "Updated" : "Refresh now",
             {
-                iconName: refreshConfirmed
-                    ? "emblem-ok-symbolic"
-                    : "view-refresh-symbolic",
+                fileName: refreshConfirmed
+                    ? "emblem-ok-symbolic.svg"
+                    : "view-refresh-symbolic.svg",
                 symbolic: true,
                 compact: true,
                 keepMenuOpen: true,
@@ -1340,7 +1340,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const analyticsButton = this._createLaunchButton(
             "Analytics",
             {
-                iconName: "utilities-system-monitor-symbolic",
+                fileName: "utilities-system-monitor-symbolic.svg",
                 symbolic: true,
                 compact: true
             },
@@ -1350,7 +1350,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const chatGptWebButton = this._createLaunchButton(
             "ChatGPT",
             {
-                iconName: "web-browser-symbolic",
+                fileName: "web-browser-symbolic.svg",
                 symbolic: true,
                 compact: true,
                 transparent: true
@@ -1361,7 +1361,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const codexCloudButton = this._createLaunchButton(
             "Codex Cloud",
             {
-                iconName: "web-browser-symbolic",
+                fileName: "web-browser-symbolic.svg",
                 symbolic: true,
                 compact: true,
                 transparent: true
@@ -1400,6 +1400,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 ? St.IconType.SYMBOLIC
                 : St.IconType.FULLCOLOR;
         }
+        if (iconSpec.symbolic) iconProperties.icon_type = St.IconType.SYMBOLIC;
         const icon = new St.Icon(iconProperties);
         icon.y_align = Clutter.ActorAlign.CENTER;
         content.add_child(icon);
@@ -1511,9 +1512,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._stopRefreshSpinner();
         spinner.hide();
         icon.show();
-        icon.icon_name = this._refreshConfirmed
-            ? "emblem-ok-symbolic"
-            : "view-refresh-symbolic";
+        const fileName = this._refreshConfirmed
+            ? "emblem-ok-symbolic.svg"
+            : "view-refresh-symbolic.svg";
+        icon.gicon = new Gio.FileIcon({
+            file: Gio.File.new_for_path(`${this.metadata.path}/icons/${fileName}`)
+        });
         icon.icon_type = St.IconType.SYMBOLIC;
         label.set_text(this._refreshConfirmed ? "Updated" : "Refresh now");
         const successStyle = this._refreshConfirmed
