@@ -11,7 +11,7 @@ body:
     id: version
     attributes:
       label: Applet version or commit
-      placeholder: 0.1.0
+      placeholder: Version from the applet About dialog
     validations:
       required: true
   - type: input
@@ -24,11 +24,16 @@ body:
   - type: input
     id: codex
     attributes:
-      label: Codex CLI version
-      description: Run `codex --version` and provide only its version output.
-      placeholder: codex-cli 0.x.y
+      label: Backend type and version
+      description: Specify Codex CLI or ChatGPT App (app-only is supported); include its version if available.
+      placeholder: ChatGPT App or codex-cli, version, installation source
     validations:
       required: true
+  - type: input
+    id: appearance
+    attributes:
+      label: Panel orientation, theme and display scale
+      placeholder: Right panel, Mint-Y-Dark, 100%
   - type: textarea
     id: problem
     attributes:

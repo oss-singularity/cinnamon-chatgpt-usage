@@ -14,7 +14,7 @@
 <p align="center">
   <a href="https://github.com/oss-singularity/cinnamon-chatgpt-usage/actions/workflows/check.yml"><img alt="Checks" src="https://github.com/oss-singularity/cinnamon-chatgpt-usage/actions/workflows/check.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-6f5bd5"></a>
-  <img alt="Cinnamon 5.8 or newer" src="https://img.shields.io/badge/Cinnamon-5.8%2B-75c46b">
+  <img alt="Cinnamon 6.6 tested" src="https://img.shields.io/badge/Cinnamon-6.6%20tested-75c46b">
   <img alt="Codex app-server" src="https://img.shields.io/badge/data-Codex%20app--server-111111">
 </p>
 
@@ -66,6 +66,8 @@
 | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | ![General settings with model-specific panel limits enabled](docs/model-limits/settings-general.png) | ![Color settings beside both model-specific panel indicators](docs/model-limits/settings-colors.png) |
 
+![Notification settings with weekly refresh and optional low-limit alerts](docs/model-limits/settings-notifications.png)
+
 ## Highlights
 
 - Mirrors account-level and named model-specific limits exposed by ChatGPT:
@@ -85,7 +87,7 @@
   100%-remaining cycles stay at their exact full duration until usage begins;
   hovering a reset-countdown circle shows the elapsed percentage of its own
   5h or 7d reset window.
-- Tracks observed consumption for the last 1h and 4h plus an exact rolling 24h
+- Tracks observed consumption for the last 1h and 4h plus an rolling 24h
   total for active 5h quotas; weekly quotas retain 12h and Today context. The
   compact timeline offers per-bucket hover details for the last 24 hours, and
   a rounded-zero Spark 7d bucket can use a clearly marked, smallest-height
@@ -132,15 +134,18 @@ cd cinnamon-chatgpt-usage
 ```
 
 Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
-Requirements: Cinnamon 5.8+, Python 3 and either a current
+Requirements: Python 3.10 or newer, Cinnamon and either a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
 with ChatGPT or a supported ChatGPT desktop app package. The Linux ChatGPT
 package can provide the local app-server backend by itself; the applet discovers
 its bundled `resources/codex` binary when no configured/PATH CLI is available.
 If neither option is installed, both native launch/install buttons remain
 available as the initial setup choice.
-Version 0.3.9 is tested on Cinnamon 6.6.9 with Codex CLI 0.153.2 and ChatGPT
-desktop 26.901.31953.
+The v0.3.12 audit baseline was checked on Cinnamon 6.6.9. Local Spices
+preparation is tracked in [the readiness report](docs/spices-readiness.md),
+including the exact tested scope and the remaining release gates. Metadata
+lists Cinnamon 5.8–6.6; this does not claim that every version was exercised.
+See that report before treating an older release as verified.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
@@ -154,9 +159,14 @@ separate `account/rateLimitResetCredit/consume` request with one UUID
 idempotency key and then refetches the complete usage snapshot. There is no
 HTML scraping, API key, browser access or background daemon. To calculate recent
 consumption, it stores only timestamps, window durations, percentages and reset
-IDs for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
-(normally `~/.local/state/...`, mode `0600`). No prompts, credit details or
-credentials are recorded. A leading `~` marks periods that started before local
+timestamps for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
+(normally `~/.local/state/...`, mode `0600`). No prompts or credentials are recorded. Reset-credit details are not part of
+usage history. An unresolved, explicitly confirmed reset keeps its idempotency
+key, selected opaque credit ID and backend path in a separate mode-0600
+`reset-attempt.json` beside history. It survives applet removal/reload and is
+deleted only after a recognized result reaches the applet. Retrying requires
+confirmation and reuses the same parameters; do not change accounts while a
+reset outcome is unresolved. A leading `~` marks periods that started before local
 tracking began. Project code never reads Codex credential files; authentication
 and networking remain the responsibility of the selected local app-server
 backend (Codex CLI or the supported ChatGPT desktop bundle).
@@ -168,8 +178,35 @@ make check
 python3 chatgpt_usage.py
 ```
 
-Local checks and GitHub Actions cover Cinnamon JavaScript, API normalization,
-formatting, JSON, assets and shell scripts.
+`make verify` runs the offline suite, including real subprocess framing and
+cancellation, uncertain-reset replay, discovery fixtures and package round-trips.
+Development checks additionally require CJS, ShellCheck, ImageMagick,
+`rsvg-convert` and Noto Sans. Private UI captures also require Cinnamon, Xvfb,
+D-Bus, xdotool and the selected themes; see [UI reproduction](tests/ui/README.md).
+No test needs a signed-in account or a real reset credit.
+
+For a local submission tree plus deterministic install/submission archives:
+
+```bash
+python3 scripts/package.py export --output /tmp/chatgpt-usage-spices --validate
+```
+
+The output directory must be empty. `--validate` needs network access and
+Pillow to run the pinned upstream structural validator. Exporting does not
+publish anything and is not evidence of store acceptance. The package uses
+[an explicit manifest](packaging/files.json) shared with the installer.
+
+Panel model mode chooses the lowest remaining percentage for each duration;
+it does not add one panel block for every model. The popup shows all windows.
+Numeric rolling totals cover `[now - 24h, now]` independently of the chart's
+wall-clock-aligned buckets. All consumption is observed at sample times;
+activity between samples is not recoverable.
+
+History belongs to the desktop profile, not to an account. Before changing
+accounts, resolve any pending reset, remove the applet from the panel, archive
+or delete only `history.json`, switch accounts in the official app/CLI, then
+add the applet again. Applet removal alone retains history. Automatic account
+partitioning remains a release-readiness investigation.
 
 ## License
 

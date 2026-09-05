@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -21,103 +20,28 @@ from chatgpt_usage import (
 from chatgpt_usage import UsageError
 
 
-class FakeStdin:
-    def __init__(self) -> None:
-        self.messages: list[dict] = []
-
-    def write(self, payload: str) -> int:
-        self.messages.append(json.loads(payload))
-        return len(payload)
-
-    def flush(self) -> None:
-        pass
-
-    def close(self) -> None:
-        pass
-
-
-class FakeStdout:
-    def __init__(self, response: dict) -> None:
-        self._lines = [json.dumps(response)]
-
-    @property
-    def has_data(self) -> bool:
-        return bool(self._lines)
-
-    def readline(self) -> str:
-        return f"{self._lines.pop(0)}\n" if self._lines else ""
-
-
-class FakeProcess:
-    def __init__(self, response: dict) -> None:
-        self.stdin = FakeStdin()
-        self.stdout = FakeStdout(response)
-        self._returncode = None
-
-    def poll(self) -> int | None:
-        return self._returncode
-
-    def terminate(self) -> None:
-        self._returncode = 0
-
-    def wait(self, timeout: float | None = None) -> int:
-        self._returncode = 0
-        return 0
-
-    def kill(self) -> None:
-        self._returncode = -9
-
-
 class ResetConsumeRequestTests(unittest.TestCase):
     def test_consume_sends_idempotent_request_with_selected_credit(self) -> None:
-        process = FakeProcess({"id": 2, "result": {"outcome": "reset"}})
-
-        def select_ready(streams, _, __, timeout):
-            return (streams if process.stdout.has_data else [], [], [])
-
-        with (
-            patch("chatgpt_usage.subprocess.Popen", return_value=process),
-            patch("chatgpt_usage.select.select", side_effect=select_ready),
-        ):
+        with patch("chatgpt_usage._run_app_server_request", return_value={"outcome": "reset"}) as request:
             result = consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-123", "credit-456")
-
         self.assertEqual(result["outcome"], "reset")
-        self.assertEqual(process.stdin.messages[0]["method"], "initialize")
-        self.assertEqual(process.stdin.messages[1], {"method": "initialized", "params": {}})
         self.assertEqual(
-            process.stdin.messages[2],
+            request.call_args.args[2],
             {
                 "method": "account/rateLimitResetCredit/consume",
                 "id": 2,
-                "params": {
-                    "idempotencyKey": "attempt-123",
-                    "creditId": "credit-456",
-                },
+                "params": {"idempotencyKey": "attempt-123", "creditId": "credit-456"},
             },
         )
 
     def test_consume_omits_missing_credit_id_and_rejects_empty_key(self) -> None:
-        process = FakeProcess({"id": 2, "result": {"outcome": "noCredit"}})
-
-        def select_ready(streams, _, __, timeout):
-            return (streams if process.stdout.has_data else [], [], [])
-
-        with (
-            patch("chatgpt_usage.subprocess.Popen", return_value=process),
-            patch("chatgpt_usage.select.select", side_effect=select_ready),
-        ):
-            result = consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-789")
-
-        self.assertEqual(result["outcome"], "noCredit")
-        self.assertEqual(
-            process.stdin.messages[2]["params"],
-            {"idempotencyKey": "attempt-789"},
-        )
-
-        with patch("chatgpt_usage.subprocess.Popen") as popen:
+        with patch("chatgpt_usage._run_app_server_request", return_value={"outcome": "noCredit"}) as request:
+            consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-789")
+            self.assertEqual(request.call_args.args[2]["params"], {"idempotencyKey": "attempt-789"})
+            request.reset_mock()
             with self.assertRaises(UsageError):
                 consume_rate_limit_reset("/usr/bin/codex", 5, " ")
-            popen.assert_not_called()
+            request.assert_not_called()
 
 
 class AuthenticationErrorTests(unittest.TestCase):

@@ -1,0 +1,20 @@
+{
+  "applet.js": "applet.js",
+  "usage-format.js": "usage-format.js",
+  "chatgpt_usage.py": "chatgpt_usage.py",
+  "metadata.json": "metadata.json",
+  "settings-schema.json": "settings-schema.json",
+  "icon.png": "icon.png",
+  "LICENSE": "LICENSE",
+  "ATTRIBUTION.md": "ATTRIBUTION.md",
+  "SECURITY.md": "SECURITY.md",
+  "README.md": "packaging/README.md",
+  "icons/ATTRIBUTION.md": "icons/ATTRIBUTION.md",
+  "icons/LICENSE-CC-BY-SA-4.0.txt": "icons/LICENSE-CC-BY-SA-4.0.txt",
+  "icons/chatgpt-white.png": "icons/chatgpt-white.png",
+  "icons/codex.png": "icons/codex.png",
+  "icons/emblem-ok-symbolic.svg": "icons/emblem-ok-symbolic.svg",
+  "icons/utilities-system-monitor-symbolic.svg": "icons/utilities-system-monitor-symbolic.svg",
+  "icons/view-refresh-symbolic.svg": "icons/view-refresh-symbolic.svg",
+  "icons/web-browser-symbolic.svg": "icons/web-browser-symbolic.svg"
+}

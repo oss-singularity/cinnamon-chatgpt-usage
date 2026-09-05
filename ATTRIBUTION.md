@@ -14,3 +14,10 @@ not affiliated with or endorsed by OpenAI.
 `icons/codex.png` is an idle frame cropped and resized from the Codex Desktop
 sprite sheet and is included solely to identify the Codex launch action.
 The Codex character artwork remains the property of OpenAI.
+
+## Distribution review
+
+The code license does not grant rights to third-party artwork or trademarks.
+[The Spices readiness inventory](https://github.com/oss-singularity/cinnamon-chatgpt-usage/blob/main/docs/spices-readiness.md#ownership-and-assets)
+tracks the remaining provenance and permission work before catalog submission.
+The current robot attribution records origin, not a redistribution permission.

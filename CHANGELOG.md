@@ -2,7 +2,20 @@
 
 ## Unreleased
 
-- Nothing yet.
+- Bound JSON-lines app-server transport and local version probes; keep version
+  discovery off Cinnamon's UI thread and share Python's backend path resolution.
+- Preserve an unresolved, explicitly confirmed reset attempt through reloads,
+  reuse its idempotency key on retry and clean up helper/backend processes.
+- Calculate rolling 24-hour consumption independently of chart bucket alignment;
+  reject missing and non-finite values instead of showing false availability.
+- Derive secondary menu text, ring tracks and knot tint from the Cinnamon theme
+  while preserving the configured quota palette and white panel default.
+- Prepare deterministic Cinnamon Spices archives, an explicit shared installation
+  manifest, complete notices and a portable installed README.
+- Add real-process, reset-replay and packaging regression tests, and reproducible
+  private screenshot fixtures with a source/hash inventory and Notifications.
+- Update support/security documentation and the backend-neutral bug form.
+  Catalog submission and 1.0.0 release gates remain tracked in issue #45.
 
 ## 0.3.12 — 2026-09-05
 

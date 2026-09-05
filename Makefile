@@ -6,11 +6,13 @@ check:
 	cjs tests/test-spark-disclosure.js
 	cjs tests/test-action-centering.js
 	cjs tests/test-settings-schema.js
-	python3 -m unittest tests/test_chatgpt_usage.py
+	cjs tests/test-reset-lifecycle.js
+	python3 -m unittest discover -s tests -p 'test*.py'
 	python3 -m json.tool metadata.json >/dev/null
 	python3 -m json.tool settings-schema.json >/dev/null
+	python3 tests/check-ui-inventory.py
 	python3 tests/check-png.py icon.png icons/chatgpt-white.png icons/codex.png
-	shellcheck install.sh uninstall.sh
+	shellcheck install.sh uninstall.sh tests/ui/*.sh
 	$(MAKE) check-social-preview
 
 verify:
