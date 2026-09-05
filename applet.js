@@ -142,7 +142,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.fontSize = 100;
         this.separator = "·";
         this.showColors = true;
-        this.normalColor = "#ffffff";
+        this.normalColor = "#62c7f5";
         this.warningColor = "#f6d32d";
         this.criticalColor = RESET_EXPIRY_CRITICAL_COLOR;
         this.warningRemaining = 25;
@@ -895,12 +895,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         label.translation_x = badgeText ? 2 : 0;
         label.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
-        const critical = this.showColors && Number.isFinite(window.remainingPercent) &&
-            window.remainingPercent <= this.criticalRemaining;
         label.style = [
             `font-size: ${size < QUOTA_RING_SIZE ? 60 : 72}%`,
             "font-weight: bold",
-            `color: ${critical ? this.criticalColor : "rgba(255,255,255,0.96)"}`,
+            `color: ${this._remainingColor(window.remainingPercent)}`,
             "text-align: center"
         ].join("; ") + ";";
         area.connect("repaint", drawingArea => {
@@ -992,6 +990,14 @@ class ChatGptUsageApplet extends Applet.Applet {
         return item;
     }
 
+    _createHeadingIcon(limit) {
+        // Reserve the badge width for every model so all heading text aligns.
+        const slot = new St.Bin({ width: 24 });
+        slot.set_alignment(St.Align.START, St.Align.MIDDLE);
+        slot.set_child(this._createPanelIcon(limit, 18));
+        return slot;
+    }
+
     _addIconHeading(limit, text, menu = this.menu, collapsible = false) {
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: collapsible,
@@ -1002,7 +1008,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         row.style = "spacing: 6px;";
-        row.add_child(this._createPanelIcon(limit, 18));
+        row.add_child(this._createHeadingIcon(limit));
         const label = new St.Label({
             text,
             y_align: Clutter.ActorAlign.CENTER
@@ -1134,10 +1140,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _quotaRingColor(remaining) {
-        if (!this.showColors || !Number.isFinite(remaining)) return this.normalColor;
-        if (remaining <= this.criticalRemaining) return this.criticalColor;
-        if (remaining <= this.warningRemaining) return this.warningColor;
-        return "#62c7f5";
+        return this._remainingColor(remaining);
     }
 
     _paintCircularProgress(area, fraction, progressColor) {
@@ -2148,7 +2151,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 });
                 submenuTitle.style = "spacing: 6px;";
                 submenuTitle.add_child(
-                    this._createPanelIcon({ id: limitId, label: first.label }, 18)
+                    this._createHeadingIcon({ id: limitId, label: first.label })
                 );
                 const submenuLabel = new St.Label({
                     text: first.label || first.id,

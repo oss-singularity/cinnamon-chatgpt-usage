@@ -109,6 +109,9 @@
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
+- Uses the same configured usage colors for quota rings, their labels and
+  values with or without model-specific panel limits; normal usage defaults
+  to blue (`#62c7f5`).
 - Highlights critical remaining usage (10% or less by default) with one
   configurable color shared by the quota ring, its label and the remaining
   text. The default is static neon pink for readability.
