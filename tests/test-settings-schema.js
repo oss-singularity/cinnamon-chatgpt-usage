@@ -7,6 +7,13 @@ const [ok, contents] = GLib.file_get_contents("settings-schema.json");
 if (!ok) throw new Error("Cannot read settings-schema.json");
 const schema = JSON.parse(ByteArray.toString(contents));
 
+if (!schema.layout["panel-color-section"].keys.includes("show-panel-threshold-colors")) {
+    throw new Error("Panel threshold color switch is outside the Panel text section");
+}
+if (schema["show-panel-threshold-colors"].default !== true || schema["show-panel-threshold-colors"].dependency) {
+    throw new Error("Panel threshold colors must default on independently of menu coloring");
+}
+
 function assertEqual(actual, expected, message) {
     if (actual !== expected) {
         throw new Error(`${message}: expected ${expected}, got ${actual}`);

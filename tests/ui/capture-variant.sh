@@ -205,6 +205,11 @@ JSON.stringify((function(){
         a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,3,21,21,0,0,0,0,0,0,0,7,8,8,7,2,3,3,2].map(bucket);
         a._snapshot.history.windows.slice(1).forEach(function(w){w.activity24h=w.activity24h.map(function(){return bucket(0);});});
     }
+    var alertMode=GLib.getenv("QA_PANEL_ALERTS");
+    if(alertMode==="on"||alertMode==="off"){
+        a.showPanelThresholdColors=alertMode==="on";
+        a._snapshot.limits=[{id:"codex",label:codexLabel,windows:[win(300,25,3600),win(10080,10,86400)]}];
+    }
     a._lastError=null;a._authenticationRequired=false;a._resetConsumeBusy=false;a._resetFeedback=null;a.showModelLimitsInPanel=true;
     if("VARIANT"==="install-chatgpt")a._chatGptAppInfo=function(){return null;};
     if("VARIANT"==="install-codex")a._codexTerminalCommand=function(){return null;};

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add an enabled-by-default panel switch for warning and critical percentage colors, independent of menu coloring and the normal panel text color.
+
 - Keep the popup at the same 420 px visible width on horizontal and vertical panels; verify native capture widths after rebuild and reopen.
 
 - Bound JSON-lines app-server transport and local version probes; keep version

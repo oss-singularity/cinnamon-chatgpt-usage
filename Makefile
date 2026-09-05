@@ -6,6 +6,7 @@ check:
 	cjs tests/test-spark-disclosure.js
 	cjs tests/test-action-centering.js
 	cjs tests/test-popup-width.js
+	cjs tests/test-panel-colors.js
 	cjs tests/test-settings-schema.js
 	cjs tests/test-reset-lifecycle.js
 	python3 -m unittest discover -s tests -p 'test*.py'

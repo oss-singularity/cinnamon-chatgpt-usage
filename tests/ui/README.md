@@ -21,6 +21,11 @@ extension, pass `--extension /absolute/extension-directory` and optionally
 session; no host setting changes. The manifest records whether an extension
 was used. Do not silently substitute a missing reference theme or extension.
 
+For panel threshold-color QA, run `QA_PANEL_ALERTS=on` or `QA_PANEL_ALERTS=off`
+with `--only topbar vertical-panel` into separate output directories. This
+private fixture shows 25% warning and 10% critical values at the exact default
+boundaries, with the switch enabled or disabled. It does not alter live settings.
+
 Outputs include raw frames, geometry, cropped PNGs, diagnostic logs and
 `inventory.json`: variant, panel, theme, locale, scale, screen, producing base
 commit, exact source hashes, capture time, output dimensions and SHA-256.

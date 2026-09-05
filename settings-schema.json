@@ -37,7 +37,7 @@
     "panel-color-section": {
       "type": "section",
       "title": "Panel text",
-      "keys": ["panel-text-color"]
+      "keys": ["panel-text-color", "show-panel-threshold-colors"]
     },
     "color-section": {
       "type": "section",
@@ -131,7 +131,13 @@
     "type": "colorchooser",
     "default": "#ffffff",
     "description": "Panel text color",
-    "tooltip": "Color of panel percentages, window labels and separators, independent of the usage colors in the menu."
+    "tooltip": "Base color of panel percentages, window labels and separators. Warning and critical colors can override percentages below the configured thresholds."
+  },
+  "show-panel-threshold-colors": {
+    "type": "switch",
+    "default": true,
+    "description": "Use warning and critical colors in the panel",
+    "tooltip": "Color panel percentages at or below the remaining usage thresholds using the warning and critical colors below. Independent of menu coloring; window labels and separators keep the panel text color."
   },
   "show-colors": {
     "type": "switch",

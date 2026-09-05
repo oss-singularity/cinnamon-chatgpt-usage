@@ -152,6 +152,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.separator = "·";
         this.showColors = true;
         this.panelTextColor = "#ffffff";
+        this.showPanelThresholdColors = true;
         this.normalColor = "#62c7f5";
         this.warningColor = "#f6d32d";
         this.criticalColor = RESET_EXPIRY_CRITICAL_COLOR;
@@ -200,6 +201,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.settings.bind("separator", "separator", layoutChanged);
         this.settings.bind("show-colors", "showColors", styleChanged);
         this.settings.bind("panel-text-color", "panelTextColor", styleChanged);
+        this.settings.bind("show-panel-threshold-colors", "showPanelThresholdColors", styleChanged);
         this.settings.bind("normal-color", "normalColor", styleChanged);
         this.settings.bind("warning-color", "warningColor", styleChanged);
         this.settings.bind("critical-color", "criticalColor", styleChanged);
@@ -641,7 +643,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             text: UsageFormat.formatPercent(summary.remainingPercent),
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
-            style: `min-width: 32px; font-size: ${fontSize}%; color: ${this.panelTextColor};`
+            style: `min-width: 32px; font-size: ${fontSize}%; color: ${this._panelRemainingColor(summary.remainingPercent)};`
         });
         value.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
         actor.add_child(value);
@@ -684,6 +686,13 @@ class ChatGptUsageApplet extends Applet.Applet {
     _menuColor(alpha = 1) {
         const color = this._menuForeground();
         return `rgba(${color.red},${color.green},${color.blue},${alpha})`;
+    }
+
+    _panelRemainingColor(remaining) {
+        if (!this.showPanelThresholdColors || !Number.isFinite(remaining)) return this.panelTextColor;
+        if (remaining <= this.criticalRemaining) return this.criticalColor;
+        if (remaining <= this.warningRemaining) return this.warningColor;
+        return this.panelTextColor;
     }
 
     _remainingColor(remaining) {
