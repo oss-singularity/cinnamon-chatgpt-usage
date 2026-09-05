@@ -24,11 +24,17 @@
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | ![Spark and Codex limits in a horizontal top bar with both panel indicators](docs/model-limits/topbar.png) | ![Spark and Codex limits in a vertical panel with both panel indicators](docs/model-limits/vertical-panel.png) |
 
-| Full 24-hour usage overview                                                                                              | Compact Spark histories                                                                                                                     |
+| Default overview with unused Spark collapsed                                                                             | Spark quotas and recent activity                                                                                                            |
 | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | ![Usage menu with both model-specific panel indicators and a full hourly demo history](docs/model-limits/usage-menu.png) | ![Expanded Spark 5h and 7d demo histories sharing one activity chart with the panel anchor visible](docs/model-limits/usage-menu-spark.png) |
 
 <p align="center"><sub>Public usage-menu captures keep the live panel edge and applet indicators visible as the visual anchor; general dual-model examples show both model-specific indicators.</sub></p>
+
+<p align="center"><strong>Default overview on a horizontal panel</strong></p>
+<p align="center">
+  <img src="docs/model-limits/usage-menu-horizontal.png" width="456" alt="Horizontal-panel default with muted unused Spark rings and both Spark sections collapsed">
+</p>
+<p align="center"><sub>Unused Spark stays compact on either panel orientation; positive quota usage opens the upper section and restores its header rings.</sub></p>
 
 <p align="center"><strong>Conditional four-ring quota state</strong></p>
 <p align="center">
@@ -68,9 +74,12 @@
   can be selected in the popup and is consumed only after an explicit native
   confirmation; a zero reset count stays compact and shows only `0`.
 - Detects dedicated GPT-5.3-Codex-Spark 5h and 7d quotas automatically when
-  they are enabled for the signed-in account; model-specific limits stay in
-  the popup by default, carry a distinct amber marker and can optionally be
-  added to the panel.
+  they are enabled for the signed-in account. The Spark quota section starts
+  collapsed when neither window has consumption and opens when either window
+  has positive usage. Click its heading or use the keyboard to toggle it;
+  refreshes preserve that choice while the popup is open. Both Spark header
+  rings are muted while neither window is in use. Spark carries a
+  distinct amber marker and can optionally be added to the panel.
 - Shows paired circular available-quota and reset-countdown indicators for
   every active 5h and 7d window without polling the API more often. Untouched
   100%-remaining cycles stay at their exact full duration until usage begins;

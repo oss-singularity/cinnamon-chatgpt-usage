@@ -13,6 +13,18 @@ new Function("module", "exports", ByteArray.toString(contents))(
 );
 const UsageFormat = localModule.exports;
 
+for (const [windows, expected, message] of [
+    [null, false, "Missing quota windows stay collapsed"],
+    [[], false, "Empty quota windows stay collapsed"],
+    [[{ usedPercent: 0 }, { usedPercent: 0 }], false, "Unused Spark stays collapsed"],
+    [[{ usedPercent: 0.001 }, { usedPercent: 0 }], true, "Fractional 5h use opens Spark"],
+    [[{ usedPercent: 0 }, { usedPercent: 1 }], true, "Weekly-only use opens Spark"],
+    [[{}, { usedPercent: null }, { usedPercent: NaN }], false, "Unknown is not usage"],
+    [[{ usedPercent: -1 }, { usedPercent: Infinity }], false, "Invalid is not usage"]
+]) {
+    assertEqual(UsageFormat.hasQuotaUsage(windows), expected, message);
+}
+
 function assertEqual(actual, expected, message) {
     if (actual !== expected) {
         throw new Error(`${message}: expected ${expected}, got ${actual}`);

@@ -8,6 +8,12 @@ function clamp(value, minimum, maximum) {
     return Math.min(maximum, Math.max(minimum, value));
 }
 
+function hasQuotaUsage(windows) {
+    return (windows || []).some(window =>
+        Number.isFinite(window.usedPercent) && window.usedPercent > 0
+    );
+}
+
 function summarizeWindows(limits) {
     const summaries = new Map();
 
@@ -723,6 +729,7 @@ function formatAppTooltip(installed, version = null, prefix = "", releaseDate = 
 }
 
 module.exports = {
+    hasQuotaUsage,
     summarizeWindows,
     listQuotaWindows,
     selectPanelWindows,
