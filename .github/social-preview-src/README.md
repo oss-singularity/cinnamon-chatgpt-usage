@@ -26,8 +26,8 @@ Both commands process every profile in `variants.json`. A future Cinnamon
 Spices, distribution or campaign profile can define its copy and output path
 there while keeping the artwork, icon, typography and layout shared.
 
-The applet and social preview consistently use **ChatGPT Usage Monitor**. Its remaining brand-review limit is recorded in
-`docs/rights-review.md`. The earlier OpenAI knot has been
+The applet and social preview consistently use **ChatGPT Usage Monitor**,
+approved by the maintainer on 2026-09-08. The earlier OpenAI knot has been
 replaced with project-owned artwork; the approved background and layout remain.
 The original SVG layout, quota artwork and generated background are offered
 under GPL-3.0-or-later to the extent of project rights. Text uses Noto Sans

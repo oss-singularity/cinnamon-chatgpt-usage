@@ -1,6 +1,6 @@
 {
   "checkedAt": "2026-09-08",
-  "status": "ready-for-maintainer-review-not-published",
+  "status": "maintainer-approved-candidate-not-published",
   "version": "1.0.0",
   "targetVersion": "1.0.0",
   "maintainer": "ClaudiuSchuster",
@@ -16,21 +16,20 @@
   "validatorSha256": "3b74a9b8360314ebb42ece78fe3215513144f8b64078e327ca0c03c9d8b63928",
   "validatorMatchesCheckedUpstreamHead": true,
   "artifacts": {
-    "install.zip": "020d367eb3aa6a7e2fd85bce32d89beafd8ff3de3cb7af685afac8a00e392f23",
-    "submission.zip": "9f26d13b042d3a3904db3ea88c2d7d5c974c266c5cfc5846ab73273a16877ede"
+    "install.zip": "d7e5c3f46a5260997acfe863eeb417a8d2c2601523016b69bf009142abbe8ffe",
+    "submission.zip": "37b98de761637e4933ac34a1af73e258c476ea3d9d7435f9666b30ed71363dfa"
   },
-  "remotePrChecks": "not-run-no-pull-request",
+  "remotePrChecks": "tracked-on-project-pull-request",
   "spicesSubmission": "not-submitted",
   "tagOrReleasePublished": false,
-  "sourceBaseCommit": "1397370e3ba4dc2ea1bd60d1c3568e5252d978a3",
-  "sourceState": "Working-tree candidate after base commit; exact installed bytes identified by payloadSha256 and archive hashes below",
+  "sourceBaseCommit": "099d26b3dad79dd9a944832b77ba84ca86ba34ae",
+  "sourceState": "Approved runtime and screenshots at sourceBaseCommit; subsequent documentation-only approval update. Exact packaged bytes are identified by payloadSha256 and archive hashes.",
   "publicAppletName": "ChatGPT Usage Monitor",
   "socialHeading": "ChatGPT Usage Monitor",
   "cinnamonVersions": ["6.6"],
   "assetInventoryCount": 31,
   "superLinter": "passed",
   "legalClearance": false,
-  "openBrandReview": "Explicitly chosen public app name contains ChatGPT; no legal clearance or permission inquiry",
   "payloadSha256": {
     "applet.js": "fcd53598b4c7ff5aaaf704caa163bcb8f3b0d97897d82c638652eef4e12c8114",
     "usage-format.js": "bccdde73912ebf95caff8023cbbb3651d09b7adc23b5883ffb435cdcad09c769",
@@ -39,7 +38,7 @@
     "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
     "icon.png": "68d4b41a069af25c0c680b7d088a0652bc1853ce4151cacb58fcec3b1a644cd5",
     "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
-    "ATTRIBUTION.md": "fd085d95de96408d0d6dbc1021e7e57fa0a3cac5903abad61b70a4128feff44d",
+    "ATTRIBUTION.md": "bb0bdab536484116903231218a6b0b9777e0832e8c59b3eb2a30a3883f5424b7",
     "SECURITY.md": "a4b8a40807d6b664aab85929e16588c0c2e4052ff15192d8d0372ad18c639fed",
     "README.md": "f848e41e30ef3deab3e7df238bc79e1c5cd6da56ea1e32804a74580629846958",
     "icons/ATTRIBUTION.md": "cd7ff1ccccb0c55f481d83182ac37aaf774d5e3c3333738a59ceac56c2090044",
@@ -88,5 +87,23 @@
     "referenceStyle": "panel-semi-transparent",
     "backgroundAlpha": 102,
     "configSha256": "6a7f7230461a5eee77946683b3b294e9a6143cf08f2875236d48f552311402d9"
+  },
+  "namingDecision": {
+    "status": "accepted-by-maintainer",
+    "by": "ClaudiuSchuster",
+    "date": "2026-09-08",
+    "name": "ChatGPT Usage Monitor"
+  },
+  "maintainerReview": {
+    "status": "accepted",
+    "by": "ClaudiuSchuster",
+    "date": "2026-09-08",
+    "runtimeAndScreenshotCommit": "099d26b3dad79dd9a944832b77ba84ca86ba34ae",
+    "scope": [
+      "public-name",
+      "screenshots",
+      "readiness-baseline",
+      "package-receipt"
+    ]
   }
 }

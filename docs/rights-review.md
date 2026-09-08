@@ -1,6 +1,6 @@
 # Rights review for the first Spices release
 
-Reviewed 2026-09-08. Scope: the current source tree, 23-file installed payload,
+Reviewed 2026-09-08. Scope: the current source tree, 24-file installed payload,
 submission screenshot, 15 documentation captures and social preview.
 This is an evidence review, not a legal opinion or a guarantee against claims.
 
@@ -9,13 +9,12 @@ inquiries. The former OpenAI knot and desktop robot have been removed from the
 current tree and payload. Original quota, chat and terminal-robot SVGs and their
 generated PNGs replace them. Their sources are included under GPL-3.0-or-later.
 
-**Naming review limit:** the maintainer explicitly chose **ChatGPT Usage Monitor**
+**Naming decision — closed 2026-09-08:** the maintainer approved **ChatGPT Usage Monitor**
 for the applet, settings, social preview and documentation. The popup's first
 line retains the descriptive heading ChatGPT Work & Codex usage.
-The name contains an OpenAI mark; this review does not establish that its use
-as an app name is covered by the published branding conditions. Replacing the
-pictures does not settle that separate question. No inquiry will be sent.
-The chosen name is a maintainer decision, not a legal clearance.
+Claudiu explicitly closed the naming item with “DAS GEHT KLAR BRO”.
+No further naming review or permission inquiry is part of this release plan.
+This records the maintainer's decision; it does not claim an OpenAI endorsement.
 
 ## Verified components
 
@@ -57,10 +56,8 @@ downloads built-in sprites separately from a CDN. The CLI repository's
 Apache-2.0 license does not by itself prove licensing of that separate image.
 This is a missing-evidence finding, not proof that no permission exists anywhere.
 
-The [brand guidelines](https://openai.com/brand/) condition logo usage and
-restrict primary app branding. They do not establish that the chosen
-public name is cleared. No purported OpenAI endorsement or authorship is
-claimed for the replacement robot or quota emblem.
+No purported OpenAI endorsement or authorship is claimed for the replacement
+robot or quota emblem. The naming decision is recorded above.
 
 The normal installer removes only byte-identical retired assets it previously
 shipped. Modified files and symlinks remain untouched. Their old SHA-256 values
@@ -97,6 +94,7 @@ and its hash, license basis and distribution scope. Checks verify coverage,
 unchanged PNG/SVG correspondence and exclusion of retired graphics; they do
 not make legal determinations. Package tests also cover safe upgrade cleanup.
 
-Before a public 1.0 release, resolve the public-name review limit, recheck the
-exact artifact and notices, and complete the separate technical gates.
-No contact request, PR, tag, release or announcement is sent by this review.
+The maintainer has accepted the name, artwork, screenshots and candidate review.
+The local technical gates and exact artifact checks are complete. The project
+PR checks, merge, Spices submission and publication remain separate workflow
+steps; they are not unfinished naming or artwork decisions.

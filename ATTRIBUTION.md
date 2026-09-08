@@ -15,8 +15,7 @@ The quota emblem, chat bubble and terminal robot are original OSS Singularity
 SVG artwork under GPL-3.0-or-later. Their editable sources travel with the
 applet; generated PNGs carry the same license. See `icons/ATTRIBUTION.md`.
 No OpenAI logo or desktop character is bundled in the current source tree or
-release payload. Product names refer to their respective external services;
-the chosen public name's separate branding review is documented below.
+release payload. Product names refer to their respective external services.
 
 The abstract social background was generated with ImageGen; its original
 prompt and editable layout are preserved in `.github/social-preview-src/`.
@@ -36,7 +35,7 @@ the repository. This does not relicense the depicted software.
 
 The code license does not grant rights to third-party artwork or trademarks.
 [The Spices readiness inventory](https://github.com/oss-singularity/cinnamon-chatgpt-usage/blob/main/docs/spices-readiness.md#ownership-and-assets)
-tracks the remaining technical preparation before catalog submission.
+records the completed candidate review and the catalog publication workflow.
 
 The [dated rights review](https://github.com/oss-singularity/cinnamon-chatgpt-usage/blob/oss-oo/spices-readiness-01a07256/docs/rights-review.md)
 records verified Yaru/font/background evidence and replacement of the earlier

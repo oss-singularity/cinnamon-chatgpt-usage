@@ -2,10 +2,10 @@
 
 **Unsent publication drafts.** No contact requests are planned or authorized.
 The maintainer selected replacement artwork and independent branding instead.
-Complete the technical gates and fill in the exact candidate facts before
-using these drafts. The chosen public name remains a separate branding
-review limit; see [the rights review](rights-review.md). Claudiu reviews each
-public save separately.
+The maintainer has accepted the candidate, screenshots and public name;
+see [the completed review](rights-review.md). Claudiu reviews subsequent
+merge, submission and publication steps separately. Catalog and release links
+are filled only after those objects exist.
 
 ## Project pull request draft
 
@@ -49,7 +49,7 @@ Suggested title: **ChatGPT Usage Monitor: add usage-limit applet**.
 Prepared version: 1.0.0; declared Cinnamon series: 6.6, tested on 6.6.9.
 English fallback with gettext/POT; no completed translated languages yet.
 Attach the approved commit and exact package receipt at submission time.
-The candidate archive remains review-only until the maintainer approves it.
+The candidate archive is accepted for proceeding with the project PR.
 
 ## GitHub release and forum announcement drafts
 

@@ -6,6 +6,23 @@ This is the reviewable 1.0.0 candidate, not a published release or an accepted S
 
 ## Current checkpoint — 2026-09-08
 
+**Candidate review complete and accepted by Claudiu on 2026-09-08.**
+The approved runtime and screenshots are recorded at `099d26b3dad79dd9a944832b77ba84ca86ba34ae`.
+The subsequent documentation update records that approval and refreshes the
+package receipt after removing the obsolete naming-review notice.
+
+- [x] All 13 audit areas below are implemented, verified or explicitly scoped
+      to the accepted Cinnamon 6.6 baseline.
+- [x] Maintainer identity, unchanged UUID and Cinnamon 6.6 support accepted.
+- [x] Public name and original artwork accepted; naming review closed.
+- [x] All 15 screenshots accepted by the maintainer.
+- [x] Local tests, native UI checks, linter and structural package validation passed.
+- [x] Package receipt reviewed; real archive and payload hashes recorded.
+
+The remaining steps are project PR checks, separately approved merge, Spices
+submission and catalog verification, followed by the reviewed publication.
+Those future actions are not represented as completed candidate checks.
+
 **Start with [the short maintainer handoff](release-next-steps.md)** for accounts,
 manual decisions and publication order. The earlier commit-pinned copy is a
 historical checkpoint, not the status of every later change.
@@ -26,9 +43,8 @@ validator. Its success covers package structure, not every review criterion.
 Gettext/POT now covers JS, Python, metadata and settings; real compiled-catalog
 tests cover fallback, reordered placeholders and machine-protocol isolation.
 The native popup subclass delegates lifecycle and menu-stack handling to Cinnamon.
-The six protected remote PR checks
-have not run because this branch has no PR. Do not mark these gates green from
-the successful local functional checks.
+The six protected remote PR checks run on the project PR. Their current status
+is tracked in the release issue; successful local checks do not replace them.
 
 The existing GitHub account and approved `ClaudiuSchuster` author fallback are
 sufficient for the documented submission workflow. An organization author is an
@@ -39,26 +55,26 @@ task is closed. The [rights review](rights-review.md) records original replaceme
 independent public branding as **ChatGPT Usage Monitor**. No permission inquiries will
 be sent. The former robot and knot graphics have been removed from the current
 tree; the UUID and user state remain unchanged. The consistently requested
-public name **ChatGPT Usage Monitor** remains a separate naming/brand review
-limit; no complete legal clearance is claimed.
+public name **ChatGPT Usage Monitor** was accepted by the maintainer, who closed
+the naming item on 2026-09-08. It is no longer an open release-planning gate.
 
 ## Dependency order and evidence
 
-| Audit                | Local preparation                                                                                                               | Candidate or release gate                                                                                      |
+| Audit                | Local preparation                                                                                                               | Accepted candidate evidence                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 1. Package           | Shared allowlist, ASCII metadata, portable README, deterministic submission/install ZIPs, hashes and pinned upstream validation | Confirm author identity and final screenshot; review exported payload                                          |
+| 1. Package           | Shared allowlist, ASCII metadata, portable README, deterministic submission/install ZIPs, hashes and pinned upstream validation | Accepted maintainer identity, screenshot and payload; structural validation passed                             |
 | 2. UI-thread probes  | Python discovery, bounded version output/time, asynchronous five-minute JS cache                                                | Native delayed-probe responsiveness and removal checks; residual I/O is local executable/desktop-file metadata |
 | 3. Transport         | Unbuffered nonblocking reads/writes, JSON framing, deadline, size cap, initialization errors and process-group cleanup          | Real-pipe tests run in `make verify`                                                                           |
 | 4. Reset uncertainty | Private attempt journal before dispatch; same parameters on explicit retry, retained through reload; SIGTERM cleanup            | Fake lost-response/reload/retry tests; account continuity remains a user requirement                           |
 | 5. Rolling totals    | Independent `periods["24h"]`; chart remains wall-clock aligned                                                                  | Half-hour, 60/120-minute buckets, incomplete history, midnight and DST tests                                   |
 | 6. Invalid inputs    | Non-finite numbers rejected; invalid windows omitted; invalid history points ignored                                            | Legacy and named-limit robustness tests                                                                        |
 | 7. Themes            | Secondary/menu foregrounds, ring tracks and quota glyph tint derive from the menu theme                                         | Light/dark and large-font checks; other desktop configurations are outside the verified baseline below         |
-| 8. Screenshots       | Private capture scripts and 15-variant inventory, including Notifications                                                       | Review every final image and source/hash inventory before replacing/publication                                |
+| 8. Screenshots       | Private capture scripts and 15-variant inventory, including Notifications                                                       | All 15 final images visually reviewed, source/hash verified and accepted                                       |
 | 9. Documentation     | README, SECURITY and bug form updated; installed README is portable                                                             | Cinnamon 6.6 scope selected; existing post-1.0 policy confirmed                                                |
-| 10. Artwork          | Code/asset separation and full notices travel with package                                                                      | Original replacement artwork and notices; verify final inventory and captures                                  |
+| 10. Artwork          | Code/asset separation and full notices travel with package                                                                      | Original artwork, notices, final inventory and captures verified and accepted                                  |
 | 11. Discovery        | One Python discovery algorithm used by refresh and JS launch/version cache                                                      | CLI/app-only, explicit `~`, spaces, symlink-chain and precedence fixtures                                      |
 | 12. Compatibility    | Existing geometry preserved; scope and investigations made explicit below                                                       | Native 6.6 evidence, real gettext catalog and synthetic history/reset boundary tests                           |
-| 13. Reproducibility  | Real-process tests, package round-trips, shared metadata version and UI entrypoint                                              | Pinned linter, final visual review and exact candidate artifact receipt                                        |
+| 13. Reproducibility  | Real-process tests, package round-trips, shared metadata version and UI entrypoint                                              | Pinned linter passed; final visuals and exact artifact receipt accepted                                        |
 
 ## Version and support decisions
 
@@ -152,9 +168,10 @@ The installer preserves unmanaged files during upgrade and refuses symlink
 destinations; uninstall removes the selected applet directory but retains
 external settings, history and unresolved-reset state.
 
-After the candidate is complete, present its visuals, full diff, tests,
-changelog and exact package hashes to Claudiu. Only then seek approval for the
-specific public step. A submission should affect only this applet and use the
+The candidate's visuals, tests, changelog and package receipt have been reviewed
+and accepted by Claudiu. Proceed with the project PR and its required checks;
+present subsequent merge/submission/publication steps separately.
+A submission should affect only this applet and use the
 upstream title format `ChatGPT Usage Monitor: ...`. Preserve protected squash merges
 and all six project PR checks; no administrator bypass.
 

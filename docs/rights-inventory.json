@@ -2,26 +2,26 @@
   "reviewedAt": "2026-09-08",
   "scope": "All current tracked or prepared raster/vector/font files, excluding external image links and historical commits",
   "legalClearance": false,
-  "openItems": ["chosen-public-name-ChatGPT-Usage-Monitor-brand-review"],
+  "openItems": [],
   "retiredArtworkDisposition": "Removed from current tree and payload; installer deletes only known unchanged old copies. No permission inquiries.",
   "assets": {
     ".github/social-preview-src/background.png": {
       "sha256": "824dd9954de94aeb563d06e0afe19d1d362d24e14d6f0cfbc328e0e977e19781",
       "shippedInApplet": false,
       "license": "GPL-3.0-or-later",
-      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public-name brand review remains documented"
+      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public name accepted by maintainer on 2026-09-08"
     },
     ".github/social-preview-src/overlay.svg": {
       "sha256": "9bfcd1a08093a2822a3194118af51e8c3831823d271b9953db4e6ef684200c3d",
       "shippedInApplet": false,
       "license": "GPL-3.0-or-later",
-      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public-name brand review remains documented"
+      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public name accepted by maintainer on 2026-09-08"
     },
     ".github/social-preview.png": {
       "sha256": "dbdc8e8872f92a4099c40cd6ee094802e87e6a855e0cd5503d6fbb7fdc5e3818",
       "shippedInApplet": false,
       "license": "GPL-3.0-or-later",
-      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public-name brand review remains documented"
+      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public name accepted by maintainer on 2026-09-08"
     },
     "docs/model-limits/bucket-tooltip.png": {
       "sha256": "f103ff7861a865d679594c5a757af3a125d45458ba641b2d9881bec92d91985d",
@@ -191,5 +191,11 @@
       "license": "GPL-3.0-or-later",
       "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
     }
+  },
+  "namingDecision": {
+    "status": "accepted-by-maintainer",
+    "by": "ClaudiuSchuster",
+    "date": "2026-09-08",
+    "name": "ChatGPT Usage Monitor"
   }
 }

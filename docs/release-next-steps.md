@@ -4,7 +4,7 @@ Stand: 8. September 2026. Der Branch enthält den **1.0.0-Kandidaten** mit
 aktualisierten Bildern, Übersetzungsgrundlage und Paketbelegen. Er ist noch
 nicht veröffentlicht und noch keine angenommene offizielle Spice.
 
-## Was Claudiu jetzt tun muss
+## Bereits von Claudiu freigegeben
 
 1. **Keinen neuen Account registrieren.** Die Einreichung erfolgt über einen
    GitHub-Pull-Request an `linuxmint/cinnamon-spices-applets`. Der vorhandene
@@ -15,14 +15,14 @@ nicht veröffentlicht und noch keine angenommene offizielle Spice.
 2. **Supportumfang ist entschieden:** Cinnamon **6.6**, tatsächlich geprüft
    auf 6.6.9. Die Metadatei nennt nur diese Versionsreihe. Claudiu hat die
    zusätzliche Testreihe für 5.8–6.4 ausdrücklich abgewählt.
-3. **Nur noch den konkreten Kandidaten reviewen.** Keine Rechte-Anfragen:
+3. **Kandidatenreview abgeschlossen.** Keine Rechte-Anfragen:
    Claudiu hat eigene Ersatzgrafiken gewählt. Der öffentliche Name ist
    **ChatGPT Usage Monitor**, mit eigenen Quoten-/Chat-/Terminal-Roboter-Symbolen.
    Hintergrund und Layout des Social Previews bleiben erhalten.
    [Rechteprüfung](rights-review.md) und [Dateibelege](rights-inventory.json)
-   dokumentieren die Quellen und Lizenzhinweise. Der ausdrücklich gewählte
-   öffentliche Name **ChatGPT Usage Monitor** bleibt als Marken-/Namensfrage
-   offen; eigene Grafiken allein klären diese Verwendung nicht abschließend.
+   dokumentieren die Quellen und Lizenzhinweise. Claudiu hat den Namen mit
+   „DAS GEHT KLAR BRO“ bestätigt und den Reviewpunkt geschlossen. Screenshots,
+   Readiness-Umfang und Paketbeleg sind ebenfalls akzeptiert.
 
 Es müssen jetzt weder ein Forum-Beitrag geschrieben noch eine API-Anwendung,
 ein API-Schlüssel oder ein neues OpenAI-Konto angelegt werden. Auch ein Fork
@@ -62,16 +62,17 @@ erst beim freigegebenen Einreichungsschritt.
   manuelle Archivierung bei Konto-Wechsel sowie die unabhängige Reset-Journal-
   Grenze sind mit synthetischen Daten geprüft; keine Zugangsdaten wurden gelesen.
 
-Die sechs geschützten **Remote-PR-Prüfungen stehen weiterhin aus**, weil noch
-kein PR erstellt wurde. Erfolgreiche lokale Tests ersetzen sie nicht.
+Die sechs geschützten **Remote-PR-Prüfungen** folgen jetzt auf dem Projekt-PR.
+Erfolgreiche lokale Tests ersetzen sie nicht. Den aktuellen PR-Status hält das
+[Release-Issue](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45) fest.
 Die [Readiness-Dokumentation](spices-readiness.md) und der
 [Paketbeleg](release-checkpoint.json) halten den genauen Umfang fest.
 
 ## Reihenfolge ab hier
 
-1. Claudiu prüft den Kandidaten: Bilder, Changelog, Testumfang und Paketbeleg.
+1. **Erledigt:** Claudiu hat Bilder, Readiness-Umfang und Paketbeleg akzeptiert.
    UUID bleibt `chatgpt-usage@oss-singularity`; kein zusätzlicher 0.4.0-Release.
-2. Nach Claudius Review den Projekt-PR erstellen; die sechs geschützten
+2. **Jetzt:** Den Projekt-PR erstellen; die sechs geschützten
    Prüfungen bestehen lassen und den Merge separat freigeben lassen.
 3. Den fertigen Spices-Pull-Request mit genau einem Applet vorlegen und erst
    nach Freigabe absenden. Dafür den persönlichen GitHub-Maintainer verwenden;
