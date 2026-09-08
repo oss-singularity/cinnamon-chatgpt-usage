@@ -1,8 +1,8 @@
 # Nächster Schritt zur ersten offiziellen Spice
 
-Stand: 8. September 2026. Der Branch enthält den **1.0.0-Kandidaten** mit
-aktualisierten Bildern, Übersetzungsgrundlage und Paketbelegen. Er ist noch
-nicht veröffentlicht und noch keine angenommene offizielle Spice.
+Stand: 8. September 2026. **1.0.0** ist geprüft und zur Veröffentlichung
+freigegeben. Der Projekt-PR ist gemergt und die Spices-Einreichung abgesendet.
+Die Aufnahme in den Cinnamon-Katalog steht noch aus.
 
 ## Bereits von Claudiu freigegeben
 
@@ -66,9 +66,9 @@ erst beim freigegebenen Einreichungsschritt.
   manuelle Archivierung bei Konto-Wechsel sowie die unabhängige Reset-Journal-
   Grenze sind mit synthetischen Daten geprüft; keine Zugangsdaten wurden gelesen.
 
-Die sechs geschützten **Remote-PR-Prüfungen** laufen auf
+Die sechs geschützten **Remote-PR-Prüfungen** sind erfolgreich auf
 [Projekt-PR #46](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/46).
-Erfolgreiche lokale Tests ersetzen sie nicht. Den aktuellen PR-Status hält das
+Auch beide Workflows nach dem Merge sind erfolgreich. Den aktuellen Status hält das
 [Release-Issue](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45) fest.
 Die [Readiness-Dokumentation](spices-readiness.md) und der
 [Paketbeleg](release-checkpoint.json) halten den genauen Umfang fest.
@@ -77,16 +77,17 @@ Die [Readiness-Dokumentation](spices-readiness.md) und der
 
 1. **Erledigt:** Claudiu hat Bilder, Readiness-Umfang und Paketbeleg akzeptiert.
    UUID bleibt `chatgpt-usage@oss-singularity`; kein zusätzlicher 0.4.0-Release.
-2. **Jetzt:** Den bestehenden Projekt-PR #46 auf seinem aktuellen Stand prüfen;
-   alle sechs geschützten Prüfungen müssen bestehen. Den Merge separat freigeben.
-3. Den fertigen Spices-Pull-Request mit genau einem Applet vorlegen und erst
-   nach Freigabe absenden. Dafür den persönlichen GitHub-Maintainer verwenden;
-   eine gewünschte Organisation als `info.json.author` vorher mit Upstream
-   klären. Die bereits akzeptierte persönliche Variante ist kein Blocker.
+2. **Erledigt:** Projekt-PR #46 gemergt; Spices-PR
+   [#9024](https://github.com/linuxmint/cinnamon-spices-applets/pull/9024)
+   mit `ClaudiuSchuster` als Maintainer abgesendet. OSS Singularity bleibt
+   Projektidentität. Upstream-Review und Freigabe des PR-Workflows stehen aus.
+3. **Jetzt:** Den freigegebenen GitHub-Release 1.0.0 mit Installations-ZIP und
+   Prüfsummen veröffentlichen. Die Release-Notizen benennen den offenen
+   Spices-Status ausdrücklich; ein GitHub-Release bedeutet keine Katalogaufnahme.
 4. Nach Annahme den tatsächlichen Katalogeintrag, das heruntergeladene Paket
    und Installation/Update über Cinnamon prüfen. Erst dann als **offizielle
-   Spice** ankündigen. Tag, GitHub Release und öffentliche Beiträge bleiben
-   einzeln reviewbare Schritte; es erfolgt keine automatische Veröffentlichung.
+   Spice** ankündigen und die vorbereiteten Katalog-/Forum-Texte mit den
+   tatsächlich verifizierten Links vervollständigen.
 
 ## Offizielle Referenzen
 
