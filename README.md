@@ -122,6 +122,10 @@
 - Highlights critical remaining usage (10% or less by default) with one
   configurable color shared by the quota ring, its label and the remaining
   text. The default is static neon pink for readability.
+- Notifications default to enabled for all weekly resets and 5h/7d low-limit
+  alerts. Existing saved notification preferences are preserved on upgrade.
+  Banners remain in Cinnamon's notification center after their timeout until
+  dismissed or cleared; this does not provide history across a Cinnamon restart.
 - Can notify once when selected 7d limits refresh and when enabled 5h or 7d
   quotas cross configurable warning and critical remaining-usage thresholds;
   all detection happens only on successful data refreshes.

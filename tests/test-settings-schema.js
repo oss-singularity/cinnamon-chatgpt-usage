@@ -50,13 +50,13 @@ assertEqual(
 );
 assertEqual(
     schema["enable-five-hour-low-notifications"].default,
-    false,
-    "Five-hour notifications remain opt-in"
+    true,
+    "Five-hour notifications default on"
 );
 assertEqual(
     schema["enable-weekly-low-notifications"].default,
-    false,
-    "Weekly notifications remain opt-in"
+    true,
+    "Weekly notifications default on"
 );
 
 for (const prefix of ["five-hour", "weekly"]) {

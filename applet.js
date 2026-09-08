@@ -9,6 +9,7 @@ const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const Tooltips = imports.ui.tooltips;
 const Main = imports.ui.main;
+const MessageTray = imports.ui.messageTray;
 const ModalDialog = imports.ui.modalDialog;
 const Dialog = imports.ui.dialog;
 const Mainloop = imports.mainloop;
@@ -158,13 +159,13 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.criticalColor = RESET_EXPIRY_CRITICAL_COLOR;
         this.warningRemaining = 25;
         this.criticalRemaining = 10;
-        this.notifyAllWeeklyResets = false;
-        this.notifyCodexWeeklyReset = false;
-        this.notifySparkWeeklyReset = false;
-        this.enableFiveHourLowNotifications = false;
+        this.notifyAllWeeklyResets = true;
+        this.notifyCodexWeeklyReset = true;
+        this.notifySparkWeeklyReset = true;
+        this.enableFiveHourLowNotifications = true;
         this.fiveHourWarningRemaining = 25;
         this.fiveHourCriticalRemaining = 10;
-        this.enableWeeklyLowNotifications = false;
+        this.enableWeeklyLowNotifications = true;
         this.weeklyWarningRemaining = 25;
         this.weeklyCriticalRemaining = 10;
     }
@@ -2399,7 +2400,13 @@ class ChatGptUsageApplet extends Applet.Applet {
             snapshot,
             this._notificationOptions()
         );
-        for (const event of events) Main.notify(event.title, event.message);
+        for (const event of events) {
+            const source = new MessageTray.SystemNotificationSource();
+            Main.messageTray.add(source);
+            const notification = new MessageTray.Notification(source, event.title, event.message);
+            notification.setTransient(false);
+            source.notify(notification);
+        }
     }
 
     _addActivityChart(values, bucketMinutes, endAt, menu = this.menu) {

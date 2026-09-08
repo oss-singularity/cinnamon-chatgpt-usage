@@ -40,7 +40,17 @@ The other variants exercise unused Spark, expanded Spark, four rings, Codex
 only, actual pointer-triggered tooltips, settings and setup dialogs. No real
 account is required. The general settings image enables model-specific panel display as an
 explicit example; all other general controls retain their defaults. Notifications
-also shows defaults, with optional threshold controls revealed by their switches.
+also shows defaults, with all notification options enabled and threshold controls visible.
+
+For native notification retention QA, run the private wrapper with
+`QA_NOTIFICATION_RETENTION=1`, an absolute `QA_NOTIFICATION_GEOMETRY` output
+path and `--settle-ms 24000`, using the `panel` driver variant. The helper
+loads Cinnamon's notification-center applet in the private session, sends
+synthetic warning/critical/reset events through production code and waits for
+their banners to expire. It requires three retained entries with transient
+filtering enabled and verifies that unchanged refreshes do not add duplicates.
+The final raw frame shows the open notification center. No live notification
+settings, account data or real notifications are touched.
 
 Every screenshot must be inspected before copying it to `docs/model-limits`.
 Menu captures must measure 419 px on the native actor, plus Cinnamon's 1 px

@@ -221,6 +221,11 @@ JSEOF
 setup_code=${setup_code//VARIANT/$variant}
 eval_cinnamon "$setup_code" >/dev/null
 
+if [[ "${QA_NOTIFICATION_RETENTION:-0}" == 1 ]]; then
+    # shellcheck source=tests/ui/check-notifications.sh
+    source "$(dirname -- "$0")/check-notifications.sh"
+fi
+
 if [[ "$variant" == settings-* ]]; then
     case "$variant" in
         settings-general) settings_tab=0 ;;

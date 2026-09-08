@@ -179,24 +179,24 @@
   },
   "notify-all-weekly-resets": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "description": "Notify when any model 7d limit refreshes"
   },
   "notify-codex-weekly-reset": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "dependency": "!notify-all-weekly-resets",
     "description": "Notify when 7d limits reset"
   },
   "notify-spark-weekly-reset": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "dependency": "!notify-all-weekly-resets",
     "description": "Notify when 7d Spark limits reset"
   },
   "enable-five-hour-low-notifications": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "description": "Enable 5h low-limit notifications"
   },
   "five-hour-warning-remaining": {
@@ -221,7 +221,7 @@
   },
   "enable-weekly-low-notifications": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "description": "Enable 7d low-limit notifications"
   },
   "weekly-warning-remaining": {
