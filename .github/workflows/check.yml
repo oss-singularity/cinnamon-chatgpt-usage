@@ -22,7 +22,7 @@ jobs:
       - name: Install checks
         run: |
           sudo apt-get update
-          sudo apt-get install -y cjs fonts-noto-core gettext gir1.2-gtk-3.0 imagemagick librsvg2-bin locales python3-xapp shellcheck xauth xdotool xvfb
+          sudo apt-get install -y cjs fonts-noto-core gettext gir1.2-gtk-3.0 gir1.2-xapp-1.0 imagemagick librsvg2-bin locales python3-xapp shellcheck xauth xdotool xvfb
           sudo locale-gen en_US.UTF-8
       - name: Validate repository
         run: make check
