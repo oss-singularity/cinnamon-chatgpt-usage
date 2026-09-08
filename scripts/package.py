@@ -16,6 +16,10 @@ ROOT = Path(__file__).resolve().parent.parent
 UUID = "chatgpt-usage@oss-singularity"
 UPSTREAM = "0fa36ed070daa26d51ced6ea87a08066b342eca4"
 VALIDATOR_SHA256 = "3b74a9b8360314ebb42ece78fe3215513144f8b64078e327ca0c03c9d8b63928"
+RETIRED_ARTWORK = {
+    "icons/codex.png": "e91af8777ed207355f280c308a5d23f07cb4120bf32c006ed7849b2966865347",
+    "icons/chatgpt-white.png": "a859b63a9a3009f0d806239f5912e4d02537869f460843a5f8e7600316b264dc",
+}
 
 
 def payload():
@@ -56,6 +60,13 @@ def install(data_root):
             os.replace(temporary, destination)
         finally:
             Path(temporary).unlink(missing_ok=True)
+    # Remove only byte-identical files shipped by our older releases. Preserve
+    # user replacements and symlinks; never treat an arbitrary extra as owned.
+    for relative, digest in RETIRED_ARTWORK.items():
+        retired = target / relative
+        if not retired.is_symlink() and retired.is_file():
+            if hashlib.sha256(retired.read_bytes()).hexdigest() == digest:
+                retired.unlink()
     return target
 
 
@@ -121,7 +132,7 @@ def main():
     package.add_argument("--validate", action="store_true")
     args = parser.parse_args()
     if args.command == "install":
-        print(f"ChatGPT Usage installed: {install(args.data_root)}")
+        print(f"Usage Monitor installed: {install(args.data_root)}")
     else:
         output = export(args.output)
         if args.validate:

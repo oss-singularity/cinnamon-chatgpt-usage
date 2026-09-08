@@ -1,11 +1,11 @@
 {
   "uuid": "chatgpt-usage@oss-singularity",
-  "name": "ChatGPT Usage",
+  "name": "Usage Monitor",
   "description": "A tiny Cinnamon companion that keeps ChatGPT Work and Codex usage beautifully in view.",
   "comments": "Made with love by Claudiu & Codex.\n\nhttps://github.com/oss-singularity/cinnamon-chatgpt-usage",
-  "contributors": "OSS Singularity - open-source home of the project,Claudiu Schuster - creator and maintainer,OpenAI Codex - design and engineering collaborator",
+  "contributors": "OSS Singularity - open-source home of the project,Claudiu Schuster - creator and maintainer",
   "version": "0.3.12",
   "author": "OSS Singularity",
   "max-instances": 1,
-  "cinnamon-version": ["5.8", "6.0", "6.2", "6.4", "6.6"]
+  "cinnamon-version": ["6.6"]
 }

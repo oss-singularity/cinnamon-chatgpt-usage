@@ -57,6 +57,9 @@ def main():
         "path_settings.py",
     ]
     source_paths += [str(path.relative_to(ROOT)) for path in sorted(UI.iterdir()) if path.is_file()]
+    source_paths += ["icon.png"] + [
+        str(path.relative_to(ROOT)) for path in sorted((ROOT / "icons").iterdir()) if path.suffix in {".png", ".svg"}
+    ]
     sources = {name: sha(ROOT / name) for name in source_paths}
     for name, variant, mode in SPECS:
         if args.only and name not in args.only:

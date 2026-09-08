@@ -11,13 +11,34 @@ original implementation based on the public Codex app-server protocol.
 OpenAI, ChatGPT and Codex are trademarks of OpenAI. This community project is
 not affiliated with or endorsed by OpenAI.
 
-`icons/codex.png` is an idle frame cropped and resized from the Codex Desktop
-sprite sheet and is included solely to identify the Codex launch action.
-The Codex character artwork remains the property of OpenAI.
+The quota emblem, chat bubble and terminal robot are original OSS Singularity
+SVG artwork under GPL-3.0-or-later. Their editable sources travel with the
+applet; generated PNGs carry the same license. See `icons/ATTRIBUTION.md`.
+No OpenAI logo or desktop character is bundled in the current source tree or
+release payload. Product names refer to their respective external services;
+the requested social heading's separate branding review is documented below.
+
+The abstract social background was generated with ImageGen; its original
+prompt and editable layout are preserved in `.github/social-preview-src/`.
+Project rights, to the extent they exist, in this background and the social
+composition are offered under GPL-3.0-or-later. Noto Sans is used to render
+text under OFL-1.1; font binaries are not bundled.
+
+Documentation screenshots in `docs/model-limits/` are offered under
+CC-BY-SA-4.0 to the extent of project rights. They show this applet and
+unmodified Yaru Icons by Sam Hewitt, with native Mint-Y theme rendering
+(Linux Mint, GPL-3.0-or-later). The screenshots use synthetic usage data and
+the project's original teal background. Their license text is included at
+`icons/LICENSE-CC-BY-SA-4.0.txt`; attribution and capture sources remain in
+the repository. This does not relicense the depicted software.
 
 ## Distribution review
 
 The code license does not grant rights to third-party artwork or trademarks.
 [The Spices readiness inventory](https://github.com/oss-singularity/cinnamon-chatgpt-usage/blob/main/docs/spices-readiness.md#ownership-and-assets)
-tracks the remaining provenance and permission work before catalog submission.
-The current robot attribution records origin, not a redistribution permission.
+tracks the remaining technical preparation before catalog submission.
+
+The [dated rights review](https://github.com/oss-singularity/cinnamon-chatgpt-usage/blob/oss-oo/spices-readiness-01a07256/docs/rights-review.md)
+records verified Yaru/font/background evidence and replacement of the earlier
+robot and knot artwork. Historical commits and already published releases are
+outside the new payload review; their notices are not retroactive permissions.

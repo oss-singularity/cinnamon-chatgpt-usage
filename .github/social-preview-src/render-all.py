@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render or verify every configured ChatGPT Usage social-preview variant."""
+"""Render or verify every configured Usage Monitor social-preview variant."""
 
 from __future__ import annotations
 

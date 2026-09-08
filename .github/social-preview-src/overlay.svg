@@ -34,7 +34,7 @@
   <rect x="78" y="158" width="108" height="108" rx="31" fill="#10a37f" opacity="0.16" filter="url(#tileGlow)"/>
   <rect x="76" y="156" width="112" height="112" rx="32" fill="url(#iconTile)" stroke="#7be3c6" stroke-opacity="0.42"/>
 
-  <text x="218" y="205" fill="#ffffff" font-family="Noto Sans, sans-serif" font-size="54" font-weight="800">ChatGPT Usage</text>
+  <text x="218" y="205" fill="#ffffff" font-family="Noto Sans, sans-serif" font-size="42" font-weight="800">ChatGPT Usage Monitor</text>
   <text x="218" y="250" fill="#d7e2e8" font-family="Noto Sans, sans-serif" font-size="32" font-weight="600">for Cinnamon</text>
 
   <text x="76" y="356" fill="#f4f8fa" font-family="Noto Sans, sans-serif" font-size="30" font-weight="600">Your limits, beautifully in view.</text>

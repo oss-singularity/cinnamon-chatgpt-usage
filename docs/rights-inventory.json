@@ -1,0 +1,195 @@
+{
+  "reviewedAt": "2026-09-08",
+  "scope": "All current tracked or prepared raster/vector/font files, excluding external image links and historical commits",
+  "legalClearance": false,
+  "openItems": ["requested-social-heading-ChatGPT-Usage-Monitor-brand-review"],
+  "retiredArtworkDisposition": "Removed from current tree and payload; installer deletes only known unchanged old copies. No permission inquiries.",
+  "assets": {
+    ".github/social-preview-src/background.png": {
+      "sha256": "824dd9954de94aeb563d06e0afe19d1d362d24e14d6f0cfbc328e0e977e19781",
+      "shippedInApplet": false,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; trademark heading remains under review"
+    },
+    ".github/social-preview-src/overlay.svg": {
+      "sha256": "9bfcd1a08093a2822a3194118af51e8c3831823d271b9953db4e6ef684200c3d",
+      "shippedInApplet": false,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; trademark heading remains under review"
+    },
+    ".github/social-preview.png": {
+      "sha256": "dbdc8e8872f92a4099c40cd6ee094802e87e6a855e0cd5503d6fbb7fdc5e3818",
+      "shippedInApplet": false,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; trademark heading remains under review"
+    },
+    "docs/model-limits/bucket-tooltip.png": {
+      "sha256": "d377a9aa2e5af20228669a66e6fe8c1a4c9ad2481ec9d61b1192d594739e6730",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/install-chatgpt.png": {
+      "sha256": "5c7922d1e48a4bed0037b591bb22d09432d5c8891d42268bba43d87f0e5ed802",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/install-codex.png": {
+      "sha256": "6f1890b8eba6fada8986d6f13d421fb5726d18325471f3afe1f646ee5b0151d1",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/panel-tooltip.png": {
+      "sha256": "737030b6ba5bca6cb830325aa887483be3a076bb925ef76827e047268f1d7798",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/reset-confirmation.png": {
+      "sha256": "6b112c5c92a23dbe24a89a3862d97f3c1f14e347a10ac0f9823599f1a45643bc",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/settings-colors.png": {
+      "sha256": "26530bfd64ec7eb48a9ca1a26336ae26530a9d34b1dae5b5d29814cb6bf2e779",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/settings-general.png": {
+      "sha256": "c1e53ed04f9b8f38619b56abd0ba76ab444b901d14f2e0da9df856772edc37fa",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/settings-notifications.png": {
+      "sha256": "3b4c4000cf0c404dd39ec8952a185bb90c835695b7d7d0f044b6798d7a9569d4",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/topbar.png": {
+      "sha256": "9d9b49d939aa38f27b669a737d08bba6f208d85de262b0fb824df9cc516a357a",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/usage-menu-codex-only.png": {
+      "sha256": "96e1adee80a481d31425884d3ffd099793a26e8787975e3f2783858239bb0d85",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/usage-menu-four-rings.png": {
+      "sha256": "6e78294d63db2de9ca0b2daf57fd6ead6133aa91df98ae3fdbbb693eb043a608",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/usage-menu-horizontal.png": {
+      "sha256": "e8fc25e6a9faa1a3fde0aec3fd165e739c716015a40f5d011c65ee7fabf95d4f",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/usage-menu-spark.png": {
+      "sha256": "551288566555675a0323980e77d02ebeb64e84891917deff832d0b541c7418fa",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/usage-menu.png": {
+      "sha256": "56e1aa19069d6473799863529cd4caadfe1840ec4facb914843ebccb77f4ab1c",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/model-limits/vertical-panel.png": {
+      "sha256": "62ef95cf9d042d814af1b37f1d8f3f7935fe52586d799746e7d05881afe964b2",
+      "shippedInApplet": false,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
+    },
+    "docs/proposals/codex-launch-icon.svg": {
+      "sha256": "ef24dbee41ee9eace4a0ad2b78c8762a65735a2f91fd45ff2fb5572d4f738e65",
+      "shippedInApplet": false,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
+    },
+    "icon.png": {
+      "sha256": "68d4b41a069af25c0c680b7d088a0652bc1853ce4151cacb58fcec3b1a644cd5",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Rendered from original SVG; scripts/render-icons.py and icons/ATTRIBUTION.md"
+    },
+    "icons/applet.svg": {
+      "sha256": "d6cdaafdb5518652e5637690ddf4712d6e06eac1a01f100cc7a8296b6b2f8fe8",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
+    },
+    "icons/chat-bubble.svg": {
+      "sha256": "bd9d0a63055e3ae4fa8caeda831930db641e86dd8cf4aa6bda5a4508465aeac1",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
+    },
+    "icons/emblem-ok-symbolic.svg": {
+      "sha256": "94510ae2b8b3cb8763324cc425aa6ec5fc7f94866f22e0b3757f62009175132a",
+      "shippedInApplet": true,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Byte match to Yaru 18b443818c0e5fed138bb4f43aff595b3e095951; icons/ATTRIBUTION.md"
+    },
+    "icons/terminal-bot.png": {
+      "sha256": "e66f7a837738329a37a88e5594baf0a52611fa0a39b0b2f7a4b17a36352659e2",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Rendered from original SVG; scripts/render-icons.py and icons/ATTRIBUTION.md"
+    },
+    "icons/terminal-bot.svg": {
+      "sha256": "5db566274f9cc4a6c8ab67501610e77a25545093ed421892c54ebba4f35009e9",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
+    },
+    "icons/usage-white.png": {
+      "sha256": "39efe23d65131c2222b10927a3387d6cb5f066889ff7c8e0bfc2949491abc735",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Rendered from original SVG; scripts/render-icons.py and icons/ATTRIBUTION.md"
+    },
+    "icons/usage.svg": {
+      "sha256": "a78282aedc5f8c03b3a9e507b86ab436977aefe0f0ed4b068b8d76c822458a4b",
+      "shippedInApplet": true,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
+    },
+    "icons/utilities-system-monitor-symbolic.svg": {
+      "sha256": "d3240cf7e1d0a0440e21b27686c499359361d55136e8970286e406842bb72ea2",
+      "shippedInApplet": true,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Byte match to Yaru 18b443818c0e5fed138bb4f43aff595b3e095951; icons/ATTRIBUTION.md"
+    },
+    "icons/view-refresh-symbolic.svg": {
+      "sha256": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
+      "shippedInApplet": true,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Byte match to Yaru 18b443818c0e5fed138bb4f43aff595b3e095951; icons/ATTRIBUTION.md"
+    },
+    "icons/web-browser-symbolic.svg": {
+      "sha256": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e",
+      "shippedInApplet": true,
+      "license": "CC-BY-SA-4.0",
+      "evidence": "Byte match to Yaru 18b443818c0e5fed138bb4f43aff595b3e095951; icons/ATTRIBUTION.md"
+    },
+    "tests/assets/cinnamon-teal-background.svg": {
+      "sha256": "1f2df4d0f3dff7eb2a46f886d754395e266edd7cacb0e009bf76fd27419ad6e5",
+      "shippedInApplet": false,
+      "license": "GPL-3.0-or-later",
+      "evidence": "Original project SVG/source; see ATTRIBUTION.md and docs/rights-review.md"
+    }
+  }
+}

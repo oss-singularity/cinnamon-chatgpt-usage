@@ -19,7 +19,9 @@ check:
 	python3 -m json.tool metadata.json >/dev/null
 	python3 -m json.tool settings-schema.json >/dev/null
 	python3 tests/check-ui-inventory.py
-	python3 tests/check-png.py icon.png icons/chatgpt-white.png icons/codex.png
+	python3 tests/check-png.py icon.png icons/usage-white.png icons/terminal-bot.png
+	python3 scripts/render-icons.py --check
+	python3 tests/check-rights-inventory.py
 	shellcheck install.sh uninstall.sh tests/ui/*.sh
 	$(MAKE) check-social-preview
 

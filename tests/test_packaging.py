@@ -1,5 +1,6 @@
 """Installer and exported archive use the same private-data-free payload."""
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -8,6 +9,7 @@ import unittest
 import zipfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location("package", Path(__file__).resolve().parents[1] / "scripts/package.py")
 package = importlib.util.module_from_spec(SPEC)
@@ -76,3 +78,35 @@ class PackageTests(unittest.TestCase):
         self.assertFalse({"icon", "dangerous", "last-edited"}.intersection(metadata))
         for name in ["ATTRIBUTION.md", "SECURITY.md", "icons/ATTRIBUTION.md", "icons/LICENSE-CC-BY-SA-4.0.txt"]:
             self.assertIn(name, files)
+
+    def test_original_artwork_sources_and_no_retired_assets(self):
+        files = package.payload()
+        self.assertFalse({"icons/codex.png", "icons/chatgpt-white.png"}.intersection(files))
+        for name in ["applet", "usage", "terminal-bot", "chat-bubble"]:
+            self.assertIn(f"icons/{name}.svg", files)
+            self.assertIn(b"SPDX-License-Identifier: GPL-3.0-or-later", files[f"icons/{name}.svg"])
+        for name in ["icons/usage-white.png", "icons/terminal-bot.png"]:
+            self.assertIn(name, files)
+        self.assertIn(b'fileName: "chat-bubble.svg"', files["applet.js"])
+        self.assertIn(b'fileName: "terminal-bot.png"', files["applet.js"])
+
+    def test_upgrade_removes_only_known_retired_artwork(self):
+        with TemporaryDirectory() as directory:
+            target = package.install(directory)
+            retired = target / "icons/codex.png"
+            expected = b"old artwork fixture"
+            digest = hashlib.sha256(expected).hexdigest()
+            with patch.dict(package.RETIRED_ARTWORK, {"icons/codex.png": digest}, clear=True):
+                retired.write_bytes(expected)
+                package.install(directory)
+                self.assertFalse(retired.exists())
+                retired.write_bytes(b"user replacement")
+                package.install(directory)
+                self.assertEqual(retired.read_bytes(), b"user replacement")
+                retired.unlink()
+                outside = Path(directory) / "outside-artwork"
+                outside.write_bytes(expected)
+                retired.symlink_to(outside)
+                package.install(directory)
+                self.assertTrue(retired.is_symlink())
+                self.assertEqual(outside.read_bytes(), expected)

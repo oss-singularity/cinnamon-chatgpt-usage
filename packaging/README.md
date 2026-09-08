@@ -1,21 +1,25 @@
-# ChatGPT Usage for Cinnamon
+# Usage Monitor for Cinnamon
 
 An independent OSS Singularity applet showing ChatGPT Work and Codex limits,
 reset times, credits and observed consumption on horizontal or vertical panels.
 
-Requires Python 3.10 or newer and a signed-in Codex CLI or a ChatGPT desktop
+Targets Cinnamon 6.6, tested on 6.6.9. Requires Python 3.10 or newer and a signed-in Codex CLI or a ChatGPT desktop
 package containing `resources/codex`. The applet never installs a backend or
-reads its credentials. Set an explicit backend path in the applet settings if
-auto-discovery does not match your package layout.
+reads its credentials. Both setup and settings offer optional codex-cli and
+ChatGPT-app paths, automatic path hints and Recheck. The CLI is preferred;
+the app path also helps locate its bundled backend.
 
 Open the popup to refresh, inspect each model's limits, or launch the apps and
-web shortcuts. An earned reset requires explicit confirmation. If its outcome
+web shortcuts. An earned reset requires a fresh acknowledgment checkbox before
+the action becomes available. If its outcome
 is unknown, retry the saved request using the same account. Do not switch
 accounts until that attempt is resolved.
 
 The white panel text color and the blue/yellow/pink usage colors are configured
-separately. Model-specific panel mode selects the tightest remaining quota for
-each duration. The popup retains every available model/window.
+separately; a panel switch lets threshold colors take precedence. Model-specific
+panel mode selects the tightest remaining quota for each duration. A separate
+global switch hides model-specific limits from the popup, history and panel.
+Notification defaults are enabled and delivered alerts remain in the center.
 
 Usage history stores eight days of sampled percentages and reset timestamps.
 It reports observed changes, including incomplete periods marked with `~`, and

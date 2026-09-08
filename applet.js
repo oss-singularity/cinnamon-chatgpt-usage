@@ -585,7 +585,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _createPanelIcon(limit = null, size = 20, menu = false) {
-        const iconPath = `${this.metadata.path}/icons/chatgpt-white.png`;
+        const iconPath = `${this.metadata.path}/icons/usage-white.png`;
         const icon = new St.Icon({
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) }),
             icon_size: limit ? size + 2 : size,
@@ -1263,9 +1263,6 @@ class ChatGptUsageApplet extends Applet.Applet {
         const chatGptApp = this._chatGptAppInfo();
         const codexPath = this._resolveCodexPath();
         const codexCommand = this._codexTerminalCommand(codexPath);
-        const chatGptVersion = this._chatGptAppVersion(chatGptApp);
-        const chatGptVersionDate = UsageFormat.formatChatGptVersionDate(chatGptVersion);
-        const chatGptInstallDate = this._chatGptAppInstallDate(chatGptApp);
         const codexVersion = this._commandVersion(codexPath);
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
@@ -1311,7 +1308,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
         this._chatGptButton = this._createLaunchButton(
             "ChatGPT App",
-            { iconName: "chatgpt" },
+            { fileName: "chat-bubble.svg" },
             true,
             () => {
                 if (chatGptApp || this._configuredChatGptAppPath()) {
@@ -1327,16 +1324,11 @@ class ChatGptUsageApplet extends Applet.Applet {
             },
             this._configuredChatGptAppPath() ? (this._resolveChatGptAppPath()
                 ? "Open the configured ChatGPT app"
-                : "ChatGPT app path is unavailable. Choose an executable file in settings.") : UsageFormat.formatAppTooltip(
-                Boolean(chatGptApp),
-                chatGptVersion,
-                "chatgpt",
-                chatGptVersionDate || chatGptInstallDate
-            )
+                : "ChatGPT app path is unavailable. Choose an executable file in settings.") : this._chatGptAppTooltip(chatGptApp)
         );
         this._codexButton = this._createLaunchButton(
             "Codex CLI",
-            { fileName: "codex.png" },
+            { fileName: "terminal-bot.png" },
             true,
             () => {
                 if (codexCommand) {
@@ -1836,10 +1828,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         return version === knownVersion ? releaseDate : null;
     }
 
-    _chatGptAppInstallDate() {
-        if (this._configuredChatGptAppPath()) return null;
-        return this._backendInfo && this._backendInfo.chatgptModifiedAt
-            ? UsageFormat.formatLocalDate(this._backendInfo.chatgptModifiedAt) : null;
+    _chatGptAppTooltip(appInfo) {
+        // Version numbering and filesystem timestamps are not release dates.
+        return UsageFormat.formatAppTooltip(Boolean(appInfo), this._chatGptAppVersion(appInfo), "chatgpt");
     }
 
     _chatGptAppVersion(appInfo) {

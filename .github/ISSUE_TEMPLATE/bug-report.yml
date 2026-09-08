@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve ChatGPT Usage. For credentials, tokens, private paths or a security-boundary bypass, stop here and use [private vulnerability reporting](https://github.com/oss-singularity/cinnamon-chatgpt-usage/security/advisories/new).
+        Thanks for helping improve Usage Monitor. For credentials, tokens, private paths or a security-boundary bypass, stop here and use [private vulnerability reporting](https://github.com/oss-singularity/cinnamon-chatgpt-usage/security/advisories/new).
   - type: input
     id: version
     attributes:

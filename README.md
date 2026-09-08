@@ -1,10 +1,10 @@
 <p align="center">
   <picture>
-    <img src="icon.png" width="96" height="96" alt="ChatGPT Usage icon">
+    <img src="icon.png" width="96" height="96" alt="Usage Monitor icon">
   </picture>
 </p>
 
-<h1 align="center">ChatGPT Usage for Cinnamon</h1>
+<h1 align="center">Usage Monitor for Cinnamon</h1>
 
 <p align="center">
   Live ChatGPT Work and Codex limits, reset times and credits in one compact
@@ -18,7 +18,7 @@
   <img alt="Codex app-server" src="https://img.shields.io/badge/data-Codex%20app--server-111111">
 </p>
 
-![ChatGPT Usage for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
+![Usage Monitor for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
 
 | Horizontal top bar with Spark + Codex panel indicators                                                     | 40 px vertical panel with Spark + Codex panel indicators                                                       |
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -107,7 +107,7 @@
   an accompanying `7d` panel block can be hidden in settings while unnamed
   internal buckets stay hidden.
 - Adapts from a compact horizontal row to a real 40 px vertical stack.
-- Uses the original ChatGPT knot as a transparent white panel glyph.
+- Uses the original project quota symbol as a transparent white panel glyph.
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
@@ -145,7 +145,7 @@ cd cinnamon-chatgpt-usage
 ./install.sh
 ```
 
-Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
+Then open **System Settings → Applets** and add **Usage Monitor** to a panel.
 Requirements: Python 3.10 or newer, Cinnamon and either a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
 with ChatGPT or a supported ChatGPT desktop app package. The Linux ChatGPT
@@ -158,11 +158,11 @@ Closing the dialog leaves the saved settings unchanged. Setup and General settin
 show detected paths as gray placeholders. Focusing an entry hides its placeholder;
 leaving it empty restores the hint. **Recheck** refreshes automatic paths without
 changing manual values or launching apps.
-The v0.3.12 audit baseline was checked on Cinnamon 6.6.9. Local Spices
-preparation is tracked in [the readiness report](docs/spices-readiness.md),
-including the exact tested scope and the remaining release gates. Metadata
-lists Cinnamon 5.8–6.6; this does not claim that every version was exercised.
-See that report before treating an older release as verified.
+The first Spices release targets Cinnamon **6.6**, tested on 6.6.9. Metadata
+declares only that version series; older Cinnamon versions are outside this
+release's supported scope. Local Spices preparation is tracked in
+[the readiness report](docs/spices-readiness.md), including the exact tested
+scope and the remaining release gates.
 
 In **General → Usage data**, both path fields are optional. Leave **codex-cli path**
 empty for automatic limit-backend discovery. **ChatGPT app path** selects

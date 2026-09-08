@@ -1,6 +1,6 @@
 # Security policy
 
-ChatGPT Usage reads account-level limits through a locally installed Codex
+Usage Monitor reads account-level limits through a locally installed Codex
 CLI or the backend bundled with a supported ChatGPT desktop package. The applet does not read credential files, accept API keys or persist usage
 responses. Please use a private channel for anything that could expose Codex or
 ChatGPT authentication data.

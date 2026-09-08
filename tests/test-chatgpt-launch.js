@@ -3,6 +3,10 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const ByteArray = imports.byteArray;
+const formatModule = { exports: {} };
+new Function("module", "exports", ByteArray.toString(GLib.file_get_contents("usage-format.js")[1]))(
+    formatModule, formatModule.exports
+);
 const [ok, contents] = GLib.file_get_contents("applet.js");
 if (!ok) throw new Error("Cannot read applet.js");
 function assert(value, message) { if (!value) throw new Error(message); }
@@ -21,7 +25,7 @@ const AppletClass = new Function("imports", "require", "global",
             processes.push({ argv, process });
             return process;
         } }
-    } } }, () => ({}), { logError() {}, logWarning() {} }
+    } } }, () => formatModule.exports, { logError() {}, logWarning() {} }
 );
 const applet = Object.create(AppletClass.prototype);
 applet._setDefaults();
@@ -39,7 +43,7 @@ try {
     applet.codexPath = "/unchanged/backend";
     applet._backendInfo = { chatgptVersion: "unrelated", chatgptModifiedAt: 1 };
     assert(applet._chatGptAppInfo() === null && desktopLookups === 1, "Override bypasses desktop lookup");
-    assert(applet._chatGptAppVersion(desktop) === null && applet._chatGptAppInstallDate() === null, "Do not label custom app with another installation's metadata");
+    assert(applet._chatGptAppVersion(desktop) === null, "Do not label custom app with another installation's metadata");
     applet._launchChatGptApp(null);
     assert(processes.length === 1 && processes[0].argv.length === 1 && processes[0].argv[0] === executable, "Literal path stays a single argv element");
     assert(processes[0].process.wait_check(null), "Configured executable actually starts");
@@ -65,4 +69,13 @@ try {
         if (file.query_exists(null)) file.delete(null);
     }
 }
-print("ChatGPT launcher: default, literal executable path, invalid overrides, metadata isolation and clearing passed.");
+applet._backendInfo = { chatgptModifiedAt: 1788250825 };
+for (const version of ["26.831.20005", "26.825.51511", "new-version", null]) {
+    applet._chatGptAppVersion = () => version;
+    const tooltip = applet._chatGptAppTooltip(desktop);
+    assert(tooltip === `chatgpt ${version || "version unavailable"}`, "Tooltip preserves version without inferred date or separator");
+    assert(!tooltip.includes(" — ") && !/\d{2}\.\d{2}\.\d{4}/.test(tooltip), "No build/install date in ChatGPT hover text");
+}
+assert(applet._chatGptAppTooltip(null) === "not installed", "Missing ChatGPT app has no version or date");
+assert(formatModule.exports.formatAppTooltip(true, "codex-cli 0.152.0", "", "01.09.2026") === "codex-cli 0.152.0 — 01.09.2026", "Codex date handling remains independent");
+print("ChatGPT launcher: paths, metadata isolation, clearing and date-free hover passed.");

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Remove the inferred date and preceding dash from the ChatGPT app tooltip;
+  retain its detected version and the separate Codex tooltip behavior.
+
+- Prepare the first Spices release as Usage Monitor for Cinnamon 6.6. Replace
+  the OpenAI knot and desktop sprite with original, source-included quota,
+  chat and terminal-robot artwork; retain the UUID and existing user state.
+  Refresh the social preview and UI captures and record asset/license evidence.
+
 - Add a separate optional ChatGPT app executable path for launching and bundled-backend fallback; preserve explicit-backend and installed Codex CLI priority. Offer both path overrides in the initial setup dialogs as well as settings, with detected-path placeholders and a read-only Recheck action.
 
 - Add an applet-wide model visibility switch that hides additional quotas and history, including both Spark sections; clarify the optional backend path override.
@@ -20,7 +28,7 @@
   reuse its idempotency key on retry and clean up helper/backend processes.
 - Calculate rolling 24-hour consumption independently of chart bucket alignment;
   reject missing and non-finite values instead of showing false availability.
-- Derive secondary menu text, ring tracks and knot tint from the Cinnamon theme
+- Derive secondary menu text, ring tracks and quota-glyph tint from the Cinnamon theme
   while preserving the configured quota palette and white panel default.
 - Prepare deterministic Cinnamon Spices archives, an explicit shared installation
   manifest, complete notices and a portable installed README.

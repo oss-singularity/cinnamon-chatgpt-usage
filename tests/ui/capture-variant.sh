@@ -235,7 +235,7 @@ if [[ "$variant" == settings-* ]]; then
     esac
     python3 /usr/share/cinnamon/cinnamon-settings/xlet-settings.py applet "$uuid" -t "$settings_tab" >"$driver_dir/settings.log" 2>&1 &
     sleep 2
-    eval_cinnamon 'JSON.stringify((function(){var w=global.get_window_actors().map(function(a){return a.meta_window;}).filter(function(w){return w.get_title()==="ChatGPT Usage";})[0];if(!w)throw new Error("Settings window missing");var r=w.get_frame_rect();w.move_frame(false,global.screen_width-40-r.width-16,global.screen_height-r.height-16);return true;})())' >/dev/null
+    eval_cinnamon 'JSON.stringify((function(){var w=global.get_window_actors().map(function(a){return a.meta_window;}).filter(function(w){return w.get_title()==="Usage Monitor";})[0];if(!w)throw new Error("Settings window missing");var r=w.get_frame_rect();w.move_frame(false,global.screen_width-40-r.width-16,global.screen_height-r.height-16);return true;})())' >/dev/null
     sleep 1
 elif [[ "$variant" == install-* ]]; then
     if [[ "$variant" == "install-chatgpt" ]]; then
@@ -301,7 +301,7 @@ if [[ "$variant" == "bucket" ]]; then
 fi
 
 if [[ "$variant" == settings-* ]]; then
-    menu_geometry=$(eval_cinnamon 'JSON.stringify((function(){var w=global.get_window_actors().map(function(a){return a.meta_window;}).filter(function(w){return w.get_title()==="ChatGPT Usage";})[0],r=w.get_frame_rect();return [r.x,r.y,r.width,r.height].join(",");})())' | grep -oE '[0-9]+,[0-9]+,[0-9]+,[0-9]+' | tail -1)
+    menu_geometry=$(eval_cinnamon 'JSON.stringify((function(){var w=global.get_window_actors().map(function(a){return a.meta_window;}).filter(function(w){return w.get_title()==="Usage Monitor";})[0],r=w.get_frame_rect();return [r.x,r.y,r.width,r.height].join(",");})())' | grep -oE '[0-9]+,[0-9]+,[0-9]+,[0-9]+' | tail -1)
 elif [[ "$variant" == install-* ]]; then
     menu_geometry=$(eval_cinnamon 'JSON.stringify((function(){var d=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0]._installHelpDialog.dialogLayout,p=d.get_transformed_position(),s=d.get_transformed_size();return [Math.round(p[0]),Math.round(p[1]),Math.round(s[0]),Math.round(s[1])].join(",");})())' | grep -oE '[0-9]+,[0-9]+,[0-9]+,[0-9]+' | tail -1)
 elif [[ "$variant" == "panel-tooltip" ]]; then
