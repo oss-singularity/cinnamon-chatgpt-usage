@@ -2,7 +2,8 @@
 
 Tracking: [issue #45](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45).
 Baseline: v0.3.12, `a2b366ea56b02e0bb184a270e8b331b04e371e59`.
-This is the reviewable 1.0.0 candidate, not a published release or an accepted Spice.
+This records the validated 1.0.0 package baseline. GitHub release publication and
+Cinnamon Spices catalog acceptance are separate milestones.
 
 ## Current checkpoint — 2026-09-08
 
@@ -24,9 +25,12 @@ payload files match exactly, and enabled applets/settings remain unchanged.
 - [x] Local tests, native UI checks, linter and structural package validation passed.
 - [x] Package receipt reviewed; real archive and payload hashes recorded.
 
-The remaining steps are project PR checks, separately approved merge, Spices
-submission and catalog verification, followed by the reviewed publication.
-Those future actions are not represented as completed candidate checks.
+[Project PR #46](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/46)
+was merged as `ef77e9851ca73a4d113da7a62be49ecc75deefdf`, with all six PR checks
+and both post-merge workflows passing. The maintainer authorized publication.
+[Spices PR #9024](https://github.com/linuxmint/cinnamon-spices-applets/pull/9024)
+has been submitted and is awaiting upstream review. Catalog acceptance and the
+actual store installation/update check remain open; this is not yet an accepted Spice.
 
 **Start with [the short maintainer handoff](release-next-steps.md)** for accounts,
 manual decisions and publication order. The earlier commit-pinned copy is a
@@ -174,14 +178,13 @@ destinations; uninstall removes the selected applet directory but retains
 external settings, history and unresolved-reset state.
 
 The candidate's visuals, tests, changelog and package receipt have been reviewed
-and accepted by Claudiu. Proceed with the project PR and its required checks;
-present subsequent merge/submission/publication steps separately.
+and accepted by Claudiu. The project PR is merged and the Spices PR submitted.
+GitHub 1.0.0 publication is authorized while catalog review is pending.
 A submission should affect only this applet and use the
 upstream title format `ChatGPT Usage Monitor: ...`. Preserve protected squash merges
 and all six project PR checks; no administrator bypass.
 
-Release/tag publication, the Spices PR, forum announcements and other public
-posts each require Claudiu to see the concrete content before the final save.
+Claudiu reviewed the prepared content and authorized the publication steps.
 After upstream acceptance, verify the actual catalog listing, downloaded
 archive, and installation/update from Cinnamon System Settings. Record accepted
 commit, package hashes and catalog version; only then call it an official Spice.

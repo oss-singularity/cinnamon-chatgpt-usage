@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 — Unreleased candidate
+## 1.0.0 — 2026-09-08
 
 - Provide gettext for JavaScript, Python, metadata and settings, with a
   reproducible translation template and native catalog regression coverage.

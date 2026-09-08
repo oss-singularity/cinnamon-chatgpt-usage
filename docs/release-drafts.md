@@ -1,11 +1,13 @@
 # Review drafts for ChatGPT Usage Monitor 1.0.0
 
-**Unsent publication drafts.** No contact requests are planned or authorized.
+**Publication reference texts.** No contact requests are planned or authorized.
 The maintainer selected replacement artwork and independent branding instead.
 The maintainer has accepted the candidate, screenshots and public name;
 see [the completed review](rights-review.md). Claudiu reviews subsequent
-merge, submission and publication steps separately. Catalog and release links
-are filled only after those objects exist.
+merge, submission and publication steps and has authorized publication.
+Project PR #46 is merged; [Spices PR #9024](https://github.com/linuxmint/cinnamon-spices-applets/pull/9024)
+is submitted. The catalog-announcement text below remains unsent until acceptance.
+Catalog and release links are filled only after those objects exist.
 
 ## Project pull request draft
 
@@ -53,7 +55,9 @@ The candidate archive is accepted for proceeding with the project PR.
 
 ## GitHub release and forum announcement drafts
 
-Use only after filling in the verified catalog listing and final tag/commit.
+The GitHub 1.0.0 release can be published while catalog review is pending, with
+that status clearly stated. Use the catalog-debut and forum wording below only
+after filling in the verified catalog listing and final tag/commit.
 Do not claim catalog acceptance merely because a tag or PR exists.
 
 **Release title:** ChatGPT Usage Monitor 1.0.0 — Cinnamon Spices debut

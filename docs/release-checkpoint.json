@@ -1,6 +1,6 @@
 {
   "checkedAt": "2026-09-08",
-  "status": "maintainer-approved-candidate-not-published",
+  "status": "validated-1.0.0-payload",
   "version": "1.0.0",
   "targetVersion": "1.0.0",
   "maintainer": "ClaudiuSchuster",
@@ -19,9 +19,9 @@
     "install.zip": "4407a3520da29c9ded6671f4b653cdc6cf36bcfd5844762a435afe33c1093a04",
     "submission.zip": "c70292bfb4fecf76b8ceb5f4a2d78516d91b3a01c312d03479ec44362e1fe27f"
   },
-  "remotePrChecks": "tracked-on-project-pull-request",
-  "spicesSubmission": "not-submitted",
-  "tagOrReleasePublished": false,
+  "remotePrChecks": "six-required-checks-passed-on-0f4b08e",
+  "spicesSubmission": "https://github.com/linuxmint/cinnamon-spices-applets/pull/9024",
+  "publicationTracking": "https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45",
   "sourceBaseCommit": "95b6cb175c720b9db5d132249aa40b0d00d8dbf7",
   "sourceState": "Accepted candidate after sourceBaseCommit with a shorter manager description and refreshed screenshot provenance. Exact packaged bytes are identified by payloadSha256 and archive hashes.",
   "publicAppletName": "ChatGPT Usage Monitor",
