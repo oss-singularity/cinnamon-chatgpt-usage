@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 — 2026-09-08
+
+- Restore automatic-path hints when clicking outside either executable-path field
+  in settings, including labels and empty areas. Preserve focus while moving the
+  pointer or editing inside the field, normal control actions, keyboard navigation
+  and all manual path values. Add native GTK input regression coverage in CI.
+
 ## 1.0.0 — 2026-09-08
 
 - Provide gettext for JavaScript, Python, metadata and settings, with a

@@ -15,6 +15,7 @@ check:
 	cjs tests/test-settings-schema.js
 	cjs tests/test-reset-lifecycle.js
 	cjs tests/test-reset-confirmation.js
+	bash tests/ui/check-path-settings.sh
 	python3 -m unittest discover -s tests -p 'test*.py'
 	$(MAKE) check-translations
 	python3 -m json.tool metadata.json >/dev/null

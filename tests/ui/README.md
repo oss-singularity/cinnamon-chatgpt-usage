@@ -12,9 +12,13 @@ Space, Escape, cancel/reopen, an unchecked callback and repeated activation;
 dispatch is replaced by an in-memory counter, and the final frame shows the
 checked state. No reset request is sent.
 
-Run `tests/ui/check-path-settings.py` through the isolated wrapper for native GTK
-placeholder, focus, Recheck and no-implicit-save checks. It uses fake executable
-files and fails if discovery executes them.
+Run `bash tests/ui/check-path-settings.sh` for native GTK path settings regression
+checks on its own private X11 display and session bus. Real pointer clicks cover
+labels, surrounding controls, switching fields and keyboard navigation. Moving
+the mouse alone preserves editing focus. Recheck and focus changes must preserve
+manual values; destruction and reparenting detach the window event controller.
+It uses fake executable files and fails if discovery executes them. This check
+also runs in `make check` and CI.
 
 For installation-path QA, set `QA_INSTALLATION_PATHS=1` with an `install-*`
 variant. Native entries and the real private settings store exercise invalid

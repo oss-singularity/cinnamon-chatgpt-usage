@@ -47,7 +47,7 @@ def extract():
             "--sort-output",
             "--no-wrap",
             "--package-name=ChatGPT Usage Monitor",
-            "--package-version=1.0.0",
+            f"--package-version={json.loads((ROOT / 'metadata.json').read_text())['version']}",
             "--msgid-bugs-address=https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues",
             "--copyright-holder=OSS Singularity",
             "--output=messages.pot",
