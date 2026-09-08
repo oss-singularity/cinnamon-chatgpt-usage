@@ -1,10 +1,10 @@
 <p align="center">
   <picture>
-    <img src="icon.png" width="96" height="96" alt="ChatGPT Usage icon">
+    <img src="icon.png" width="96" height="96" alt="ChatGPT Usage Monitor icon">
   </picture>
 </p>
 
-<h1 align="center">ChatGPT Usage for Cinnamon</h1>
+<h1 align="center">ChatGPT Usage Monitor for Cinnamon</h1>
 
 <p align="center">
   Live ChatGPT Work and Codex limits, reset times and credits in one compact
@@ -14,11 +14,11 @@
 <p align="center">
   <a href="https://github.com/oss-singularity/cinnamon-chatgpt-usage/actions/workflows/check.yml"><img alt="Checks" src="https://github.com/oss-singularity/cinnamon-chatgpt-usage/actions/workflows/check.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-6f5bd5"></a>
-  <img alt="Cinnamon 5.8 or newer" src="https://img.shields.io/badge/Cinnamon-5.8%2B-75c46b">
+  <img alt="Cinnamon 6.6 tested" src="https://img.shields.io/badge/Cinnamon-6.6%20tested-75c46b">
   <img alt="Codex app-server" src="https://img.shields.io/badge/data-Codex%20app--server-111111">
 </p>
 
-![ChatGPT Usage for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
+![ChatGPT Usage Monitor for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
 
 | Horizontal top bar with Spark + Codex panel indicators                                                     | 40 px vertical panel with Spark + Codex panel indicators                                                       |
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +32,7 @@
 
 <p align="center"><strong>Default overview on a horizontal panel</strong></p>
 <p align="center">
-  <img src="docs/model-limits/usage-menu-horizontal.png" width="456" alt="Horizontal-panel default with muted unused Spark rings and both Spark sections collapsed">
+  <img src="docs/model-limits/usage-menu-horizontal.png" width="427" alt="Horizontal-panel default with muted unused Spark rings and both Spark sections collapsed">
 </p>
 <p align="center"><sub>Unused Spark stays compact on either panel orientation; positive quota usage opens the upper section and restores its header rings.</sub></p>
 
@@ -50,9 +50,9 @@
 
 <p align="center"><strong>Explicit earned-reset confirmation</strong></p>
 <p align="center">
-  <img src="docs/model-limits/reset-confirmation.png" width="351" alt="Native confirmation dialog before using an earned limit reset with the horizontal panel anchor and both model-specific indicators visible">
+  <img src="docs/model-limits/reset-confirmation.png" width="393" alt="Native confirmation dialog before using an earned limit reset with the vertical panel anchor and both model-specific indicators visible">
 </p>
-<p align="center"><sub>An available reset is consumed only after this native confirmation; the compact top panel keeps the two model indicators visible.</sub></p>
+<p align="center"><sub>Check the acknowledgment to enable “Use reset now”. Every newly opened dialog starts unchecked; the compact top panel keeps the two model indicators visible.</sub></p>
 
 | Precise hourly bucket details                                                                                    | Every active quota at a glance                                                                                  |
 | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -65,6 +65,8 @@
 | General settings with model-specific panel limits enabled                                            | Colors and thresholds beside both model-specific panel indicators                                    |
 | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | ![General settings with model-specific panel limits enabled](docs/model-limits/settings-general.png) | ![Color settings beside both model-specific panel indicators](docs/model-limits/settings-colors.png) |
+
+![Notification settings with weekly refresh and optional low-limit alerts](docs/model-limits/settings-notifications.png)
 
 ## Highlights
 
@@ -85,7 +87,7 @@
   100%-remaining cycles stay at their exact full duration until usage begins;
   hovering a reset-countdown circle shows the elapsed percentage of its own
   5h or 7d reset window.
-- Tracks observed consumption for the last 1h and 4h plus an exact rolling 24h
+- Tracks observed consumption for the last 1h and 4h plus an rolling 24h
   total for active 5h quotas; weekly quotas retain 12h and Today context. The
   compact timeline offers per-bucket hover details for the last 24 hours, and
   a rounded-zero Spark 7d bucket can use a clearly marked, smallest-height
@@ -105,18 +107,30 @@
   an accompanying `7d` panel block can be hidden in settings while unnamed
   internal buckets stay hidden.
 - Adapts from a compact horizontal row to a real 40 px vertical stack.
-- Uses the original ChatGPT knot as a transparent white panel glyph.
+- Uses the original project quota symbol as a transparent white panel glyph.
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
+- **Show model-specific limits in the applet** hides additional models such as
+  Spark from both menu sections, rings, panel and tooltip when disabled.
+  Re-enabling restores the display without deleting tracked history.
+  Notification settings remain independent. The panel-specific switch applies
+  only while this main display switch is enabled.
 - Uses the same configured usage colors for quota rings, their labels and
   values with or without model-specific panel limits; normal usage defaults
   to blue (`#62c7f5`).
 - Offers a separate **Panel text color** setting under **Colors**, defaulting
-  to white for panel percentages, window labels and separators.
+  to white for normal panel percentages, window labels and separators.
+  **Use warning and critical colors in the panel** is enabled by default:
+  percentages at or below the configured thresholds use the warning/critical
+  colors independently of menu coloring. Turn it off for a uniform panel text color.
 - Highlights critical remaining usage (10% or less by default) with one
   configurable color shared by the quota ring, its label and the remaining
   text. The default is static neon pink for readability.
+- Notifications default to enabled for all weekly resets and 5h/7d low-limit
+  alerts. Existing saved notification preferences are preserved on upgrade.
+  Banners remain in Cinnamon's notification center after their timeout until
+  dismissed or cleared; this does not provide history across a Cinnamon restart.
 - Can notify once when selected 7d limits refresh and when enabled 5h or 7d
   quotas cross configurable warning and critical remaining-usage thresholds;
   all detection happens only on successful data refreshes.
@@ -131,16 +145,43 @@ cd cinnamon-chatgpt-usage
 ./install.sh
 ```
 
-Then open **System Settings → Applets** and add **ChatGPT Usage** to a panel.
-Requirements: Cinnamon 5.8+, Python 3 and either a current
+Then open **System Settings → Applets** and add **ChatGPT Usage Monitor** to a panel.
+Requirements: Python 3.10 or newer, Cinnamon and either a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
 with ChatGPT or a supported ChatGPT desktop app package. The Linux ChatGPT
 package can provide the local app-server backend by itself; the applet discovers
 its bundled `resources/codex` binary when no configured/PATH CLI is available.
 If neither option is installed, both native launch/install buttons remain
-available as the initial setup choice.
-Version 0.3.9 is tested on Cinnamon 6.6.9 with Codex CLI 0.153.2 and ChatGPT
-desktop 26.901.31953.
+available as the initial setup choice. Their setup dialogs also offer both optional
+path fields: **Save and check** saves them to General settings and retries detection.
+Closing the dialog leaves the saved settings unchanged. Setup and General settings
+show detected paths as gray placeholders. Focusing an entry hides its placeholder;
+leaving it empty restores the hint. **Recheck** refreshes automatic paths without
+changing manual values or launching apps.
+The first Spices release targets Cinnamon **6.6**, tested on 6.6.9. Metadata
+declares only that version series; older Cinnamon versions are outside this
+release's supported scope. Local Spices preparation is tracked in
+[the readiness report](docs/spices-readiness.md), including the exact tested
+scope and the remaining release gates.
+The tested presentation baseline is X11, Mint-Y/Mint-Y-Dark-Aqua, 100% display
+scale and 100–200% text size. Larger text increases popup width proportionally;
+the normal view stays 420 px wide. Long menus scroll on smaller screens, and
+keyboard focus brings footer actions into view. Mixed-DPI/multiple monitors,
+RTL translations, high-contrast shell themes and full screen-reader operation
+are not certified by this first-release test baseline.
+English is the fallback language; [gettext templates and contributor instructions](po/README.md)
+prepare future translations without claiming completed language coverage.
+
+In **General → Usage data**, both path fields are optional. Leave **codex-cli path**
+empty for automatic limit-backend discovery. **ChatGPT path** selects
+the app for both its launch button and bundled-backend fallback, for example
+`~/Applications/ChatGPT/chatgpt`. Backend priority is: explicit Codex backend
+path, installed Codex CLI, then the configured or automatically detected ChatGPT
+app's `resources/codex` (beside the executable or one directory above). Packed
+AppImages can be launched but require an extracted bundle for backend discovery.
+Paths with spaces work without quotes; do not append command-line arguments.
+An invalid app override does not fall back to another ChatGPT installation.
+Clearing it restores automatic discovery and the `chatgpt.desktop` launcher.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.
@@ -154,9 +195,14 @@ separate `account/rateLimitResetCredit/consume` request with one UUID
 idempotency key and then refetches the complete usage snapshot. There is no
 HTML scraping, API key, browser access or background daemon. To calculate recent
 consumption, it stores only timestamps, window durations, percentages and reset
-IDs for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
-(normally `~/.local/state/...`, mode `0600`). No prompts, credit details or
-credentials are recorded. A leading `~` marks periods that started before local
+timestamps for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
+(normally `~/.local/state/...`, mode `0600`). No prompts or credentials are recorded. Reset-credit details are not part of
+usage history. An unresolved, explicitly confirmed reset keeps its idempotency
+key, selected opaque credit ID and backend path in a separate mode-0600
+`reset-attempt.json` beside history. It survives applet removal/reload and is
+deleted only after a recognized result reaches the applet. Retrying requires
+confirmation and reuses the same parameters; do not change accounts while a
+reset outcome is unresolved. A leading `~` marks periods that started before local
 tracking began. Project code never reads Codex credential files; authentication
 and networking remain the responsibility of the selected local app-server
 backend (Codex CLI or the supported ChatGPT desktop bundle).
@@ -168,8 +214,35 @@ make check
 python3 chatgpt_usage.py
 ```
 
-Local checks and GitHub Actions cover Cinnamon JavaScript, API normalization,
-formatting, JSON, assets and shell scripts.
+`make verify` runs the offline suite, including real subprocess framing and
+cancellation, uncertain-reset replay, discovery fixtures and package round-trips.
+Development checks additionally require CJS, ShellCheck, ImageMagick,
+`rsvg-convert` and Noto Sans. Private UI captures also require Cinnamon, Xvfb,
+D-Bus, xdotool and the selected themes; see [UI reproduction](tests/ui/README.md).
+No test needs a signed-in account or a real reset credit.
+
+For a local submission tree plus deterministic install/submission archives:
+
+```bash
+python3 scripts/package.py export --output /tmp/chatgpt-usage-spices --validate
+```
+
+The output directory must be empty. `--validate` needs network access and
+Pillow to run the pinned upstream structural validator. Exporting does not
+publish anything and is not evidence of store acceptance. The package uses
+[an explicit manifest](packaging/files.json) shared with the installer.
+
+Panel model mode chooses the lowest remaining percentage for each duration;
+it does not add one panel block for every model. The popup shows all windows.
+Numeric rolling totals cover `[now - 24h, now]` independently of the chart's
+wall-clock-aligned buckets. All consumption is observed at sample times;
+activity between samples is not recoverable.
+
+History belongs to the desktop profile, not to an account. Before changing
+accounts, resolve any pending reset, remove the applet from the panel, archive
+or delete only `history.json`, switch accounts in the official app/CLI, then
+add the applet again. Applet removal alone retains history. Automatic account
+partitioning remains a release-readiness investigation.
 
 ## License
 

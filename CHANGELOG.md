@@ -1,8 +1,60 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — Unreleased candidate
 
-- Nothing yet.
+- Provide gettext for JavaScript, Python, metadata and settings, with a
+  reproducible translation template and native catalog regression coverage.
+  English remains the fallback; completed translations are not included yet.
+- Let Cinnamon manage the popup lifecycle and menu stack. Keep 420 px at normal
+  scale, accommodate larger text and display scale, and scroll long menus on
+  small screens while keeping keyboard-focused actions visible.
+- Respect disabled system animations for reset-expiry indicators and clean up
+  the menu, tooltips and settings signals when the applet is removed.
+- Align quota/reset rings, disclosure arrows and graph edges with the footer buttons when
+  model-specific limits are shown, hidden or toggled; preserve alignment after
+  rebuild and reopen, including larger text.
+- Refresh documentation with the approved blue background, complete panel
+  anchors, reference panel transparency, 48 px dialog gaps and independently
+  checked 8 px crop margins. Check arrow bounds after their native rotation.
+
+- Use ChatGPT Usage Monitor consistently in applet metadata, settings,
+  documentation and release drafts; retain the descriptive popup heading
+  ChatGPT Work & Codex usage.
+
+- Remove the inferred date and preceding dash from the ChatGPT app tooltip;
+  retain its detected version and the separate Codex tooltip behavior.
+
+- Prepare the first Spices release as ChatGPT Usage Monitor for Cinnamon 6.6. Replace
+  the OpenAI knot and desktop sprite with original, source-included quota,
+  chat and terminal-robot artwork; retain the UUID and existing user state.
+  Refresh the social preview and UI captures and record asset/license evidence.
+
+- Add a separate optional ChatGPT app executable path for launching and bundled-backend fallback; preserve explicit-backend and installed Codex CLI priority. Offer both path overrides in the initial setup dialogs as well as settings, with detected-path placeholders and a read-only Recheck action.
+
+- Add an applet-wide model visibility switch that hides additional quotas and history, including both Spark sections; clarify the optional backend path override.
+
+- Require a fresh checkbox acknowledgment before enabling reset consumption or an unresolved-reset retry; relock when unchecked and prevent duplicate activation.
+
+- Enable all notification options by default and retain usage alerts in Cinnamon's notification center after the banner timeout; preserve saved choices on upgrade.
+
+- Add an enabled-by-default panel switch for warning and critical percentage colors, independent of menu coloring and the normal panel text color.
+
+- Keep the popup at the same 420 px visible width on horizontal and vertical panels; verify native capture widths after rebuild and reopen.
+
+- Bound JSON-lines app-server transport and local version probes; keep version
+  discovery off Cinnamon's UI thread and share Python's backend path resolution.
+- Preserve an unresolved, explicitly confirmed reset attempt through reloads,
+  reuse its idempotency key on retry and clean up helper/backend processes.
+- Calculate rolling 24-hour consumption independently of chart bucket alignment;
+  reject missing and non-finite values instead of showing false availability.
+- Derive secondary menu text, ring tracks and quota-glyph tint from the Cinnamon theme
+  while preserving the configured quota palette and white panel default.
+- Prepare deterministic Cinnamon Spices archives, an explicit shared installation
+  manifest, complete notices and a portable installed README.
+- Add real-process, reset-replay and packaging regression tests, and reproducible
+  private screenshot fixtures with a source/hash inventory and Notifications.
+- Update support/security documentation and the backend-neutral bug form.
+  Catalog submission and 1.0.0 release gates remain tracked in issue #45.
 
 ## 0.3.12 — 2026-09-05
 

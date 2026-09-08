@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b4e3ff"/>
+      <stop offset="0.42" stop-color="#649ee5"/>
+      <stop offset="1" stop-color="#636fce"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.18" r="0.7">
+      <stop offset="0" stop-color="#eafaff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#d7fbff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d4f3ff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#b6f0f1" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+  <path d="M-80 880 C 300 650, 470 1020, 850 770 S 1500 490, 2010 710 L 2010 1110 L -80 1110 Z" fill="url(#ribbon)"/>
+  <circle cx="310" cy="220" r="220" fill="none" stroke="#c9f7f7" stroke-opacity="0.10" stroke-width="2"/>
+  <circle cx="310" cy="220" r="310" fill="none" stroke="#c9f7f7" stroke-opacity="0.07" stroke-width="2"/>
+  <circle cx="1660" cy="860" r="300" fill="none" stroke="#083344" stroke-opacity="0.12" stroke-width="3"/>
+  <circle cx="1660" cy="860" r="390" fill="none" stroke="#083344" stroke-opacity="0.08" stroke-width="3"/>
+  <path d="M1120 0 C1320 160 1300 360 1500 470 S1790 570 1980 430" fill="none" stroke="#efffff" stroke-opacity="0.09" stroke-width="5"/>
+  <g fill="#e8f7ff" opacity="0.25">
+    <circle cx="1550" cy="940" r="13"/>
+    <circle cx="1800" cy="830" r="7"/>
+    <circle cx="1480" cy="640" r="5"/>
+    <path d="M1730 985l4-13 4 13 13 4-13 4-4 13-4-13-13-4z"/>
+    <path d="M1330 790l3-10 3 10 10 3-10 3-3 10-3-10-10-3z"/>
+  </g>
+</svg>

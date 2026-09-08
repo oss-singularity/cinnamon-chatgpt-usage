@@ -27,8 +27,8 @@ for (const path of ARGV) {
             );
         }
         const requiredUiPaths = [
-            'this._addSectionHeading("Usage limits")',
-            'this._addSectionHeading("Recent consumption")',
+            'this._addSectionHeading(_("Usage limits"))',
+            'this._addSectionHeading(_("Recent consumption"))',
             "this._addIconHeading(\n                window,",
             "_resolveBundledCodexPath()"
         ];

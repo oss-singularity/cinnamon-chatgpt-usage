@@ -6,6 +6,22 @@ const GLib = imports.gi.GLib;
 const [ok, contents] = GLib.file_get_contents("settings-schema.json");
 if (!ok) throw new Error("Cannot read settings-schema.json");
 const schema = JSON.parse(ByteArray.toString(contents));
+if (schema["chatgpt-app-path"].default !== "" ||
+    !schema.layout["data-section"].keys.includes("installation-paths") ||
+    schema["installation-paths"].file !== "path_settings.py") {
+    throw new Error("Optional ChatGPT app path must default to desktop discovery in Usage data");
+}
+if (schema["show-model-specific-limits"].default !== true ||
+    schema["show-model-limits-in-panel"].dependency !== "show-model-specific-limits") {
+    throw new Error("Model visibility must default on and control the panel-only option");
+}
+
+if (!schema.layout["panel-color-section"].keys.includes("show-panel-threshold-colors")) {
+    throw new Error("Panel threshold color switch is outside the Panel text section");
+}
+if (schema["show-panel-threshold-colors"].default !== true || schema["show-panel-threshold-colors"].dependency) {
+    throw new Error("Panel threshold colors must default on independently of menu coloring");
+}
 
 function assertEqual(actual, expected, message) {
     if (actual !== expected) {
@@ -43,13 +59,13 @@ assertEqual(
 );
 assertEqual(
     schema["enable-five-hour-low-notifications"].default,
-    false,
-    "Five-hour notifications remain opt-in"
+    true,
+    "Five-hour notifications default on"
 );
 assertEqual(
     schema["enable-weekly-low-notifications"].default,
-    false,
-    "Weekly notifications remain opt-in"
+    true,
+    "Weekly notifications default on"
 );
 
 for (const prefix of ["five-hour", "weekly"]) {

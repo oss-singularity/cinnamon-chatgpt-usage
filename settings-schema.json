@@ -20,14 +20,19 @@
     "data-section": {
       "type": "section",
       "title": "Usage data",
-      "keys": ["refresh-interval", "activity-bucket-minutes", "codex-path"]
+      "keys": [
+        "refresh-interval",
+        "activity-bucket-minutes",
+        "installation-paths"
+      ]
     },
     "display-section": {
       "type": "section",
-      "title": "Panel display",
+      "title": "Applet display",
       "keys": [
         "show-panel-icon",
         "show-window-labels",
+        "show-model-specific-limits",
         "show-model-limits-in-panel",
         "show-weekly-with-five-hour",
         "font-size",
@@ -37,7 +42,7 @@
     "panel-color-section": {
       "type": "section",
       "title": "Panel text",
-      "keys": ["panel-text-color"]
+      "keys": ["panel-text-color", "show-panel-threshold-colors"]
     },
     "color-section": {
       "type": "section",
@@ -84,13 +89,22 @@
     "type": "combobox",
     "default": "60",
     "description": "24h activity bucket size",
-    "options": { "1 hour": "60", "2 hours": "120" }
+    "options": {
+      "1 hour": "60",
+      "2 hours": "120"
+    }
   },
   "codex-path": {
     "type": "entry",
     "default": "",
-    "description": "Codex CLI path (optional)",
-    "tooltip": "Leave empty for automatic detection. Example: /home/user/.local/bin/codex"
+    "description": "codex-cli path (optional)",
+    "tooltip": "Leave empty to find Codex CLI or the ChatGPT app's bundled backend automatically. Set an executable path only to override detection. Example: /home/user/.local/bin/codex"
+  },
+  "chatgpt-app-path": {
+    "type": "entry",
+    "default": "",
+    "description": "ChatGPT path (optional)",
+    "tooltip": "Leave empty for automatic detection. Otherwise enter the ChatGPT executable path, such as ~/Applications/ChatGPT/chatgpt, without quotes or arguments. Used to launch the app and find its bundled backend when no Codex CLI is installed. An explicit Codex backend path takes priority."
   },
   "show-panel-icon": {
     "type": "switch",
@@ -102,9 +116,16 @@
     "default": true,
     "description": "Show 5h / 7d window labels"
   },
+  "show-model-specific-limits": {
+    "type": "switch",
+    "default": true,
+    "description": "Show model-specific limits in the applet",
+    "tooltip": "Show additional model limits such as Spark in the menu, history, rings, panel and tooltip. Turn off to show only Codex. Notification preferences are configured separately."
+  },
   "show-model-limits-in-panel": {
     "type": "switch",
     "default": false,
+    "dependency": "show-model-specific-limits",
     "description": "Show model-specific limits in the panel"
   },
   "show-weekly-with-five-hour": {
@@ -123,7 +144,7 @@
   },
   "separator": {
     "type": "entry",
-    "default": "·",
+    "default": "\u00b7",
     "description": "Separator in horizontal panels",
     "tooltip": "Separators are hidden automatically in vertical panels."
   },
@@ -131,7 +152,13 @@
     "type": "colorchooser",
     "default": "#ffffff",
     "description": "Panel text color",
-    "tooltip": "Color of panel percentages, window labels and separators, independent of the usage colors in the menu."
+    "tooltip": "Base color of panel percentages, window labels and separators. Warning and critical colors can override percentages below the configured thresholds."
+  },
+  "show-panel-threshold-colors": {
+    "type": "switch",
+    "default": true,
+    "description": "Use warning and critical colors in the panel",
+    "tooltip": "Color panel percentages at or below the remaining usage thresholds using the warning and critical colors below. Independent of menu coloring; window labels and separators keep the panel text color."
   },
   "show-colors": {
     "type": "switch",
@@ -173,24 +200,24 @@
   },
   "notify-all-weekly-resets": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "description": "Notify when any model 7d limit refreshes"
   },
   "notify-codex-weekly-reset": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "dependency": "!notify-all-weekly-resets",
     "description": "Notify when 7d limits reset"
   },
   "notify-spark-weekly-reset": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "dependency": "!notify-all-weekly-resets",
     "description": "Notify when 7d Spark limits reset"
   },
   "enable-five-hour-low-notifications": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "description": "Enable 5h low-limit notifications"
   },
   "five-hour-warning-remaining": {
@@ -215,7 +242,7 @@
   },
   "enable-weekly-low-notifications": {
     "type": "switch",
-    "default": false,
+    "default": true,
     "description": "Enable 7d low-limit notifications"
   },
   "weekly-warning-remaining": {
@@ -237,5 +264,10 @@
     "units": "%",
     "dependency": "enable-weekly-low-notifications",
     "description": "7d critical at or below"
+  },
+  "installation-paths": {
+    "type": "custom",
+    "file": "path_settings.py",
+    "widget": "InstallationPaths"
   }
 }

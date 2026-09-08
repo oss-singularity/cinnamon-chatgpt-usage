@@ -9,8 +9,10 @@ const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const Tooltips = imports.ui.tooltips;
 const Main = imports.ui.main;
+const MessageTray = imports.ui.messageTray;
 const ModalDialog = imports.ui.modalDialog;
 const Dialog = imports.ui.dialog;
+const CheckBox = imports.ui.checkBox;
 const Mainloop = imports.mainloop;
 const Util = imports.misc.util;
 const Gio = imports.gi.Gio;
@@ -22,6 +24,15 @@ const Cairo = imports.cairo;
 const Atk = imports.gi.Atk;
 
 const UsageFormat = require("./usage-format");
+
+const Gettext = imports.gettext;
+function _(text) {
+    return Gettext.dgettext("chatgpt-usage@oss-singularity", text);
+}
+function _f(text, ...args) {
+    return imports.format.format.apply(_(text), args);
+}
+
 
 const UUID = "chatgpt-usage@oss-singularity";
 const CHATGPT_URL = "https://chatgpt.com/";
@@ -37,14 +48,13 @@ const ACTIVITY_TOOLTIP_DELAY_MS = 120;
 const LAUNCH_TOOLTIP_DELAY_MS = 420;
 const POPUP_ACTION_GRID_WIDTH = 352;
 // Cinnamon's one-pixel menu edge brings the visible popup width to 420 px.
-const POPUP_RIGHT_PANEL_WIDTH = 419;
+const POPUP_WIDTH = 419;
 const POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM = 1;
 const POPUP_RIGHT_INSET = 17;
 const POPUP_CHART_RIGHT_INSET = 39;
 const POPUP_NESTED_CHART_LEFT_SHIFT = 5;
 const POPUP_NESTED_CHART_RIGHT_BALANCE = 11;
 // The non-square arrow glyph shifts inside its actor when Cinnamon rotates it.
-const POPUP_SUBMENU_ARROW_OFFSET = -60;
 const POPUP_EXPANDED_RIGHT_INSET = 10;
 const QUOTA_RING_SIZE = 52;
 const COMPACT_QUOTA_RING_SIZE = 40;
@@ -57,11 +67,92 @@ const RESET_EXPIRY_WARNING_SECONDS = 7 * 24 * 60 * 60;
 const RESET_EXPIRY_CRITICAL_SECONDS = 24 * 60 * 60;
 const RESET_EXPIRY_BREATHING_OPACITY = 150;
 const RESET_EXPIRY_BREATHING_DURATION_MS = 1100;
-const POPUP_SECONDARY_TEXT_COLOR = "rgba(255,255,255,0.68)";
 const POPUP_HEADING_STYLE = "font-size: 100%; font-weight: bold;";
-const AUTH_REQUIRED_TITLE = "No ChatGPT login found";
+const AUTH_REQUIRED_TITLE = _("No ChatGPT login found");
 const AUTH_REQUIRED_DESCRIPTION =
-    "Sign in to ChatGPT with the ChatGPT App or Codex CLI, then choose Refresh now.";
+    _("Sign in to ChatGPT with the ChatGPT App or Codex CLI, then choose Refresh now.");
+
+// Only our own menu is specialized. Cinnamon retains ownership of its
+// menu stack, focus handling, positioning and animation completion.
+class UsagePopupMenu extends Applet.AppletPopupMenu {
+    constructor(owner, orientation) {
+        super(owner, orientation);
+        this._usageOwner = owner;
+        this._content = new PopupMenu.PopupMenuSection();
+        super.addMenuItem(this._content);
+        // Keep the native section's menu signals and keyboard navigation, but
+        // let its contents scroll when a small monitor or large font needs it.
+        this.box.remove_child(this._content.actor);
+        this._scroll = new St.ScrollView({ overlay_scrollbars: true });
+        this._scroll.set_policy(St.PolicyType.NEVER, St.PolicyType.AUTOMATIC);
+        this._scroll._delegate = this._content;
+        this._scroll.add_actor(this._content.actor);
+        this.box.add_child(this._scroll);
+        this._focusSignalId = global.stage.connect("notify::key-focus", () => {
+            this._revealFocus();
+        });
+    }
+
+    _revealFocus() {
+        if (!this.isOpen || this._focusRevealId) return;
+        this._focusRevealId = Mainloop.idle_add(() => {
+            this._focusRevealId = 0;
+            if (!this.isOpen) return GLib.SOURCE_REMOVE;
+            const focus = global.stage.get_key_focus();
+            if (!focus || !this._content.actor.contains(focus)) return GLib.SOURCE_REMOVE;
+            const [, top] = this._scroll.get_transformed_position();
+            const [, height] = this._scroll.get_transformed_size();
+            const [, focusTop] = focus.get_transformed_position();
+            const [, focusHeight] = focus.get_transformed_size();
+            const adjustment = this._scroll.get_vscroll_bar().get_adjustment();
+            if (focusTop < top) adjustment.set_value(adjustment.get_value() + focusTop - top);
+            else if (focusTop + focusHeight > top + height) {
+                adjustment.set_value(adjustment.get_value() + focusTop + focusHeight - top - height);
+            }
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    destroy() {
+        global.stage.disconnect(this._focusSignalId);
+        this._focusSignalId = 0;
+        if (this._focusRevealId) Mainloop.source_remove(this._focusRevealId);
+        this._focusRevealId = 0;
+        super.destroy();
+    }
+
+    addMenuItem(item, position) {
+        if (this._content) this._content.addMenuItem(item, position);
+        else super.addMenuItem(item, position);
+    }
+
+    removeAll() {
+        if (this._content) this._content.removeAll();
+        else super.removeAll();
+    }
+
+    open(animate) {
+        const owner = this._usageOwner;
+        owner._applyPopupWidth();
+        owner._openActiveSparkHistory();
+        if (!this.isOpen) {
+            for (const section of owner._limitSections) {
+                section.setExpanded(UsageFormat.hasQuotaUsage(section.limit.windows));
+            }
+        }
+        super.open(animate);
+        owner._lockPopupLayoutWidth();
+    }
+
+    close(animate) {
+        const owner = this._usageOwner;
+        if (owner._isRightPanel && this.isOpen) {
+            owner._rightPanelPopupLockedWidth = owner._popupWidth();
+            owner._normalizeRightPanelPopupCloseWidth(POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM);
+        }
+        super.close(animate);
+    }
+}
 
 class ChatGptUsageApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -90,6 +181,15 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._refreshConfirmationTimeoutId = 0;
         this._refreshSpinnerTimeoutId = 0;
         this._resetCancellable = null;
+        this._resetProcess = null;
+        this._usageProcess = null;
+        this._backendInfo = null;
+        this._backendDiscovery = null;
+        this._backendCacheKey = null;
+        this._backendCachedAt = 0;
+        this._pendingReset = null;
+        this._resetJournalError = null;
+        this._resetJournalReady = false;
         this._menuRebuildTimeoutId = 0;
         this._rightPanelPopupClosedId = 0;
         this._rightPanelPopupOpenStateChangedId = 0;
@@ -121,6 +221,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._clockChangedId = 0;
         this._use24HourClock = true;
 
+        this._loadResetAttempt();
         this._setDefaults();
         this._bindSystemClockFormat();
         this._bindSettings(instanceId);
@@ -135,26 +236,29 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.refreshInterval = 3;
         this.activityBucketMinutes = "60";
         this.codexPath = "";
+        this.chatGptAppPath = "";
         this.showPanelIcon = true;
         this.showWindowLabels = true;
+        this.showModelSpecificLimits = true;
         this.showModelLimitsInPanel = false;
         this.showWeeklyWithFiveHour = true;
         this.fontSize = 100;
         this.separator = "·";
         this.showColors = true;
         this.panelTextColor = "#ffffff";
+        this.showPanelThresholdColors = true;
         this.normalColor = "#62c7f5";
         this.warningColor = "#f6d32d";
         this.criticalColor = RESET_EXPIRY_CRITICAL_COLOR;
         this.warningRemaining = 25;
         this.criticalRemaining = 10;
-        this.notifyAllWeeklyResets = false;
-        this.notifyCodexWeeklyReset = false;
-        this.notifySparkWeeklyReset = false;
-        this.enableFiveHourLowNotifications = false;
+        this.notifyAllWeeklyResets = true;
+        this.notifyCodexWeeklyReset = true;
+        this.notifySparkWeeklyReset = true;
+        this.enableFiveHourLowNotifications = true;
         this.fiveHourWarningRemaining = 25;
         this.fiveHourCriticalRemaining = 10;
-        this.enableWeeklyLowNotifications = false;
+        this.enableWeeklyLowNotifications = true;
         this.weeklyWarningRemaining = 25;
         this.weeklyCriticalRemaining = 10;
     }
@@ -175,8 +279,10 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._refreshUsage.bind(this)
         );
         this.settings.bind("codex-path", "codexPath", this._refreshUsage.bind(this));
+        this.settings.bind("chatgpt-app-path", "chatGptAppPath", this._onChatGptAppPathChanged.bind(this));
         this.settings.bind("show-panel-icon", "showPanelIcon", layoutChanged);
         this.settings.bind("show-window-labels", "showWindowLabels", layoutChanged);
+        this.settings.bind("show-model-specific-limits", "showModelSpecificLimits", this._onModelVisibilityChanged.bind(this));
         this.settings.bind(
             "show-model-limits-in-panel",
             "showModelLimitsInPanel",
@@ -191,6 +297,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.settings.bind("separator", "separator", layoutChanged);
         this.settings.bind("show-colors", "showColors", styleChanged);
         this.settings.bind("panel-text-color", "panelTextColor", styleChanged);
+        this.settings.bind("show-panel-threshold-colors", "showPanelThresholdColors", styleChanged);
         this.settings.bind("normal-color", "normalColor", styleChanged);
         this.settings.bind("warning-color", "warningColor", styleChanged);
         this.settings.bind("critical-color", "criticalColor", styleChanged);
@@ -290,6 +397,18 @@ class ChatGptUsageApplet extends Applet.Applet {
                 schema_id: "org.cinnamon.desktop.interface"
             });
             this._use24HourClock = this._clockSettings.get_boolean("clock-use-24h");
+            this._popupTextScale = this._clockSettings.get_double("text-scaling-factor");
+            this._textScaleChangedId = this._clockSettings.connect("changed::text-scaling-factor", () => {
+                this._popupTextScale = this._clockSettings.get_double("text-scaling-factor");
+                this._rightPanelPopupLockedWidth = 0;
+                this._rebuildMenu();
+            });
+            this._animationsEnabled = this._clockSettings.get_boolean("enable-animations");
+            this._animationsChangedId = this._clockSettings.connect("changed::enable-animations", () => {
+                this._animationsEnabled = this._clockSettings.get_boolean("enable-animations");
+                this._stopResetExpiryBreathing();
+                if (this.menu && this.menu.isOpen) this._startResetExpiryBreathing();
+            });
             this._clockChangedId = this._clockSettings.connect(
                 "changed::clock-use-24h",
                 () => {
@@ -307,153 +426,26 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _buildMenu(orientation) {
         this.menuManager = new PopupMenu.PopupMenuManager(this);
-        this.menu = new Applet.AppletPopupMenu(this, orientation);
+        this.menu = new UsagePopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
         this._rightPanelMenuStyleBase = this.menu.actor.get_style() || "";
         this._rightPanelMenuBaseMarginRight = this.menu.actor.margin_right;
-        this._menuOpenOriginal = this.menu.open.bind(this.menu);
-        this._menuCloseOriginal = this.menu.close.bind(this.menu);
-        this.menu.open = animate => {
-            if (this._isRightPanel) {
-                this._applyRightPanelPopupWidth();
-                this._rightPanelPopupLockedWidth = POPUP_RIGHT_PANEL_WIDTH;
-                this.menu.actor.set_width(this._rightPanelPopupLockedWidth);
-                this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
-                this.menu.actor.translation_x = 0;
-            }
-            this._openActiveSparkHistory();
-            if (!this.menu.isOpen) {
-                for (const section of this._limitSections) {
-                    section.setExpanded(UsageFormat.hasQuotaUsage(section.limit.windows));
-                }
-            }
-            const result = this._menuOpenOriginal(animate);
-            if (this._isRightPanel) {
-                this._lockRightPanelPopupLayoutWidth();
-            }
-            return result;
-        };
-        this.menu.close = animate => {
-            if (this._isRightPanel && this.menu.isOpen) {
-                const closeSeq = ++this._rightPanelPopupCloseSeq;
-                if (Main.uiGroup) {
-                    Main.uiGroup.set_child_above_sibling(this.menu.actor, null);
-                }
-
-                if (animate && Main.wm.desktop_effects_menus) {
-                    this._normalizeRightPanelPopupCloseWidth(POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM);
-
-                    this.menu.isOpen = false;
-                    if (global.menuStack && Array.isArray(global.menuStack)) {
-                        const menuStackIndex = global.menuStack.indexOf(this.menu);
-                        if (menuStackIndex >= 0) {
-                            global.menuStack.splice(menuStackIndex, 1);
-                        }
-                    }
-
-                    if (this.menu._activeMenuItem) {
-                        this.menu._activeMenuItem.setActive(false);
-                    }
-
-                    this.menu.actor.set_position(...this.menu._calculatePosition());
-                    this.menu.actor.set_size(...this.menu.actor.get_size());
-                    this.menu.actor.opacity = 255;
-                    this.menu.actor.show();
-                    this.menu.actor.translation_x = 0;
-                    this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
-                    this.menu.animating = true;
-
-                    this._rightPanelPopupCloseInProgress = true;
-                    this.menu.emit('open-state-changed', false);
-
-                    this.menu.actor.ease({
-                        mode: Clutter.AnimationMode.EASE_IN_QUAD,
-                        duration: Main.wm.MENU_ANIMATION_TIME,
-                        opacity: 0,
-                        onComplete: () => {
-                            if (!this._rightPanelPopupCloseInProgress) return;
-                            if (this._rightPanelPopupCloseSeq !== closeSeq) return;
-                            if (this.menu.isOpen) return;
-
-                            this.menu.animating = false;
-                            this.menu.actor.set_size(-1, -1);
-                            this.menu.actor.hide();
-                            this.menu.actor.opacity = 255;
-                            this.menu.emit('menu-animated-closed');
-                        }
-                    });
-                    return;
-                }
-
-                this._normalizeRightPanelPopupCloseWidth(POPUP_RIGHT_PANEL_CLOSE_WIDTH_TRIM);
-                this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
-                this._rightPanelPopupCloseInProgress = false;
-            }
-            return this._menuCloseOriginal(animate);
-        };
         this._rightPanelPopupOpenStateChangedId = this.menu.connect(
             "open-state-changed",
             (_menu, open) => {
-                if (!this._isRightPanel || !this.menu) return;
                 if (open) {
-                    this._rightPanelPopupCloseSeq++;
-                    this._rightPanelPopupCloseInProgress = false;
+                    this._lockPopupLayoutWidth();
                     this._startResetExpiryBreathing();
-                }
-                if (!open) this._stopResetExpiryBreathing();
-                if (!open) this._rightPanelPopupLockedWidth = 0;
-                if (!open && !this._rightPanelPopupCloseInProgress) {
-                    this._normalizeRightPanelPopupCloseWidth();
+                } else {
+                    this._stopResetExpiryBreathing();
+                    this._rightPanelPopupLockedWidth = 0;
                 }
             }
         );
         this._rightPanelPopupClosedId = this.menu.connect("menu-animated-closed", () => {
-            if (!this._isRightPanel || !this.menu) return;
-            this._rightPanelPopupCloseInProgress = false;
-            this.menu.actor.set_width(-1);
             this.menu.actor.translation_x = 0;
-            this.menu.actor.style = this._rightPanelMenuStyleBase || "";
             this.menu.actor.margin_right = this._rightPanelMenuBaseMarginRight;
-            Main.panelManager.updatePanelsVisibility();
-            if (Main.uiGroup) {
-                const parentPanel = this.menu.getPanel();
-                if (parentPanel) {
-                    let children = Main.uiGroup.get_children();
-                    let panelIndex = children.indexOf(parentPanel);
-                    if (panelIndex < 0) {
-                        Main.uiGroup.set_child_above_sibling(this.menu.actor, null);
-                    } else {
-                        const sourceActor = this.menu.sourceActor;
-                        if (
-                            sourceActor &&
-                            Main.layoutManager &&
-                            typeof Main.layoutManager.findMonitorForActor === "function"
-                        ) {
-                            const monitor = Main.layoutManager.findMonitorForActor(sourceActor);
-                            if (
-                                monitor &&
-                                Number.isInteger(monitor.index) &&
-                                Main.panelManager &&
-                                typeof Main.panelManager.getPanelsInMonitor === "function"
-                            ) {
-                                const panels = Main.panelManager.getPanelsInMonitor(monitor.index);
-                                if (Array.isArray(panels)) {
-                                    for (let i = 0; i < panels.length; i++) {
-                                        const panelActor = panels[i] && panels[i].actor;
-                                        let idx = children.indexOf(panelActor);
-                                        if (idx >= 0 && idx < panelIndex) {
-                                            panelIndex = idx;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Main.uiGroup.set_child_below_sibling(this.menu.actor, children[panelIndex]);
-                    }
-                } else {
-                    Main.uiGroup.set_child_above_sibling(this.menu.actor, null);
-                }
-            }
+            this._applyPopupWidth();
         });
         this._rebuildMenu();
     }
@@ -499,6 +491,45 @@ class ChatGptUsageApplet extends Applet.Applet {
         const menuCenter = Math.round(menuX) + Math.round(menuWidth) / 2;
         const gridCenter = Math.round(gridX) + Math.round(gridWidth) / 2;
         this._actionWidthFrame.translation_x = Math.round(menuCenter - gridCenter);
+        this._syncContentRightEdges();
+    }
+
+    _syncContentRightEdges() {
+        if (!this._actionWidthFrame) return;
+        const [gridX] = this._actionWidthFrame.get_transformed_position();
+        const [gridWidth] = this._actionWidthFrame.get_transformed_size();
+        if (gridWidth <= 0) return;
+        const right = Math.round(gridX + gridWidth);
+        // Native menu columns change their natural width when a model section
+        // disappears. Anchor our visuals to the actual button edge instead.
+        const rings = (this._countdownWidgets || []).map(entry => entry.actor);
+        if (this._headerRings) rings.push(this._headerRings);
+        for (const actor of rings) {
+            const [x] = actor.get_transformed_position();
+            const [width] = actor.get_transformed_size();
+            if (width <= 0) continue;
+            // The circular glow ends one pixel inside its drawing allocation.
+            const shift = Math.round(right - (x + width - 1));
+            if (shift) actor.translation_x += shift;
+        }
+        const arrows = (this._submenuTriangles || []).concat(
+            (this._limitSections || []).map(section => section.heading.arrow)
+        );
+        for (const actor of arrows) {
+            const [width] = actor.get_transformed_size();
+            if (width <= 0) continue;
+            // The transformed origin is not the bounding-box left edge after
+            // Cinnamon rotates the disclosure. Measure the actual vertices.
+            const edge = Math.max(...actor.get_abs_allocation_vertices().map(vertex => vertex.x));
+            const shift = Math.round(right - edge);
+            if (shift) actor.translation_x += shift;
+        }
+        for (const { chart } of this._activityCharts || []) {
+            const [x] = chart.get_transformed_position();
+            const padding = chart.get_theme_node().get_padding(St.Side.RIGHT);
+            const width = Math.max(1, Math.round(right - x + padding));
+            if (!chart.min_width_set || chart.min_width !== width) this._forceActorWidth(chart, width);
+        }
     }
 
     _rebuildPanel() {
@@ -506,7 +537,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._clearActor(this._root);
         const fontSize = this._panelFontSize();
 
-        let panelLimits = this._snapshot ? this._snapshot.limits : [];
+        let panelLimits = this._filterModelLimits(this._snapshot ? this._snapshot.limits : []);
         if (!this.showModelLimitsInPanel) {
             const accountLimits = panelLimits.filter(limit => limit.id === "codex");
             if (accountLimits.length > 0) panelLimits = accountLimits;
@@ -544,6 +575,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._updateTooltip(summaries);
     }
 
+    _filterModelLimits(limits) {
+        return this.showModelSpecificLimits === false
+            ? limits.filter(limit => (limit.id || "codex") === "codex")
+            : limits;
+    }
+
     _modelBadge(limit) {
         if (!limit || limit.limitId === "codex" || limit.id === "codex") return null;
         const label = String(limit.limitLabel || limit.label || "");
@@ -563,8 +600,8 @@ class ChatGptUsageApplet extends Applet.Applet {
         ].join("; ") + ";";
     }
 
-    _createPanelIcon(limit = null, size = 20) {
-        const iconPath = `${this.metadata.path}/icons/chatgpt-white.png`;
+    _createPanelIcon(limit = null, size = 20, menu = false) {
+        const iconPath = `${this.metadata.path}/icons/usage-white.png`;
         const icon = new St.Icon({
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) }),
             icon_size: limit ? size + 2 : size,
@@ -572,6 +609,11 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         icon.style = "padding-right: 1px;";
+        if (menu) {
+            icon.add_effect_with_name("menu-foreground", new Clutter.ColorizeEffect({
+                tint: this._menuForeground()
+            }));
+        }
         const badgeText = this._modelBadge(limit);
         if (!badgeText) return icon;
 
@@ -629,7 +671,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             text: UsageFormat.formatPercent(summary.remainingPercent),
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
-            style: `min-width: 32px; font-size: ${fontSize}%; color: ${this.panelTextColor};`
+            style: `min-width: 32px; font-size: ${fontSize}%; color: ${this._panelRemainingColor(summary.remainingPercent)};`
         });
         value.clutter_text.set_line_alignment(Pango.Alignment.CENTER);
         actor.add_child(value);
@@ -641,16 +683,17 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _updateTooltip(summaries) {
-        let text = "ChatGPT Work & Codex usage";
-        if (this._snapshot && this._snapshot.limits.length > 0) {
-            const showLimitLabels = this._snapshot.limits.length > 1;
+        let text = this.metadata.name;
+        const limits = this._filterModelLimits(this._snapshot ? this._snapshot.limits : []);
+        if (limits.length > 0) {
+            const showLimitLabels = limits.length > 1;
             const values = [];
-            for (const limit of this._snapshot.limits) {
+            for (const limit of limits) {
                 for (const window of limit.windows || []) {
                     const duration = UsageFormat.formatDuration(window.durationMinutes);
                     const prefix = showLimitLabels ? `${limit.label || limit.id} ` : "";
                     values.push(
-                        `${prefix}${duration}: ${UsageFormat.formatPercent(window.remainingPercent)} remaining`
+                        _f("%s%s: %s remaining", prefix, duration, UsageFormat.formatPercent(window.remainingPercent))
                     );
                 }
             }
@@ -658,11 +701,27 @@ class ChatGptUsageApplet extends Applet.Applet {
         } else if (summaries.length > 0) {
             text = summaries.map(summary => {
                 const duration = UsageFormat.formatDuration(summary.durationMinutes);
-                return `${duration}: ${UsageFormat.formatPercent(summary.remainingPercent)} remaining`;
+                return _f("%s: %s remaining", duration, UsageFormat.formatPercent(summary.remainingPercent));
             }).join(" • ");
         }
         if (this._lastError) text += `\n${this._lastError}`;
         this.set_applet_tooltip(text);
+    }
+
+    _menuForeground() {
+        return this.menu.actor.get_theme_node().get_foreground_color();
+    }
+
+    _menuColor(alpha = 1) {
+        const color = this._menuForeground();
+        return `rgba(${color.red},${color.green},${color.blue},${alpha})`;
+    }
+
+    _panelRemainingColor(remaining) {
+        if (!this.showPanelThresholdColors || !Number.isFinite(remaining)) return this.panelTextColor;
+        if (remaining <= this.criticalRemaining) return this.criticalColor;
+        if (remaining <= this.warningRemaining) return this.warningColor;
+        return this.panelTextColor;
     }
 
     _remainingColor(remaining) {
@@ -686,6 +745,10 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _startResetExpiryBreathing() {
+        if (this._animationsEnabled === false || !St.Settings.get().animations_enabled) {
+            this._stopResetExpiryBreathing();
+            return;
+        }
         for (const label of this._resetExpiryBreathingLabels) {
             if (!label || !label.mapped || label._resetExpiryBreathing) continue;
             label._resetExpiryBreathing = true;
@@ -747,8 +810,8 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._addHeaderItem();
         if (this._snapshot) {
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-            const limits = this._snapshot.limits || [];
-            const usageTitle = this._addSectionHeading("Usage limits");
+            const limits = this._filterModelLimits(this._snapshot.limits || []);
+            const usageTitle = this._addSectionHeading(_("Usage limits"));
             usageTitle.actor.style = "padding-bottom: 2px;";
             const showLimitLabels = limits.length > 1;
             for (const limit of limits) {
@@ -782,10 +845,10 @@ class ChatGptUsageApplet extends Applet.Applet {
         } else if (this._authenticationRequired) {
             this._addStatusItem(AUTH_REQUIRED_TITLE, AUTH_REQUIRED_DESCRIPTION);
         } else {
-            this._addInfoItem(this._busy ? "Loading usage limits…" : "No usage data available");
+            this._addInfoItem(this._busy ? _("Loading usage limits…") : _("No usage data available"));
         }
 
-        if (this._lastError) this._addStatusItem("Last refresh failed", this._lastError);
+        if (this._lastError) this._addStatusItem(_("Last refresh failed"), this._lastError);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         this._addLaunchButtons();
@@ -811,6 +874,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _addHeaderItem() {
+        this._headerRings = null;
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
             activate: false
@@ -820,18 +884,18 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         text.x_expand = true;
-        const title = new St.Label({ text: "ChatGPT Work & Codex usage" });
+        const title = new St.Label({ text: _("ChatGPT Work & Codex usage") });
         title.style = POPUP_HEADING_STYLE;
         text.add_child(title);
         if (this._snapshot) {
             this._updatedLabel = new St.Label({
-                text: `Updated ${UsageFormat.formatRelativeTime(this._snapshot.updatedAt)}`
+                text: _f("Updated %s", UsageFormat.formatRelativeTime(this._snapshot.updatedAt))
             });
             this._updatedLabel.style = [
                 "padding-top: 6px",
                 "padding-left: 6px",
                 "font-size: 90%",
-                "color: rgba(255,255,255,0.68)"
+                `color: ${this._menuColor(0.68)}`
             ].join("; ") + ";";
             text.add_child(this._updatedLabel);
         }
@@ -845,7 +909,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         row.add_child(text);
 
         if (this._snapshot) {
-            const summaries = UsageFormat.listQuotaWindows(this._snapshot.limits);
+            const summaries = UsageFormat.listQuotaWindows(this._filterModelLimits(this._snapshot.limits));
             const compact = summaries.length >= 4;
             const rings = new St.BoxLayout({
                 vertical: false,
@@ -853,6 +917,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 y_align: Clutter.ActorAlign.CENTER
             });
             rings.style = `spacing: ${compact ? 2 : 8}px;`;
+            this._headerRings = rings;
             rings.translation_x = compact
                 ? -(POPUP_HEADER_RING_LEFT_SHIFT - 6)
                 : -POPUP_HEADER_RING_LEFT_SHIFT;
@@ -956,11 +1021,11 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         const durationLabel = new St.Label({
-            text: `  ${duration} usage`
+            text: _f("  %s usage", duration)
         });
         durationLabel.style = "font-weight: bold;";
         const remainingLabel = new St.Label({
-            text: `${remaining} remaining`
+            text: _f("%s remaining", remaining)
         });
         remainingLabel.style = this._emphasizedValueStyle(
             this._remainingColor(window.remainingPercent),
@@ -972,9 +1037,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         headline.add_child(durationLabel);
         headline.add_child(remainingLabel);
         const resetLabel = new St.Label({
-            text: `  Resets ${reset}`
+            text: _f("  Resets %s", reset)
         });
-        resetLabel.style = "padding-top: 3px; font-size: 90%; color: rgba(255,255,255,0.68);";
+        resetLabel.style = `padding-top: 3px; font-size: 90%; color: ${this._menuColor(0.68)};`;
         text.add_child(headline);
         text.add_child(resetLabel);
         const countdown = this._createResetCountdown(window);
@@ -996,7 +1061,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         // Reserve the badge width for every model so all heading text aligns.
         const slot = new St.Bin({ width: 24 });
         slot.set_alignment(St.Align.START, St.Align.MIDDLE);
-        slot.set_child(this._createPanelIcon(limit, 18));
+        slot.set_child(this._createPanelIcon(limit, 18, true));
         return slot;
     }
 
@@ -1025,7 +1090,6 @@ class ChatGptUsageApplet extends Applet.Applet {
             item.addActor(arrowBin, { expand: true, span: -1, align: St.Align.END });
             item.arrow = PopupMenu.arrowIcon(St.Side.RIGHT);
             item.arrow.set_pivot_point(0.5, 0.5);
-            item.arrow.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
             arrowBin.child = item.arrow;
             item.actor.label_actor = label;
         }
@@ -1091,7 +1155,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         label.style = [
             "font-size: 72%",
             "font-weight: bold",
-            "color: rgba(255,255,255,0.94)",
+            `color: ${this._menuColor(0.94)}`,
             "text-align: center"
         ].join("; ") + ";";
         area.connect("repaint", drawingArea => {
@@ -1153,10 +1217,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         const startAngle = -Math.PI / 2;
         const progressFraction = Math.max(0, Math.min(1, Number(fraction) || 0));
         const context = area.get_context();
+        const foreground = this._menuForeground();
         const track = new Clutter.Color({
-            red: 255,
-            green: 255,
-            blue: 255,
+            red: foreground.red,
+            green: foreground.green,
+            blue: foreground.blue,
             alpha: 42
         });
         const glow = new Clutter.Color({
@@ -1212,16 +1277,13 @@ class ChatGptUsageApplet extends Applet.Applet {
     _updateRelativeTime() {
         if (!this._updatedLabel || !this._snapshot) return;
         const relativeTime = UsageFormat.formatRelativeTime(this._snapshot.updatedAt);
-        this._updatedLabel.set_text(`Updated ${relativeTime}`);
+        this._updatedLabel.set_text(_f("Updated %s", relativeTime));
     }
 
     _addLaunchButtons() {
         const chatGptApp = this._chatGptAppInfo();
         const codexPath = this._resolveCodexPath();
         const codexCommand = this._codexTerminalCommand(codexPath);
-        const chatGptVersion = this._chatGptAppVersion(chatGptApp);
-        const chatGptVersionDate = UsageFormat.formatChatGptVersionDate(chatGptVersion);
-        const chatGptInstallDate = this._chatGptAppInstallDate(chatGptApp);
         const codexVersion = this._commandVersion(codexPath);
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
@@ -1250,7 +1312,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             () => this._syncActionColumnCentering()
         );
         if (this._actionColumnWidth > 0) {
-            this._setActionColumnWidth(this._actionColumnWidth);
+            this._setActionColumnWidth(Math.round(this._actionColumnWidth * this._popupWidth() / POPUP_WIDTH));
         }
         const launchRow = new St.Widget({
             layout_manager: new Clutter.BoxLayout({ homogeneous: true, spacing: 8 }),
@@ -1266,31 +1328,27 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
 
         this._chatGptButton = this._createLaunchButton(
-            "ChatGPT App",
-            { iconName: "chatgpt" },
+            _("ChatGPT App"),
+            { fileName: "chat-bubble.svg" },
             true,
             () => {
-                if (chatGptApp) {
+                if (chatGptApp || this._configuredChatGptAppPath()) {
                     this._launchChatGptApp(chatGptApp);
                     return;
                 }
                 this._showInstallHelp(
-                    "Install ChatGPT App",
-                    "The ChatGPT desktop app was not found. OpenAI provides it for supported " +
-                        "Linux distributions.",
+                    _("Install ChatGPT App"),
+                    _("The ChatGPT desktop app was not found. OpenAI provides it for supported Linux distributions."),
                     CHATGPT_LINUX_INSTALL_URL
                 );
             },
-            UsageFormat.formatAppTooltip(
-                Boolean(chatGptApp),
-                chatGptVersion,
-                "chatgpt",
-                chatGptVersionDate || chatGptInstallDate
-            )
+            this._configuredChatGptAppPath() ? (this._resolveChatGptAppPath()
+                ? _("Open the configured ChatGPT app")
+                : _("ChatGPT app path is unavailable. Choose an executable file in settings.")) : this._chatGptAppTooltip(chatGptApp)
         );
         this._codexButton = this._createLaunchButton(
-            "Codex CLI",
-            { fileName: "codex.png" },
+            _("Codex CLI"),
+            { fileName: "terminal-bot.png" },
             true,
             () => {
                 if (codexCommand) {
@@ -1298,9 +1356,8 @@ class ChatGptUsageApplet extends Applet.Applet {
                     return;
                 }
                 this._showInstallHelp(
-                    "Install Codex CLI",
-                    "No Codex CLI or ChatGPT App backend was found. Follow OpenAI's official " +
-                        "getting-started guide to install one, sign in, and then refresh this applet.",
+                    _("Install Codex CLI"),
+                    _("No Codex CLI or ChatGPT App backend was found. Follow OpenAI's official getting-started guide to install one, sign in, and then refresh this applet."),
                     CODEX_CLI_INSTALL_URL
                 );
             },
@@ -1317,7 +1374,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         );
         const refreshConfirmed = this._refreshConfirmed;
         this._refreshButton = this._createLaunchButton(
-            refreshConfirmed ? "Updated" : "Refresh now",
+            refreshConfirmed ? _("Updated") : _("Refresh now"),
             {
                 fileName: refreshConfirmed
                     ? "emblem-ok-symbolic.svg"
@@ -1350,7 +1407,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         );
         this._syncRefreshButtonState();
         const analyticsButton = this._createLaunchButton(
-            "Analytics",
+            _("Analytics"),
             {
                 fileName: "utilities-system-monitor-symbolic.svg",
                 symbolic: true,
@@ -1371,7 +1428,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             () => Util.spawn(["xdg-open", CHATGPT_URL])
         );
         const codexCloudButton = this._createLaunchButton(
-            "Codex Cloud",
+            _("Codex Cloud"),
             {
                 fileName: "web-browser-symbolic.svg",
                 symbolic: true,
@@ -1428,6 +1485,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
         const button = new St.Button({
             child: content,
+            accessible_name: label,
             style_class: "notification-button",
             reactive: available,
             can_focus: available,
@@ -1507,7 +1565,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (!button || !icon || !label || !spinner) return;
 
         if (this._busy) {
-            label.set_text("Updating…");
+            label.set_text(_("Updating…"));
             label.style = null;
             icon.hide();
             spinner.show();
@@ -1531,7 +1589,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             file: Gio.File.new_for_path(`${this.metadata.path}/icons/${fileName}`)
         });
         icon.icon_type = St.IconType.SYMBOLIC;
-        label.set_text(this._refreshConfirmed ? "Updated" : "Refresh now");
+        label.set_text(this._refreshConfirmed ? _("Updated") : _("Refresh now"));
         const successStyle = this._refreshConfirmed
             ? "color: #8ed891; font-weight: bold;"
             : "";
@@ -1573,123 +1631,263 @@ class ChatGptUsageApplet extends Applet.Applet {
         const dialog = new ModalDialog.ModalDialog();
         const content = new Dialog.MessageDialogContent({ title, description });
         dialog.contentLayout.add_child(content);
+        const fields = new St.BoxLayout({ vertical: true, x_expand: true });
+        fields.style = "spacing: 8px;";
+        const addPathEntry = (label, value) => {
+            fields.add_child(new St.Label({ text: label }));
+            const entry = new St.Entry({ style_class: "run-dialog-entry", text: value || "", hint_text: _("Automatic detection"), can_focus: true, x_expand: true });
+            entry.accessible_name = label;
+            entry._automaticPath = _("Checking automatic paths…");
+            entry.hint_text = entry._automaticPath;
+            entry.clutter_text.connect("key-focus-in", () => {
+                entry._pathFocused = true;
+                entry.hint_text = "";
+            });
+            entry.clutter_text.connect("key-focus-out", () => {
+                entry._pathFocused = false;
+                entry.hint_text = entry._automaticPath;
+            });
+            fields.add_child(entry);
+            return entry;
+        };
+        const codexEntry = addPathEntry(_("codex-cli path (optional)"), this.codexPath);
+        const chatGptEntry = addPathEntry(_("ChatGPT app path (optional)"), this.chatGptAppPath);
+        const status = new St.Label({ text: _("Leave empty for automatic detection. Codex CLI is preferred."), x_expand: true });
+        status.clutter_text.set_line_wrap(true);
+        status.clutter_text.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
+        fields.add_child(status);
+        const recheck = new St.Button({ label: _("Recheck"), style_class: "notification-button", can_focus: true });
+        fields.add(recheck, { x_fill: false, x_align: St.Align.END });
+        dialog.contentLayout.add_child(fields);
+        let cancelDetection = null;
+        let destroyed = false;
+        const detect = () => {
+            if (cancelDetection) cancelDetection();
+            recheck.reactive = false;
+            cancelDetection = this._detectAutomaticPaths(paths => {
+                if (destroyed) return;
+                for (const [entry, key] of [[codexEntry, "codex"], [chatGptEntry, "chatgpt"]]) {
+                    entry._automaticPath = paths && paths[key] ? paths[key] : _("No automatic path found");
+                    if (!entry._pathFocused) entry.hint_text = entry._automaticPath;
+                }
+                status.set_text(paths ? _("Leave empty for automatic detection. Codex CLI is preferred.") : _("Could not check automatic paths. Try Recheck."));
+                recheck.reactive = true;
+            });
+        };
+        recheck.connect("clicked", detect);
+        dialog.connect("destroy", () => {
+            destroyed = true;
+            if (cancelDetection) cancelDetection();
+        });
         const close = () => {
             dialog.destroy();
             if (this._installHelpDialog === dialog) this._installHelpDialog = null;
         };
         dialog.setButtons([
             {
-                label: "Close",
+                label: _("Close"),
                 action: close,
                 key: Clutter.KEY_Escape
             },
             {
-                label: "Open installation guide",
+                label: _("Installation guide"),
                 action: () => {
                     close();
                     Util.spawn(["xdg-open", url]);
+                }
+            },
+            {
+                label: _("Save and check"),
+                action: () => {
+                    try {
+                        this._saveInstallationPaths(codexEntry.get_text(), chatGptEntry.get_text());
+                        close();
+                    } catch (error) {
+                        status.set_text(String(error.message || error));
+                    }
                 },
                 default: true
             }
         ]);
         this._installHelpDialog = dialog;
         dialog.open();
+        detect();
+    }
+
+    _detectAutomaticPaths(callback) {
+        let process = null;
+        let timeout = 0;
+        let finished = false;
+        const finish = paths => {
+            if (finished) return;
+            finished = true;
+            if (timeout) Mainloop.source_remove(timeout);
+            timeout = 0;
+            if (!this._destroyed) callback(paths);
+        };
+        try {
+            const python = GLib.find_program_in_path("python3");
+            if (!python) throw new Error(_("python3 was not found"));
+            process = Gio.Subprocess.new([python, `${this.metadata.path}/chatgpt_usage.py`, "--detect-paths"],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
+            timeout = Mainloop.timeout_add_seconds(5, () => {
+                timeout = 0;
+                process.force_exit();
+                finish(null);
+                return GLib.SOURCE_REMOVE;
+            });
+            process.communicate_utf8_async(null, null, (source, result) => {
+                try {
+                    const [ok, stdout] = source.communicate_utf8_finish(result);
+                    finish(ok && source.get_exit_status() === 0 ? JSON.parse(stdout) : null);
+                } catch {
+                    finish(null);
+                }
+            });
+        } catch {
+            finish(null);
+        }
+        return () => {
+            if (finished) return;
+            finished = true;
+            if (timeout) Mainloop.source_remove(timeout);
+            if (process) process.force_exit();
+        };
+    }
+
+    _saveInstallationPaths(codex, chatgpt) {
+        const paths = [["codex-path", _("Codex CLI"), String(codex || "").trim()],
+            ["chatgpt-app-path", _("ChatGPT app"), String(chatgpt || "").trim()]];
+        for (const [, label, value] of paths) {
+            if (value && !this._resolveExecutableFile(value)) {
+                throw new Error(_f("%s: choose an executable file, or leave empty for automatic detection.", label));
+            }
+        }
+        for (const [key, , value] of paths) this.settings.setValue(key, value);
+        this._backendCacheKey = null;
+        this._onChatGptAppPathChanged();
     }
 
     _launchButtonStyle(state, compact = false, transparent = false) {
         const raisedColors = {
-            normal: ["rgba(255,255,255,0.14)", "rgba(255,255,255,0.05)"],
-            hover: ["rgba(255,255,255,0.22)", "rgba(255,255,255,0.09)"],
-            pressed: ["rgba(255,255,255,0.06)", "rgba(255,255,255,0.16)"],
-            disabled: ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]
+            normal: [`${this._menuColor(0.14)}`, `${this._menuColor(0.05)}`],
+            hover: [`${this._menuColor(0.22)}`, `${this._menuColor(0.09)}`],
+            pressed: [`${this._menuColor(0.06)}`, `${this._menuColor(0.16)}`],
+            disabled: [`${this._menuColor(0.05)}`, `${this._menuColor(0.02)}`]
         };
         const transparentColors = {
-            normal: ["rgba(255,255,255,0.035)", "rgba(255,255,255,0.01)"],
-            hover: ["rgba(255,255,255,0.13)", "rgba(255,255,255,0.04)"],
-            pressed: ["rgba(255,255,255,0.025)", "rgba(255,255,255,0.10)"],
-            disabled: ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.005)"]
+            normal: [`${this._menuColor(0.035)}`, `${this._menuColor(0.01)}`],
+            hover: [`${this._menuColor(0.13)}`, `${this._menuColor(0.04)}`],
+            pressed: [`${this._menuColor(0.025)}`, `${this._menuColor(0.10)}`],
+            disabled: [`${this._menuColor(0.02)}`, `${this._menuColor(0.005)}`]
         };
         const colors = transparent ? transparentColors : raisedColors;
         const [top, bottom] = colors[state] || colors.normal;
         return [
             `padding: ${compact ? (transparent ? 3 : 4) : 7}px 10px`,
             "border-radius: 6px",
-            `border: 1px solid rgba(255,255,255,${transparent ? 0.09 : 0.16})`,
+            `border: 1px solid ${this._menuColor(transparent ? 0.09 : 0.16)}`,
             "background-gradient-direction: vertical",
             `background-gradient-start: ${top}`,
             `background-gradient-end: ${bottom}`,
-            `box-shadow: inset 0 1px 2px rgba(255,255,255,${transparent ? 0.04 : 0.12})`
+            `box-shadow: inset 0 1px 2px ${this._menuColor(transparent ? 0.04 : 0.12)}`
         ].join("; ") + ";";
     }
 
-    _readCommandVersion(argv) {
-        if (!Array.isArray(argv) || argv.length === 0) return null;
+    _backendPathArguments() {
+        const codex = String(this.codexPath || "").trim();
+        const chatgpt = this._configuredChatGptAppPath();
+        return [...(codex ? ["--codex", codex] : []), ...(chatgpt ? ["--chatgpt-app", chatgpt] : [])];
+    }
+
+    _refreshBackendInfo() {
+        const pathArguments = this._backendPathArguments();
+        const configured = JSON.stringify(pathArguments);
+        if (this._destroyed || this._backendDiscovery) return;
+        const now = GLib.get_monotonic_time();
+        if (this._backendCacheKey === configured && now - this._backendCachedAt < 300000000) return;
+        this._backendCacheKey = configured;
+        this._backendCachedAt = now;
+        this._backendInfo = null;
+        const python = GLib.find_program_in_path("python3");
+        if (!python) return;
+        const argv = [python, `${this.metadata.path}/chatgpt_usage.py`, "--describe-backend"];
+        argv.push(...pathArguments);
         try {
-            const [ok, stdout, , status] = GLib.spawn_sync(
-                null,
-                argv,
-                null,
-                GLib.SpawnFlags.SEARCH_PATH,
-                null
-            );
-            if (!ok || status !== 0) return null;
-            const output = ByteArray.toString(stdout).trim();
-            if (!output) return null;
-            return output.split(/\r?\n/)[0].trim().slice(0, 120) || null;
+            const process = Gio.Subprocess.new(argv,
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
+            this._backendDiscovery = process;
+            process.communicate_utf8_async(null, null, (source, result) => {
+                this._backendDiscovery = null;
+                try {
+                    const [ok, stdout] = source.communicate_utf8_finish(result);
+                    if (!this._destroyed && configured === JSON.stringify(this._backendPathArguments()) &&
+                        ok && source.get_exit_status() === 0) {
+                        this._backendInfo = JSON.parse(stdout);
+                        this._scheduleMenuRebuild();
+                    }
+                } catch (error) {
+                    global.logWarning(`${UUID}: backend discovery failed: ${error}`);
+                }
+                if (!this._destroyed && configured !== JSON.stringify(this._backendPathArguments())) {
+                    this._refreshBackendInfo();
+                }
+            });
         } catch (error) {
-            global.logWarning(`${UUID}: could not read application version: ${error}`);
-            return null;
+            global.logWarning(`${UUID}: could not start backend discovery: ${error}`);
         }
     }
 
     _commandVersion(executable) {
-        if (!executable) return null;
-        return this._readCommandVersion([executable, "--version"]);
+        this._refreshBackendInfo();
+        if (!executable || !this._backendInfo) return null;
+        return this._backendInfo.codexVersion;
     }
 
     _knownReleaseDate(version, knownVersion, releaseDate) {
         return version === knownVersion ? releaseDate : null;
     }
 
-    _chatGptAppInstallDate(appInfo) {
-        if (!appInfo) return null;
-        try {
-            const executable = appInfo.get_executable();
-            const executablePath = GLib.find_program_in_path(executable);
-            if (!executablePath) return null;
-            const fileInfo = Gio.File.new_for_path(executablePath).query_info(
-                "time::modified",
-                Gio.FileQueryInfoFlags.NONE,
-                null
-            );
-            return UsageFormat.formatLocalDate(
-                fileInfo.get_attribute_uint64("time::modified")
-            );
-        } catch (error) {
-            global.logWarning(`${UUID}: could not inspect ChatGPT package date: ${error}`);
-            return null;
-        }
+    _chatGptAppTooltip(appInfo) {
+        // Version numbering and filesystem timestamps are not release dates.
+        return UsageFormat.formatAppTooltip(Boolean(appInfo), this._chatGptAppVersion(appInfo), "chatgpt");
     }
 
     _chatGptAppVersion(appInfo) {
-        if (!appInfo) return null;
-        try {
-            const executable = appInfo.get_executable();
-            const commandVersion = this._commandVersion(executable);
-            if (commandVersion) return commandVersion;
+        if (this._configuredChatGptAppPath()) return null;
+        this._refreshBackendInfo();
+        if (this._backendInfo && this._backendInfo.chatgptVersion) {
+            return this._backendInfo.chatgptVersion;
+        }
+        if (appInfo) {
             for (const key of ["Version", "X-AppImage-Version", "X-Version"]) {
-                const desktopVersion = appInfo.get_string(key);
-                if (desktopVersion && String(desktopVersion).trim()) {
-                    return String(desktopVersion).trim();
-                }
+                const value = appInfo.get_string(key);
+                if (value && value.trim()) return value.trim();
             }
-        } catch (error) {
-            global.logWarning(`${UUID}: could not inspect ChatGPT app version: ${error}`);
         }
         return null;
     }
 
+    _configuredChatGptAppPath() {
+        const configured = String(this.chatGptAppPath || "").trim();
+        return configured.startsWith("~/")
+            ? GLib.build_filenamev([GLib.get_home_dir(), configured.slice(2)]) : configured;
+    }
+
+    _resolveExecutableFile(value) {
+        const path = value.startsWith("~/")
+            ? GLib.build_filenamev([GLib.get_home_dir(), value.slice(2)]) : value;
+        return path && GLib.path_is_absolute(path) &&
+            GLib.file_test(path, GLib.FileTest.IS_REGULAR) &&
+            GLib.file_test(path, GLib.FileTest.IS_EXECUTABLE) ? path : null;
+    }
+
+    _resolveChatGptAppPath() {
+        return this._resolveExecutableFile(this._configuredChatGptAppPath());
+    }
+
     _chatGptAppInfo() {
+        if (this._configuredChatGptAppPath()) return null;
         try {
             return Gio.DesktopAppInfo.new("chatgpt.desktop");
         } catch (error) {
@@ -1699,46 +1897,9 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _resolveBundledCodexPath() {
-        const appInfo = this._chatGptAppInfo();
-        if (!appInfo) return null;
-        try {
-            const executable = appInfo.get_executable();
-            const executablePath = GLib.find_program_in_path(executable);
-            if (!executablePath) return null;
-
-            const executableFile = Gio.File.new_for_path(executablePath);
-            const candidatePaths = [executablePath];
-            try {
-                const fileInfo = executableFile.query_info(
-                    "standard::symlink-target",
-                    Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-                    null
-                );
-                const target = fileInfo.get_symlink_target();
-                if (target) {
-                    candidatePaths.push(
-                        target.startsWith("/")
-                            ? target
-                            : GLib.build_filenamev([
-                                executableFile.get_parent().get_path(),
-                                target
-                            ])
-                    );
-                }
-            } catch (error) {
-                global.logWarning(`${UUID}: could not resolve ChatGPT launcher link: ${error}`);
-            }
-
-            for (const candidatePath of candidatePaths) {
-                const parent = Gio.File.new_for_path(candidatePath).get_parent();
-                if (!parent) continue;
-                const bundled = parent.get_child("resources").get_child("codex").get_path();
-                if (GLib.file_test(bundled, GLib.FileTest.IS_EXECUTABLE)) return bundled;
-            }
-        } catch (error) {
-            global.logWarning(`${UUID}: could not inspect ChatGPT app backend: ${error}`);
-        }
-        return null;
+        // Python is the single discovery implementation for CLI and app layouts.
+        return this._backendInfo && this._backendCacheKey === JSON.stringify(this._backendPathArguments())
+            ? this._backendInfo.codex : null;
     }
 
     _codexTerminalCommand(codex = this._resolveCodexPath()) {
@@ -1769,9 +1930,17 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _launchChatGptApp(appInfo) {
         try {
-            appInfo.launch([], null);
+            if (this._configuredChatGptAppPath()) {
+                const path = this._resolveChatGptAppPath();
+                if (!path) throw new Error(_("Choose an executable ChatGPT app file in settings"));
+                // Pass the path as one argv element; it is never a shell command.
+                Gio.Subprocess.new([path], Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE);
+            } else {
+                appInfo.launch([], null);
+            }
         } catch (error) {
-            this._reportLaunchError("ChatGPT App", error);
+            this._reportLaunchError(_("ChatGPT App"), error,
+                this._configuredChatGptAppPath() ? _("Check the ChatGPT app path in settings.") : "");
         }
     }
 
@@ -1779,12 +1948,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         try {
             Util.spawn(command);
         } catch (error) {
-            this._reportLaunchError("Codex CLI", error);
+            this._reportLaunchError(_("Codex CLI"), error);
         }
     }
 
-    _reportLaunchError(target, error) {
-        this._lastError = `Could not open ${target}`;
+    _reportLaunchError(target, error, hint = "") {
+        this._lastError = hint ? _f("Could not open %s. %s", target, hint) : _f("Could not open %s", target);
         global.logError(`${UUID}: ${this._lastError}: ${error}`);
         this._rebuildMenu();
     }
@@ -1827,7 +1996,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         descriptionLabel.style = [
             "padding-top: 5px",
             "font-size: 90%",
-            "color: rgba(255,255,255,0.68)"
+            `color: ${this._menuColor(0.68)}`
         ].join("; ") + ";";
         descriptionLabel.clutter_text.set_line_wrap(true);
         descriptionLabel.clutter_text.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
@@ -1852,9 +2021,9 @@ class ChatGptUsageApplet extends Applet.Applet {
         const credits = this._snapshot ? this._snapshot.credits : null;
         let balance = credits
             ? UsageFormat.formatWholeNumber(credits.balance)
-            : "unavailable";
+            : _("unavailable");
         if (credits && credits.unlimited) balance = "unlimited";
-        this._addCreditItem("Credits", balance, true);
+        this._addCreditItem(_("Credits"), balance, true);
         const resetDisplay = UsageFormat.buildResetCreditDisplay(
             credits,
             this._use24HourClock
@@ -1867,12 +2036,13 @@ class ChatGptUsageApplet extends Applet.Applet {
             ? this._resetExpiryColor(resetDisplay.expiresAt)
             : null;
         this._addCreditItem(
-            "Limit resets",
+            _("Limit resets"),
             resetDisplay.count,
             true,
             resetDisplay.suffix,
             resetExpiryColor,
-            resetConfirmation.available && !this._resetConsumeBusy
+            (resetConfirmation.available || this._pendingReset) && this._resetJournalReady &&
+                !this._resetConsumeBusy && !this._resetJournalError
                 ? () => this._showResetConfirmation()
                 : null
         );
@@ -1898,7 +2068,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
         const row = new St.BoxLayout({ vertical: false });
         const labelActor = new St.Label({ text: `${label}:` });
-        labelActor.style = `color: ${POPUP_SECONDARY_TEXT_COLOR};`;
+        labelActor.style = `color: ${this._menuColor(0.68)};`;
         row.add_child(labelActor);
         const valueLabel = new St.Label({ text: value });
         if (emphasized) {
@@ -1917,19 +2087,19 @@ class ChatGptUsageApplet extends Applet.Applet {
                 "padding-left: 6px",
                 "padding-right: 6px",
                 "font-size: 80%",
-                `color: ${POPUP_SECONDARY_TEXT_COLOR}`
+                `color: ${this._menuColor(0.68)}`
             ].join("; ") + ";";
             separatorLabel.translation_y = 2;
             const expiresLabel = new St.Label({
-                text: "expires ",
+                text: _("expires "),
                 y_align: Clutter.ActorAlign.CENTER
             });
-            expiresLabel.style = `color: ${POPUP_SECONDARY_TEXT_COLOR};`;
+            expiresLabel.style = `color: ${this._menuColor(0.68)};`;
             const expiryDateLabel = new St.Label({
                 text: suffix,
                 y_align: Clutter.ActorAlign.CENTER
             });
-            expiryDateLabel.style = `color: ${suffixColor || POPUP_SECONDARY_TEXT_COLOR};`;
+            expiryDateLabel.style = `color: ${suffixColor || this._menuColor(0.68)};`;
             if (suffixColor === RESET_EXPIRY_CRITICAL_COLOR) {
                 this._resetExpiryBreathingLabels.push(expiryDateLabel);
                 expiryDateLabel.connect("notify::mapped", () => {
@@ -1944,6 +2114,112 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.menu.addMenuItem(item);
     }
 
+    _resetAttemptFile() {
+        return Gio.File.new_for_path(GLib.build_filenamev([
+            GLib.get_user_state_dir(), "cinnamon-chatgpt-usage", "reset-attempt.json"
+        ]));
+    }
+
+    async _loadResetAttempt() {
+        try {
+            const [ok, bytes] = await new Promise((resolve, reject) => {
+                this._resetAttemptFile().load_contents_async(null, (source, result) => {
+                    try { resolve(source.load_contents_finish(result)); } catch (error) { reject(error); }
+                });
+            });
+            const attempt = ok ? JSON.parse(ByteArray.toString(bytes)) : null;
+            if (!attempt || typeof attempt.key !== "string" || !attempt.key ||
+                typeof attempt.backend !== "string" || !attempt.backend ||
+                !(attempt.creditId === null || typeof attempt.creditId === "string")) {
+                throw new Error(_("Invalid saved reset attempt; reset actions are disabled"));
+            }
+            this._pendingReset = attempt;
+        } catch (error) {
+            if (!error.matches || !error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
+                this._resetJournalError = String(error.message || error);
+            }
+        } finally {
+            this._resetJournalReady = true;
+            if (!this._destroyed && this.menu) this._scheduleMenuRebuild();
+        }
+    }
+
+    async _ensureResetDirectory(directory) {
+        const create = () => new Promise((resolve, reject) => {
+            directory.make_directory_async(GLib.PRIORITY_DEFAULT, null, (source, result) => {
+                try { resolve(source.make_directory_finish(result)); } catch (error) { reject(error); }
+            });
+        });
+        try {
+            await create();
+        } catch (error) {
+            if (error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS)) return;
+            if (!error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) throw error;
+            await this._ensureResetDirectory(directory.get_parent());
+            await create();
+        }
+        const info = new Gio.FileInfo();
+        info.set_attribute_uint32("unix::mode", 0o700);
+        await new Promise((resolve, reject) => {
+            directory.set_attributes_async(info, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT,
+                null, (source, result) => {
+                    try { resolve(source.set_attributes_finish(result)); } catch (error) { reject(error); }
+                });
+        });
+    }
+
+    async _saveResetAttempt(backend, creditId) {
+        if (!this._resetJournalReady) throw new Error(_("Reset recovery is still loading"));
+        if (this._resetJournalError) throw new Error(this._resetJournalError);
+        if (this._pendingReset) {
+            if (this._pendingReset.backend !== backend) {
+                throw new Error(_("Retry the unresolved reset using its original backend and account"));
+            }
+            return this._pendingReset;
+        }
+        const attempt = { key: GLib.uuid_string_random(), backend, creditId: creditId || null };
+        const file = this._resetAttemptFile();
+        await this._ensureResetDirectory(file.get_parent());
+        // Exclusive creation prevents a reloaded instance from overwriting an
+        // unresolved attempt while the old instance is still finishing I/O.
+        const stream = await new Promise((resolve, reject) => {
+            file.create_async(Gio.FileCreateFlags.PRIVATE, GLib.PRIORITY_DEFAULT, null, (source, result) => {
+                try { resolve(source.create_finish(result)); } catch (error) { reject(error); }
+            });
+        });
+        try {
+            await new Promise((resolve, reject) => {
+                stream.write_bytes_async(new GLib.Bytes(ByteArray.fromString(JSON.stringify(attempt))),
+                    GLib.PRIORITY_DEFAULT, null, (source, result) => {
+                        try {
+                            const count = source.write_bytes_finish(result);
+                            if (count !== ByteArray.fromString(JSON.stringify(attempt)).length) {
+                                throw new Error(_("Incomplete reset journal write; no request was sent"));
+                            }
+                            resolve();
+                        } catch (error) { reject(error); }
+                    });
+            });
+        } finally {
+            await new Promise((resolve, reject) => {
+                stream.close_async(GLib.PRIORITY_DEFAULT, null, (source, result) => {
+                    try { resolve(source.close_finish(result)); } catch (error) { reject(error); }
+                });
+            });
+        }
+        this._pendingReset = attempt;
+        return attempt;
+    }
+
+    async _clearResetAttempt() {
+        await new Promise((resolve, reject) => {
+            this._resetAttemptFile().delete_async(GLib.PRIORITY_DEFAULT, null, (source, result) => {
+                try { resolve(source.delete_finish(result)); } catch (error) { reject(error); }
+            });
+        });
+        this._pendingReset = null;
+    }
+
     _showResetConfirmation() {
         if (this._destroyed || this._resetConsumeBusy || !this._snapshot) return;
 
@@ -1951,43 +2227,60 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._snapshot.credits,
             this._use24HourClock
         );
-        if (!details.available) return;
+        if ((!details.available && !this._pendingReset) || !this._resetJournalReady || this._resetJournalError) return;
         if (this.menu && this.menu.isOpen) this.menu.close(false);
         if (this._resetConfirmationDialog) this._resetConfirmationDialog.destroy();
 
         const content = new Dialog.MessageDialogContent({
-            title: "Use one limit reset now?",
-            description: [
-                `Available reset credits: ${details.count}`,
-                `Next expiry: ${details.expiryText || "unavailable"}`,
+            title: this._pendingReset ? _("Retry the unresolved reset?") : _("Use one limit reset now?"),
+            description: this._pendingReset
+                ? _("The previous outcome is unknown. Retry the same request using the same account. Its saved key prevents a second redemption for this attempt.")
+                : [
+                _f("Available reset credits: %s", details.count),
+                _f("Next expiry: %s", details.expiryText || _("unavailable")),
                 "",
-                "One reset credit will be consumed."
+                _("One reset credit will be consumed.")
             ].join("\n")
         });
         const dialog = new ModalDialog.ModalDialog();
         dialog.contentLayout.add_child(content);
+        const acknowledgment = new CheckBox.CheckBox(
+            this._pendingReset ? _("I confirm retrying this reset.") : _("I confirm using one reset credit."),
+            undefined,
+            false
+        );
+        dialog.contentLayout.add_child(acknowledgment.actor);
+        let submitted = false;
         dialog.connect("destroy", () => {
             if (this._resetConfirmationDialog === dialog) {
                 this._resetConfirmationDialog = null;
             }
         });
         const cancelButton = dialog.addButton({
-            label: "Cancel",
+            label: _("Cancel"),
             action: () => dialog.destroy(),
             key: Clutter.KEY_Escape,
             default: true
         });
         const useButton = dialog.addButton({
-            label: "Use reset now",
-            action: () => this._consumeResetCredit(
-                details,
-                dialog,
-                content,
-                [cancelButton, useButton]
-            ),
+            label: this._pendingReset ? _("Retry same reset") : _("Use reset now"),
+            action: () => {
+                if (!acknowledgment.actor.checked || submitted || this._destroyed ||
+                    this._resetConsumeBusy || this._resetConfirmationDialog !== dialog) return;
+                submitted = true;
+                this._consumeResetCredit(details, dialog, content, [cancelButton, useButton, acknowledgment.actor]);
+            },
             default: false,
             destructive_action: true
         });
+        const syncAcknowledgment = () => {
+            const enabled = acknowledgment.actor.checked && !submitted && !this._resetConsumeBusy;
+            useButton.reactive = enabled;
+            useButton.can_focus = enabled;
+            useButton.change_style_pseudo_class("insensitive", !enabled);
+        };
+        acknowledgment.actor.connect("notify::checked", syncAcknowledgment);
+        syncAcknowledgment();
         this._resetConfirmationDialog = dialog;
         dialog.open();
     }
@@ -1998,7 +2291,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             button.can_focus = false;
             button.add_style_pseudo_class("insensitive");
         }
-        content.description = `${content.description}\n\nUsing reset…`;
+        content.description = _f("%s\n\nUsing reset…", content.description);
         dialog.buttonLayout.get_children().forEach(button => {
             button.reactive = false;
             button.can_focus = false;
@@ -2008,16 +2301,16 @@ class ChatGptUsageApplet extends Applet.Applet {
     _resetOutcomeFeedback(outcome) {
         const feedback = UsageFormat.buildResetConsumeFeedback(outcome);
         if (!feedback) {
-            throw new Error(`Unexpected reset outcome: ${outcome || "missing"}`);
+            throw new Error(_f("Unexpected reset outcome: %s", outcome || _("missing")));
         }
         return feedback;
     }
 
     _resetErrorFeedback(message) {
-        const detail = String(message || "The reset request failed.").slice(0, 180);
+        const detail = String(message || _("The reset request failed.")).slice(0, 180);
         return {
-            title: "Reset failed",
-            description: `${detail} Usage limits are refreshing.`
+            title: _("Reset outcome unknown"),
+            description: _f("%s Retry the same request from the reset dialog; do not switch accounts until it is resolved.", detail)
         };
     }
 
@@ -2033,7 +2326,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (refresh) this._refreshUsage();
     }
 
-    _consumeResetCredit(details, dialog, content, buttons) {
+    async _consumeResetCredit(details, dialog, content, buttons) {
         if (this._destroyed || this._resetConsumeBusy) return;
 
         this._resetConsumeBusy = true;
@@ -2047,15 +2340,22 @@ class ChatGptUsageApplet extends Applet.Applet {
                 dialog,
                 this._resetErrorFeedback(
                     !python
-                        ? "python3 was not found"
-                        : "No Codex CLI or ChatGPT App backend was found; install one or configure its path in the applet settings"
+                        ? _("python3 was not found")
+                        : _("No Codex CLI or ChatGPT App backend was found; install one or configure its path in the applet settings")
                 ),
                 false
             );
             return;
         }
 
-        const idempotencyKey = GLib.uuid_string_random();
+        let attempt;
+        try {
+            attempt = await this._saveResetAttempt(codex, details.creditId);
+            if (this._destroyed) return;
+        } catch (error) {
+            this._finishResetConsume(dialog, this._resetErrorFeedback(error.message), false);
+            return;
+        }
         const argv = [
             python,
             helper,
@@ -2065,9 +2365,9 @@ class ChatGptUsageApplet extends Applet.Applet {
             "25",
             "--consume-reset",
             "--idempotency-key",
-            idempotencyKey
+            attempt.key
         ];
-        if (details.creditId) argv.push("--credit-id", details.creditId);
+        if (attempt.creditId) argv.push("--credit-id", attempt.creditId);
 
         this._resetCancellable = new Gio.Cancellable();
         try {
@@ -2076,10 +2376,12 @@ class ChatGptUsageApplet extends Applet.Applet {
                 flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
             });
             process.init(null);
+            this._resetProcess = process;
             process.communicate_utf8_async(
                 null,
                 this._resetCancellable,
-                (source, result) => {
+                async (source, result) => {
+                    this._resetProcess = null;
                     let feedback = null;
                     let cancelled = false;
                     try {
@@ -2092,6 +2394,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                         }
                         const payload = JSON.parse(String(stdout || "").trim());
                         feedback = this._resetOutcomeFeedback(payload && payload.outcome);
+                        await this._clearResetAttempt();
                     } catch (error) {
                         cancelled = typeof error.matches === "function" &&
                             error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED);
@@ -2119,15 +2422,17 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (!history || !Array.isArray(history.windows) || history.windows.length === 0) {
             if (history && history.error) {
                 this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-                this._addInfoItem(`Usage history unavailable: ${history.error}`);
+                this._addInfoItem(_f("Usage history unavailable: %s", history.error));
             }
             return;
         }
 
+        const visibleWindows = this._filterModelLimits(history.windows);
+        if (visibleWindows.length === 0) return;
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._addSectionHeading("Recent consumption");
+        this._addSectionHeading(_("Recent consumption"));
         const windowsByLimit = new Map();
-        for (const window of history.windows) {
+        for (const window of visibleWindows) {
             const limitId = window.id || "codex";
             if (!windowsByLimit.has(limitId)) windowsByLimit.set(limitId, []);
             windowsByLimit.get(limitId).push(window);
@@ -2140,7 +2445,6 @@ class ChatGptUsageApplet extends Applet.Applet {
                     ""
                 );
                 submenu.actor.style = `padding-right: ${POPUP_RIGHT_INSET}px;`;
-                submenu._triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
                 this._submenuTriangles.push(submenu._triangle);
                 if ("overlay_scrollbars" in submenu.menu.actor) {
                     submenu.menu.actor.overlay_scrollbars = true;
@@ -2202,6 +2506,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _openActiveSparkHistory() {
+        if (this.showModelSpecificLimits === false) return;
         const history = this._snapshot ? this._snapshot.history : null;
         if (!history || !Array.isArray(history.windows)) return;
 
@@ -2228,7 +2533,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     ) {
         const duration = UsageFormat.formatDuration(window.durationMinutes);
         const periods = window.periods || {};
-        const activityTotal = UsageFormat.buildActivityTotalPeriod(window.activity24h);
+        const activityTotal = periods["24h"];
         const oneHour = UsageFormat.formatConsumedPercent(periods["1h"]);
         const fourHours = UsageFormat.formatConsumedPercent(periods["4h"]);
         const twelveHours = UsageFormat.formatConsumedPercent(periods["12h"]);
@@ -2238,22 +2543,22 @@ class ChatGptUsageApplet extends Applet.Applet {
         if (showLimitLabel) {
             this._addIconHeading(
                 window,
-                `${window.label || window.id} · ${duration} usage`,
+                _f("%s · %s usage", window.label || window.id, duration),
                 menu
             );
         } else {
-            this._addInfoItem(`  ${duration} usage`, "font-weight: bold;", menu);
+            this._addInfoItem(_f("  %s usage", duration), "font-weight: bold;", menu);
         }
         const rollingDayText = periodKeys.includes("24h")
-            ? `  ·  24h ${rollingDay}`
+            ? _f("  ·  24h %s", rollingDay)
             : "";
         this._addInfoItem(
-            `    1h ${oneHour}  ·  4h ${fourHours}${rollingDayText}`,
+            _f("    1h %s  ·  4h %s%s", oneHour, fourHours, rollingDayText),
             null,
             menu
         );
         if (periodKeys.includes("12h")) {
-            this._addInfoItem(`    12h ${twelveHours}  ·  Today ${today}`, null, menu);
+            this._addInfoItem(_f("    12h %s  ·  Today %s", twelveHours, today), null, menu);
         }
         if (activityValues) {
             this._addActivityChart(
@@ -2285,7 +2590,13 @@ class ChatGptUsageApplet extends Applet.Applet {
             snapshot,
             this._notificationOptions()
         );
-        for (const event of events) Main.notify(event.title, event.message);
+        for (const event of events) {
+            const source = new MessageTray.SystemNotificationSource();
+            Main.messageTray.add(source);
+            const notification = new MessageTray.Notification(source, event.title, event.message);
+            notification.setTransient(false);
+            source.notify(notification);
+        }
     }
 
     _addActivityChart(values, bucketMinutes, endAt, menu = this.menu) {
@@ -2312,16 +2623,16 @@ class ChatGptUsageApplet extends Applet.Applet {
         const caption = new St.BoxLayout({
             vertical: false
         });
-        const captionTitle = new St.Label({ text: "  24h Activity" });
+        const captionTitle = new St.Label({ text: _("  24h Activity") });
         captionTitle.style = "font-weight: bold;";
         const captionDetails = new St.Label({
-            text: `  ·  ${totalLabel}  ·  ${bucketLabel} buckets  ·  peak ${peakLabel}`
+            text: _f("  ·  %s  ·  %s buckets  ·  peak %s", totalLabel, bucketLabel, peakLabel)
         });
         caption.add_child(captionTitle);
         caption.add_child(captionDetails);
         column.add_child(caption);
 
-        const chart = new St.BoxLayout({ vertical: true, x_expand: true });
+        const chart = new St.BoxLayout({ vertical: true, x_align: Clutter.ActorAlign.START });
         const nested = menu !== this.menu;
         chart.style = this._activityChartStyle(nested, false);
         this._activityCharts.push({
@@ -2334,7 +2645,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             height: 30,
             x_expand: true
         });
-        plot.style = "border-bottom: 1px solid rgba(255,255,255,0.28); padding-top: 2px;";
+        plot.style = `border-bottom: 1px solid ${this._menuColor(0.28)}; padding-top: 2px;`;
         model.bars.forEach((bar, index) => {
             const slot = new St.Bin({
                 height: 28,
@@ -2344,13 +2655,13 @@ class ChatGptUsageApplet extends Applet.Applet {
             });
             slot.set_alignment(St.Align.MIDDLE, St.Align.END);
             if (index % 3 === 0) {
-                slot.style = "border-left: 1px solid rgba(255,255,255,0.10);";
+                slot.style = `border-left: 1px solid ${this._menuColor(0.10)};`;
             }
 
             let height = 2;
-            let style = "background-color: rgba(255,255,255,0.16); border-radius: 2px 2px 0 0;";
+            let style = `background-color: ${this._menuColor(0.16)}; border-radius: 2px 2px 0 0;`;
             if (bar.known && bar.intensity === 0) {
-                style = "background-color: rgba(255,255,255,0.38); border-radius: 2px 2px 0 0;";
+                style = `background-color: ${this._menuColor(0.38)}; border-radius: 2px 2px 0 0;`;
             } else if (bar.known) {
                 height = 5 + bar.intensity * 3;
                 style = "background-gradient-direction: vertical; background-gradient-start: #8ed891; background-gradient-end: #5dbb73; border-radius: 2px 2px 0 0;";
@@ -2384,7 +2695,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             [3, "−18h"],
             [6, "−12h"],
             [9, "−6h"],
-            [11, "now"]
+            [11, _("now")]
         ]);
         for (let index = 0; index < 12; index++) {
             const segment = new St.Bin({ x_expand: true });
@@ -2392,7 +2703,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             const labelText = labelsByAxisSlot.get(index);
             if (labelText) {
                 const label = new St.Label({ text: labelText });
-                label.style = "font-size: 75%; color: rgba(255,255,255,0.62);";
+                label.style = `font-size: 75%; color: ${this._menuColor(0.62)};`;
                 segment.set_child(label);
             }
             axis.add_child(segment);
@@ -2434,15 +2745,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 expandedWithScrollbar
             );
         }
-        for (const triangle of this._submenuTriangles) {
-            triangle.translation_x = POPUP_SUBMENU_ARROW_OFFSET;
-        }
-        if (
-            this._isRightPanel &&
-            this.menu.isOpen &&
-            this._rightPanelPopupLockedWidth > 0
-        ) {
-            this._lockRightPanelPopupLayoutWidth();
+        this._syncContentRightEdges();
+        if (this.menu.isOpen) {
+            this._lockPopupLayoutWidth();
         }
     }
 
@@ -2524,6 +2829,16 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._rebuildPanel();
     }
 
+    _onChatGptAppPathChanged() {
+        this._rebuildMenu();
+        this._refreshUsage();
+    }
+
+    _onModelVisibilityChanged() {
+        this._rebuildPanel();
+        this._rebuildMenu();
+    }
+
     _onStyleSettingChanged() {
         this._rebuildPanel();
     }
@@ -2567,12 +2882,13 @@ class ChatGptUsageApplet extends Applet.Applet {
 
         const python = GLib.find_program_in_path("python3");
         const helper = `${this.metadata.path}/chatgpt_usage.py`;
-        const codex = this._resolveCodexPath();
-        if (!python || !codex) {
+        this._refreshBackendInfo();
+        const pathArguments = this._backendPathArguments();
+        if (!python) {
             this._authenticationRequired = false;
             this._lastError = !python
-                ? "python3 was not found"
-                : "No Codex CLI or ChatGPT App backend was found; install one or configure its path in the applet settings";
+                ? _("python3 was not found")
+                : _("No Codex CLI or ChatGPT App backend was found; install one or configure its path in the applet settings");
             this._rebuildPanel();
             this._scheduleMenuRebuild();
             return;
@@ -2589,8 +2905,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 argv: [
                     python,
                     helper,
-                    "--codex",
-                    codex,
+                    ...pathArguments,
                     "--timeout",
                     "25",
                     "--activity-bucket-minutes",
@@ -2599,7 +2914,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
             });
             process.init(null);
+            this._usageProcess = process;
             process.communicate_utf8_async(null, this._cancellable, (source, result) => {
+                this._usageProcess = null;
                 this._busy = false;
                 this._cancellable = null;
                 this._stopRefreshSpinner();
@@ -2615,7 +2932,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                     }
                     const snapshot = JSON.parse(String(stdout || "").trim());
                     if (!snapshot || !Array.isArray(snapshot.limits)) {
-                        throw new Error("Usage helper returned invalid data");
+                        throw new Error(_("Usage helper returned invalid data"));
                     }
                     const previousSnapshot = this._snapshot;
                     this._snapshot = snapshot;
@@ -2634,7 +2951,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                         } else {
                             this._lastError = String(error.message || error).slice(0, 180);
                         }
-                        global.logError(`${UUID}: usage refresh failed: ${error}`);
+                        global.logError(_f("%s: usage refresh failed: %s", UUID, error));
                     }
                 }
 
@@ -2654,7 +2971,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._stopRefreshSpinner();
             this._authenticationRequired = false;
             this._lastError = String(error.message || error).slice(0, 180);
-            global.logError(`${UUID}: could not start usage helper: ${error}`);
+            global.logError(_f("%s: could not start usage helper: %s", UUID, error));
             this._rebuildPanel();
             this._scheduleMenuRebuild();
         }
@@ -2676,19 +2993,11 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _resolveCodexPath() {
-        const configured = String(this.codexPath || "").trim();
-        if (configured) return configured;
-
-        const fromPath = GLib.find_program_in_path("codex");
-        if (fromPath) return fromPath;
-
-        const localPath = GLib.build_filenamev([GLib.get_home_dir(), ".local", "bin", "codex"]);
-        if (GLib.file_test(localPath, GLib.FileTest.IS_EXECUTABLE)) return localPath;
-
+        this._refreshBackendInfo();
         return this._resolveBundledCodexPath();
     }
 
-        on_applet_clicked() {
+    on_applet_clicked() {
         this._rebuildMenu();
         this.menu.toggle();
     }
@@ -2732,24 +3041,31 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
-    _applyRightPanelPopupWidth() {
-        if (!this._isRightPanel || !this.menu) return;
+    _popupWidth() {
+        const displayScale = typeof global !== "undefined" ? (global.ui_scale || 1) : 1;
+        return Math.round(POPUP_WIDTH * Math.max(1, this._popupTextScale || 1) * displayScale);
+    }
+
+    _applyPopupWidth() {
+        if (!this.menu) return;
         const baseStyle = this._rightPanelMenuStyleBase
             ? `${this._rightPanelMenuStyleBase}; `
             : "";
-        this.menu.actor.style = `${baseStyle}min-width: ${POPUP_RIGHT_PANEL_WIDTH}px;`;
+        this.menu.actor.style = `${baseStyle}min-width: ${POPUP_WIDTH * Math.max(1, this._popupTextScale || 1)}px;`;
         this.menu.actor.translation_x = 0;
-        this._lockRightPanelPopupLayoutWidth();
+        this._lockPopupLayoutWidth();
     }
 
-    _lockRightPanelPopupLayoutWidth() {
-        if (!this._isRightPanel || !this.menu) return;
+    _lockPopupLayoutWidth() {
+        if (!this.menu) return;
         const width = this._rightPanelPopupLockedWidth > 0
             ? this._rightPanelPopupLockedWidth
-            : POPUP_RIGHT_PANEL_WIDTH;
+            : this._popupWidth();
         this.menu.actor.set_width(width);
         this.menu.box.set_width(width);
         this.menu.box.clip_to_allocation = true;
+        this._forceActorWidth(this.menu._scroll, width);
+        this._forceActorWidth(this.menu._content.actor, width);
         for (const entry of this._historySubmenus) {
             this._forceActorWidth(entry.submenu.menu.actor, width);
             this._forceActorWidth(entry.submenu.menu.box, width);
@@ -2799,6 +3115,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     on_applet_removed_from_panel() {
         this._destroyed = true;
+        if (this.menu && this.menu.isOpen) this.menu.close(false);
         if (this._timeoutId) {
             Mainloop.source_remove(this._timeoutId);
             this._timeoutId = 0;
@@ -2824,6 +3141,17 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._menuRebuildTimeoutId = 0;
         }
         this._stopRefreshSpinner();
+        for (const process of [this._usageProcess, this._resetProcess, this._backendDiscovery]) {
+            if (process) {
+                // SIGTERM lets the Python helper terminate and reap its backend.
+                process.send_signal(15);
+                process.wait_async(null, (source, result) => {
+                    try { source.wait_finish(result); } catch (error) {
+                        global.logWarning(`${UUID}: helper cleanup failed: ${error}`);
+                    }
+                });
+            }
+        }
         if (this._cancellable) {
             this._cancellable.cancel();
             this._cancellable = null;
@@ -2846,9 +3174,22 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._clockSettings.disconnect(this._clockChangedId);
             this._clockChangedId = 0;
         }
+        if (this._clockSettings && this._animationsChangedId) {
+            this._clockSettings.disconnect(this._animationsChangedId);
+            this._animationsChangedId = 0;
+        }
+        if (this._clockSettings && this._textScaleChangedId) {
+            this._clockSettings.disconnect(this._textScaleChangedId);
+            this._textScaleChangedId = 0;
+        }
         this._stopResetExpiryBreathing();
         this._resetExpiryBreathingLabels = [];
         this._clockSettings = null;
+        if (this.menu) {
+            this.menu.destroy();
+            this.menu = null;
+        }
+        this._activityTooltips = [];
         if (this.settings) this.settings.finalize();
     }
 }
@@ -2856,5 +3197,6 @@ class ChatGptUsageApplet extends Applet.Applet {
 // Cinnamon loads this entry point by name.
 // eslint-disable-next-line no-unused-vars
 function main(metadata, orientation, panelHeight, instanceId) {
+    Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
     return new ChatGptUsageApplet(metadata, orientation, panelHeight, instanceId);
 }

@@ -1,0 +1,114 @@
+{
+  "checkedAt": "2026-09-08",
+  "status": "maintainer-approved-candidate-not-published",
+  "version": "1.0.0",
+  "targetVersion": "1.0.0",
+  "maintainer": "ClaudiuSchuster",
+  "projectIdentity": "OSS Singularity",
+  "uuid": "chatgpt-usage@oss-singularity",
+  "installedPayloadFiles": 24,
+  "verifiedScreenshotCount": 15,
+  "pythonTestCount": 42,
+  "localVerify": "passed",
+  "upstreamStructuralValidator": "passed",
+  "upstreamHeadChecked": "b425f4d648196d279ff972d642f1693d5b23b55b",
+  "validatorPinnedCommit": "0fa36ed070daa26d51ced6ea87a08066b342eca4",
+  "validatorSha256": "3b74a9b8360314ebb42ece78fe3215513144f8b64078e327ca0c03c9d8b63928",
+  "validatorMatchesCheckedUpstreamHead": true,
+  "artifacts": {
+    "install.zip": "4407a3520da29c9ded6671f4b653cdc6cf36bcfd5844762a435afe33c1093a04",
+    "submission.zip": "c70292bfb4fecf76b8ceb5f4a2d78516d91b3a01c312d03479ec44362e1fe27f"
+  },
+  "remotePrChecks": "tracked-on-project-pull-request",
+  "spicesSubmission": "not-submitted",
+  "tagOrReleasePublished": false,
+  "sourceBaseCommit": "95b6cb175c720b9db5d132249aa40b0d00d8dbf7",
+  "sourceState": "Accepted candidate after sourceBaseCommit with a shorter manager description and refreshed screenshot provenance. Exact packaged bytes are identified by payloadSha256 and archive hashes.",
+  "publicAppletName": "ChatGPT Usage Monitor",
+  "socialHeading": "ChatGPT Usage Monitor",
+  "cinnamonVersions": ["6.6"],
+  "assetInventoryCount": 31,
+  "superLinter": "passed",
+  "legalClearance": false,
+  "payloadSha256": {
+    "applet.js": "fcd53598b4c7ff5aaaf704caa163bcb8f3b0d97897d82c638652eef4e12c8114",
+    "usage-format.js": "bccdde73912ebf95caff8023cbbb3651d09b7adc23b5883ffb435cdcad09c769",
+    "chatgpt_usage.py": "f9a6d6ab2a3685ca867213e753e6b9741a17cc6e56cee3f2cd1a8c4c5ec74dc8",
+    "metadata.json": "8609eb925569d3ee0fbf6241001c3273014a7d79e69f164906c06c1e31cf1aa5",
+    "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+    "icon.png": "68d4b41a069af25c0c680b7d088a0652bc1853ce4151cacb58fcec3b1a644cd5",
+    "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "ATTRIBUTION.md": "bb0bdab536484116903231218a6b0b9777e0832e8c59b3eb2a30a3883f5424b7",
+    "SECURITY.md": "a4b8a40807d6b664aab85929e16588c0c2e4052ff15192d8d0372ad18c639fed",
+    "README.md": "f848e41e30ef3deab3e7df238bc79e1c5cd6da56ea1e32804a74580629846958",
+    "icons/ATTRIBUTION.md": "cd7ff1ccccb0c55f481d83182ac37aaf774d5e3c3333738a59ceac56c2090044",
+    "icons/LICENSE-CC-BY-SA-4.0.txt": "351041923dd6d18f88ca4e40d68d7b38ca520fda73f32509aedf9c2f01dfaffa",
+    "icons/usage-white.png": "39efe23d65131c2222b10927a3387d6cb5f066889ff7c8e0bfc2949491abc735",
+    "icons/terminal-bot.png": "e66f7a837738329a37a88e5594baf0a52611fa0a39b0b2f7a4b17a36352659e2",
+    "icons/applet.svg": "d6cdaafdb5518652e5637690ddf4712d6e06eac1a01f100cc7a8296b6b2f8fe8",
+    "icons/usage.svg": "a78282aedc5f8c03b3a9e507b86ab436977aefe0f0ed4b068b8d76c822458a4b",
+    "icons/terminal-bot.svg": "5db566274f9cc4a6c8ab67501610e77a25545093ed421892c54ebba4f35009e9",
+    "icons/chat-bubble.svg": "bd9d0a63055e3ae4fa8caeda831930db641e86dd8cf4aa6bda5a4508465aeac1",
+    "icons/emblem-ok-symbolic.svg": "94510ae2b8b3cb8763324cc425aa6ec5fc7f94866f22e0b3757f62009175132a",
+    "icons/utilities-system-monitor-symbolic.svg": "d3240cf7e1d0a0440e21b27686c499359361d55136e8970286e406842bb72ea2",
+    "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
+    "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e",
+    "path_settings.py": "2c0b264c7694ce45ea5df26f58e4d5b8ff7fe34548814c5990a6fa2ebbeedd0a",
+    "po/chatgpt-usage@oss-singularity.pot": "e290b1bbcc78aa899df40f8c40f53946614492cc88dd37fb71f69ef061acfe7d"
+  },
+  "verifiedDesktopBaseline": {
+    "cinnamon": "6.6.9",
+    "session": "X11",
+    "themes": ["Mint-Y", "Mint-Y-Dark-Aqua"],
+    "displayScale": 1,
+    "textScaleRange": [1, 2],
+    "screens": ["1366x768", "1920x1080"],
+    "panelPositions": ["top", "right", "bottom", "left"]
+  },
+  "nativeChecks": [
+    "ring-chart-and-rotated-disclosure-edges-match-footer-with-models-enabled-and-disabled",
+    "visible-content-bounds-after-rebuild-and-reopen",
+    "small-screen-scroll-and-keyboard-focus",
+    "reduced-motion",
+    "delayed-backend-probe-remains-responsive",
+    "removal-with-tooltip-clears-timers-signals-and-cancellables"
+  ],
+  "outsideVerifiedBaseline": [
+    "multiple-monitors-and-mixed-DPI",
+    "fractional-display-scaling",
+    "RTL-translations",
+    "high-contrast-shell-themes",
+    "full-Orca-navigation"
+  ],
+  "shippedLanguages": ["en"],
+  "gettextCompiledCatalogTests": "passed-with-synthetic-test-catalog",
+  "documentationPanel": {
+    "extension": "transparent-panels@germanfr",
+    "referenceStyle": "panel-semi-transparent",
+    "backgroundAlpha": 102,
+    "configSha256": "6a7f7230461a5eee77946683b3b294e9a6143cf08f2875236d48f552311402d9"
+  },
+  "namingDecision": {
+    "status": "accepted-by-maintainer",
+    "by": "ClaudiuSchuster",
+    "date": "2026-09-08",
+    "name": "ChatGPT Usage Monitor"
+  },
+  "maintainerReview": {
+    "status": "accepted",
+    "by": "ClaudiuSchuster",
+    "date": "2026-09-08",
+    "runtimeAndScreenshotCommit": "099d26b3dad79dd9a944832b77ba84ca86ba34ae",
+    "scope": [
+      "public-name",
+      "screenshots",
+      "readiness-baseline",
+      "package-receipt"
+    ]
+  },
+  "managerDescription": {
+    "text": "A tiny Cinnamon companion keeping ChatGPT Work & Codex usage beautifully in view.",
+    "nativeGtkRowWidth": 646,
+    "nativeLineCount": 1
+  }
+}

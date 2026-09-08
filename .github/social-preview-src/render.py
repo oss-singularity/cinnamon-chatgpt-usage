@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render a deterministic ChatGPT Usage social-preview variant."""
+"""Render a deterministic ChatGPT Usage Monitor social-preview variant."""
 
 from __future__ import annotations
 
@@ -44,9 +44,9 @@ def main() -> int:
     variant = variants[args.variant]
 
     background = source_dir / "background.png"
-    icon = repo_dir / "icons/chatgpt-white.png"
+    icon = repo_dir / "icons/usage-white.png"
     if not background.is_file() or not icon.is_file():
-        raise SystemExit("Social-preview background or ChatGPT icon is missing.")
+        raise SystemExit("Social-preview background or usage icon is missing.")
 
     replacements = {
         "{{TAGLINE}}": html.escape(str(variant["tagline"])),
