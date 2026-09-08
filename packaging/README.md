@@ -1,4 +1,4 @@
-# Usage Monitor for Cinnamon
+# ChatGPT Usage Monitor for Cinnamon
 
 An independent OSS Singularity applet showing ChatGPT Work and Codex limits,
 reset times, credits and observed consumption on horizontal or vertical panels.

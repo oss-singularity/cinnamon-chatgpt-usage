@@ -10,4 +10,4 @@ if [ -d "$applet_dir" ]; then
     rmdir "$applet_dir"
 fi
 
-printf '%s\n' "Usage Monitor removed. Cinnamon settings and usage history were retained."
+printf '%s\n' "ChatGPT Usage Monitor removed. Cinnamon settings and usage history were retained."

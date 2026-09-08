@@ -21,7 +21,7 @@ from typing import Any
 
 CLIENT_INFO = {
     "name": "cinnamon_chatgpt_usage",
-    "title": "Usage Monitor for Cinnamon",
+    "title": "ChatGPT Usage Monitor for Cinnamon",
     "version": json.loads(Path(__file__).with_name("metadata.json").read_text(encoding="utf-8"))["version"],
 }
 

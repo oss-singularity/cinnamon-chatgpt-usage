@@ -667,7 +667,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _updateTooltip(summaries) {
-        let text = "ChatGPT Work & Codex usage";
+        let text = this.metadata.name;
         const limits = this._filterModelLimits(this._snapshot ? this._snapshot.limits : []);
         if (limits.length > 0) {
             const showLimitLabels = limits.length > 1;
@@ -863,7 +863,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         text.x_expand = true;
-        const title = new St.Label({ text: "ChatGPT Work & Codex usage" });
+        const title = new St.Label({ text: this.metadata.name });
         title.style = POPUP_HEADING_STYLE;
         text.add_child(title);
         if (this._snapshot) {

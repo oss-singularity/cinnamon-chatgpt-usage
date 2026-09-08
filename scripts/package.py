@@ -132,7 +132,7 @@ def main():
     package.add_argument("--validate", action="store_true")
     args = parser.parse_args()
     if args.command == "install":
-        print(f"Usage Monitor installed: {install(args.data_root)}")
+        print(f"ChatGPT Usage Monitor installed: {install(args.data_root)}")
     else:
         output = export(args.output)
         if args.validate:

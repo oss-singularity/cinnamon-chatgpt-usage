@@ -9,14 +9,12 @@ inquiries. The former OpenAI knot and desktop robot have been removed from the
 current tree and payload. Original quota, chat and terminal-robot SVGs and their
 generated PNGs replace them. Their sources are included under GPL-3.0-or-later.
 
-**Remaining naming limit:** the applet's metadata name is `Usage Monitor`.
-At the maintainer's subsequent request, the social heading is
-`ChatGPT Usage Monitor`. This still contains an OpenAI mark and is not
-established as covered by the published branding conditions. Replacing the
-pictures does not settle that separate name/branding question. No inquiry
-will be sent. The conservative alternative remains the neutral heading
-`Usage Monitor` with ChatGPT/Codex named only in descriptive compatibility copy.
-The current requested social heading is a review choice, not a legal clearance.
+**Naming review limit:** the maintainer explicitly chose **ChatGPT Usage Monitor**
+consistently for the applet, popup, settings, social preview and documentation.
+The name contains an OpenAI mark; this review does not establish that its use
+as an app name is covered by the published branding conditions. Replacing the
+pictures does not settle that separate question. No inquiry will be sent.
+The chosen name is a maintainer decision, not a legal clearance.
 
 ## Verified components
 
@@ -59,8 +57,8 @@ Apache-2.0 license does not by itself prove licensing of that separate image.
 This is a missing-evidence finding, not proof that no permission exists anywhere.
 
 The [brand guidelines](https://openai.com/brand/) condition logo usage and
-restrict primary app branding. They do not establish that the requested
-social heading is cleared. No purported OpenAI endorsement or authorship is
+restrict primary app branding. They do not establish that the chosen
+public name is cleared. No purported OpenAI endorsement or authorship is
 claimed for the replacement robot or quota emblem.
 
 The normal installer removes only byte-identical retired assets it previously
@@ -98,6 +96,6 @@ and its hash, license basis and distribution scope. Checks verify coverage,
 unchanged PNG/SVG correspondence and exclusion of retired graphics; they do
 not make legal determinations. Package tests also cover safe upgrade cleanup.
 
-Before a public 1.0 release, resolve the social-heading choice, recheck the
+Before a public 1.0 release, resolve the public-name review limit, recheck the
 exact artifact and notices, and complete the separate technical gates.
 No contact request, PR, tag, release or announcement is sent by this review.

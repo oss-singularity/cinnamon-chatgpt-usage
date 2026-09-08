@@ -16,7 +16,7 @@ SVG artwork under GPL-3.0-or-later. Their editable sources travel with the
 applet; generated PNGs carry the same license. See `icons/ATTRIBUTION.md`.
 No OpenAI logo or desktop character is bundled in the current source tree or
 release payload. Product names refer to their respective external services;
-the requested social heading's separate branding review is documented below.
+the chosen public name's separate branding review is documented below.
 
 The abstract social background was generated with ImageGen; its original
 prompt and editable layout are preserved in `.github/social-preview-src/`.

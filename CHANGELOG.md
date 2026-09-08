@@ -2,10 +2,13 @@
 
 ## Unreleased
 
+- Use ChatGPT Usage Monitor consistently in applet metadata, popup headings,
+  settings, documentation and release drafts.
+
 - Remove the inferred date and preceding dash from the ChatGPT app tooltip;
   retain its detected version and the separate Codex tooltip behavior.
 
-- Prepare the first Spices release as Usage Monitor for Cinnamon 6.6. Replace
+- Prepare the first Spices release as ChatGPT Usage Monitor for Cinnamon 6.6. Replace
   the OpenAI knot and desktop sprite with original, source-included quota,
   chat and terminal-robot artwork; retain the UUID and existing user state.
   Refresh the social preview and UI captures and record asset/license evidence.

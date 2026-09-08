@@ -1,15 +1,15 @@
-# Review drafts for Usage Monitor 1.0.0
+# Review drafts for ChatGPT Usage Monitor 1.0.0
 
 **Unsent publication drafts.** No contact requests are planned or authorized.
 The maintainer selected replacement artwork and independent branding instead.
 Complete the technical gates and fill in the exact candidate facts before
-using these drafts. The requested social heading remains a separate branding
+using these drafts. The chosen public name remains a separate branding
 review limit; see [the rights review](rights-review.md). Claudiu reviews each
 public save separately.
 
 ## Project pull request draft
 
-Suggested title: **Prepare Usage Monitor 1.0.0 for Cinnamon Spices**.
+Suggested title: **Prepare ChatGPT Usage Monitor 1.0.0 for Cinnamon Spices**.
 
 The release candidate makes backend discovery and subprocess transport
 consistent, retains uncertain reset attempts safely, and adds explicit reset
@@ -25,7 +25,7 @@ substitute. Link the release-preparation issue intentionally at creation time.
 
 ## Spices submission draft
 
-Suggested title: **Usage Monitor: add usage-limit applet**.
+Suggested title: **ChatGPT Usage Monitor: add usage-limit applet**.
 
 > This adds one independent applet that displays ChatGPT Work and Codex usage
 > limits on Cinnamon's horizontal and vertical panels.
@@ -53,7 +53,7 @@ an approved 1.0.0 candidate.
 Use only after filling in the verified catalog listing and final tag/commit.
 Do not claim catalog acceptance merely because a tag or PR exists.
 
-**Release title:** Usage Monitor 1.0.0 — Cinnamon Spices debut
+**Release title:** ChatGPT Usage Monitor 1.0.0 — Cinnamon Spices debut
 
 > Our first Cinnamon Spices release brings ChatGPT Work and Codex usage limits,
 > reset times and observed consumption into the Cinnamon panel. It supports
@@ -66,7 +66,7 @@ Do not claim catalog acceptance merely because a tag or PR exists.
 >
 > An independent OSS Singularity project, made with love by Claudiu & Codex.
 
-**Forum title:** Usage Monitor 1.0.0 for Cinnamon — now available as a Spice
+**Forum title:** ChatGPT Usage Monitor 1.0.0 for Cinnamon — now available as a Spice
 
 > Hi everyone! We have released our first official Cinnamon Spice: a small
 > panel companion for ChatGPT Work and Codex usage limits.

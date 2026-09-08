@@ -12,6 +12,7 @@ const AppletClass = new Function("imports", "require",
 );
 function assert(value, message) { if (!value) throw new Error(message); }
 const applet = Object.create(AppletClass.prototype);
+applet.metadata = JSON.parse(ByteArray.toString(GLib.file_get_contents("metadata.json")[1]));
 applet._setDefaults();
 const limits = Object.freeze([
     Object.freeze({ id: "codex", label: "Codex", windows: [{ durationMinutes: 300, remainingPercent: 50 }] }),

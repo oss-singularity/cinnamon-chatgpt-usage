@@ -1,10 +1,10 @@
 <p align="center">
   <picture>
-    <img src="icon.png" width="96" height="96" alt="Usage Monitor icon">
+    <img src="icon.png" width="96" height="96" alt="ChatGPT Usage Monitor icon">
   </picture>
 </p>
 
-<h1 align="center">Usage Monitor for Cinnamon</h1>
+<h1 align="center">ChatGPT Usage Monitor for Cinnamon</h1>
 
 <p align="center">
   Live ChatGPT Work and Codex limits, reset times and credits in one compact
@@ -18,7 +18,7 @@
   <img alt="Codex app-server" src="https://img.shields.io/badge/data-Codex%20app--server-111111">
 </p>
 
-![Usage Monitor for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
+![ChatGPT Usage Monitor for Cinnamon — live limits, reset times and 24-hour history](.github/social-preview.png)
 
 | Horizontal top bar with Spark + Codex panel indicators                                                     | 40 px vertical panel with Spark + Codex panel indicators                                                       |
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -145,7 +145,7 @@ cd cinnamon-chatgpt-usage
 ./install.sh
 ```
 
-Then open **System Settings → Applets** and add **Usage Monitor** to a panel.
+Then open **System Settings → Applets** and add **ChatGPT Usage Monitor** to a panel.
 Requirements: Python 3.10 or newer, Cinnamon and either a current
 [Codex CLI](https://learn.chatgpt.com/docs/codex/cli#getting-started) signed in
 with ChatGPT or a supported ChatGPT desktop app package. The Linux ChatGPT

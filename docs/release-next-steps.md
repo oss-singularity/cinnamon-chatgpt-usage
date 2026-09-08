@@ -18,11 +18,11 @@ Paket ist ein Prüfstand, noch keine freigegebene Veröffentlichung.
    zusätzliche Testreihe für 5.8–6.4 ausdrücklich abgewählt.
 3. **Nur noch den konkreten Kandidaten reviewen.** Keine Rechte-Anfragen:
    Claudiu hat eigene Ersatzgrafiken gewählt. Der öffentliche Name ist
-   **Usage Monitor**, mit eigenen Quoten-/Chat-/Terminal-Roboter-Symbolen.
+   **ChatGPT Usage Monitor**, mit eigenen Quoten-/Chat-/Terminal-Roboter-Symbolen.
    Hintergrund und Layout des Social Previews bleiben erhalten.
    [Rechteprüfung](rights-review.md) und [Dateibelege](rights-inventory.json)
-   dokumentieren die Quellen und Lizenzhinweise. Der anschließend gewünschte
-   Social-Schriftzug **ChatGPT Usage Monitor** bleibt als Marken-/Namensfrage
+   dokumentieren die Quellen und Lizenzhinweise. Der ausdrücklich gewählte
+   öffentliche Name **ChatGPT Usage Monitor** bleibt als Marken-/Namensfrage
    offen; eigene Grafiken allein klären diese Verwendung nicht abschließend.
 
 Es müssen jetzt weder ein Forum-Beitrag geschrieben noch eine API-Anwendung,

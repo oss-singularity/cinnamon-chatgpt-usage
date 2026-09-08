@@ -35,10 +35,10 @@ optional upstream clarification, not a prerequisite for using that fallback.
 The social background's original ImageGen prompt is already recorded in
 [its source README](../.github/social-preview-src/README.md); its missing-origin
 task is closed. The [rights review](rights-review.md) records original replacement artwork and
-independent public branding as **Usage Monitor**. No permission inquiries will
+independent public branding as **ChatGPT Usage Monitor**. No permission inquiries will
 be sent. The former robot and knot graphics have been removed from the current
-tree; the UUID and user state remain unchanged. The subsequently requested
-social heading **ChatGPT Usage Monitor** remains a separate naming/brand review
+tree; the UUID and user state remain unchanged. The consistently requested
+public name **ChatGPT Usage Monitor** remains a separate naming/brand review
 limit; no complete legal clearance is claimed.
 
 ## Dependency order and evidence
@@ -152,7 +152,7 @@ external settings, history and unresolved-reset state.
 After the candidate is complete, present its visuals, full diff, tests,
 changelog and exact package hashes to Claudiu. Only then seek approval for the
 specific public step. A submission should affect only this applet and use the
-upstream title format `Usage Monitor: ...`. Preserve protected squash merges
+upstream title format `ChatGPT Usage Monitor: ...`. Preserve protected squash merges
 and all six project PR checks; no administrator bypass.
 
 Release/tag publication, the Spices PR, forum announcements and other public
