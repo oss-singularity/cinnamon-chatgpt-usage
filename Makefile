@@ -1,4 +1,4 @@
-.PHONY: check verify social-preview check-social-preview install uninstall
+.PHONY: check verify social-preview check-social-preview install uninstall translations check-translations
 
 check:
 	cjs tests/check-source.js applet.js usage-format.js
@@ -16,6 +16,7 @@ check:
 	cjs tests/test-reset-lifecycle.js
 	cjs tests/test-reset-confirmation.js
 	python3 -m unittest discover -s tests -p 'test*.py'
+	$(MAKE) check-translations
 	python3 -m json.tool metadata.json >/dev/null
 	python3 -m json.tool settings-schema.json >/dev/null
 	python3 tests/check-ui-inventory.py
@@ -40,3 +41,9 @@ install:
 
 uninstall:
 	./uninstall.sh
+
+translations:
+	python3 scripts/update-translations.py
+
+check-translations:
+	python3 scripts/update-translations.py --check

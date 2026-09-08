@@ -1,6 +1,21 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — Unreleased candidate
+
+- Provide gettext for JavaScript, Python, metadata and settings, with a
+  reproducible translation template and native catalog regression coverage.
+  English remains the fallback; completed translations are not included yet.
+- Let Cinnamon manage the popup lifecycle and menu stack. Keep 420 px at normal
+  scale, accommodate larger text and display scale, and scroll long menus on
+  small screens while keeping keyboard-focused actions visible.
+- Respect disabled system animations for reset-expiry indicators and clean up
+  the menu, tooltips and settings signals when the applet is removed.
+- Align quota/reset rings, disclosure arrows and graph edges with the footer buttons when
+  model-specific limits are shown, hidden or toggled; preserve alignment after
+  rebuild and reopen, including larger text.
+- Refresh documentation with the approved blue background, complete panel
+  anchors, reference panel transparency, 48 px dialog gaps and independently
+  checked 8 px crop margins. Check arrow bounds after their native rotation.
 
 - Use ChatGPT Usage Monitor consistently in applet metadata, settings,
   documentation and release drafts; retain the descriptive popup heading

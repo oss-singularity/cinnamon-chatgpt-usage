@@ -1,11 +1,17 @@
 """Native Cinnamon settings rows with read-only automatic-path placeholders."""
 
+import gettext
 import json
 import sys
 from pathlib import Path
 
+
 from gi.repository import Gio, GLib, Gtk
 from xapp.SettingsWidgets import SettingsWidget
+
+_ = gettext.translation(
+    "chatgpt-usage@oss-singularity", localedir=str(Path.home() / ".local/share/locale"), fallback=True
+).gettext
 
 
 class InstallationPaths(SettingsWidget):
@@ -21,7 +27,7 @@ class InstallationPaths(SettingsWidget):
         self.content_widget = Gtk.Grid(column_spacing=16, row_spacing=8)
         self.pack_start(self.content_widget, False, False, 0)
         for row, (key, label) in enumerate(
-            [("codex-path", "codex-cli path (optional)"), ("chatgpt-app-path", "ChatGPT path (optional)")]
+            [("codex-path", _("codex-cli path (optional)")), ("chatgpt-app-path", _("ChatGPT path (optional)"))]
         ):
             title = Gtk.Label(label=label, xalign=0)
             entry = Gtk.Entry(hexpand=True, width_chars=30)
@@ -34,11 +40,11 @@ class InstallationPaths(SettingsWidget):
             entry.connect("focus-out-event", self._focus_changed, key, False)
             self.entries[key] = entry
         footer = Gtk.Box(spacing=12)
-        self.status = Gtk.Label(label="Checking automatic paths…", xalign=0, wrap=True)
+        self.status = Gtk.Label(label=_("Checking automatic paths…"), xalign=0, wrap=True)
         self.status.set_hexpand(True)
         footer.pack_start(self.status, True, True, 0)
-        self.recheck_button = Gtk.Button(label="Recheck")
-        self.recheck_button.set_tooltip_text("Find automatic paths again without changing your entries.")
+        self.recheck_button = Gtk.Button(label=_("Recheck"))
+        self.recheck_button.set_tooltip_text(_("Find automatic paths again without changing your entries."))
         self.recheck_button.connect("clicked", self.recheck)
         footer.pack_end(self.recheck_button, False, False, 0)
         self.pack_start(footer, False, False, 0)
@@ -53,13 +59,13 @@ class InstallationPaths(SettingsWidget):
         entry = self.entries[key]
         if focused is None:
             focused = entry.has_focus()
-        entry.set_placeholder_text(None if focused else self._paths.get(key) or "No automatic path found")
+        entry.set_placeholder_text(None if focused else self._paths.get(key) or _("No automatic path found"))
 
     def recheck(self, *_args):
         if self._closed or self._process is not None:
             return
         self.recheck_button.set_sensitive(False)
-        self.status.set_text("Checking automatic paths…")
+        self.status.set_text(_("Checking automatic paths…"))
         try:
             process = Gio.Subprocess.new(
                 [sys.executable, str(Path(__file__).with_name("chatgpt_usage.py")), "--detect-paths"],
@@ -90,10 +96,10 @@ class InstallationPaths(SettingsWidget):
             return
         if isinstance(paths, dict):
             self._paths = {"codex-path": paths.get("codex"), "chatgpt-app-path": paths.get("chatgpt")}
-            self.status.set_text("Automatic paths checked. Your manual entries are unchanged.")
+            self.status.set_text(_("Automatic paths checked. Your manual entries are unchanged."))
         else:
             self._paths = {}
-            self.status.set_text("Could not check automatic paths. Try Recheck.")
+            self.status.set_text(_("Could not check automatic paths. Try Recheck."))
         for key in self.entries:
             self._set_placeholder(key)
         self.recheck_button.set_sensitive(True)

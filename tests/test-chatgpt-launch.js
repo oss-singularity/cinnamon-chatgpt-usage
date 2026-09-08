@@ -17,7 +17,7 @@ const processes = [];
 const AppletClass = new Function("imports", "require", "global",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
-    { ui: { applet: { Applet: class {} } }, misc: {}, gi: { GLib, Gio: {
+    { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} } }, misc: {}, gi: { GLib, Gio: {
         DesktopAppInfo: { new(id) { assert(id === "chatgpt.desktop", "Preserve desktop ID"); desktopLookups++; return desktop; } },
         SubprocessFlags: Gio.SubprocessFlags,
         Subprocess: { new(argv, flags) {

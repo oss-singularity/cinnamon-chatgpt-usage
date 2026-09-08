@@ -8,7 +8,7 @@ if (!ok) throw new Error("Cannot read applet.js");
 const AppletClass = new Function("imports", "require", "global",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
-    { ui: { applet: { Applet: class {} } }, misc: {}, gi: { Gio, GLib }, byteArray: ByteArray },
+    { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} } }, misc: {}, gi: { Gio, GLib }, byteArray: ByteArray },
     () => ({
         parseUsageHelperError: value => ({ message: value }),
         buildResetConsumeFeedback: outcome => outcome === "alreadyRedeemed" ? { title: outcome } : null

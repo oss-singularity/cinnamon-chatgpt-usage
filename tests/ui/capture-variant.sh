@@ -24,6 +24,14 @@ case "$panel_mode" in
         panel_setting="['1:0:top']"
         panel_position='0'
         ;;
+    bottom)
+        panel_setting="['1:0:bottom']"
+        panel_position='1'
+        ;;
+    left)
+        panel_setting="['1:0:left']"
+        panel_position='2'
+        ;;
     *)
         printf 'Unsupported panel mode: %s\n' "$panel_mode" >&2
         exit 2
@@ -86,6 +94,7 @@ mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/codex" <<'FAKE'
 #!/bin/sh
 if [ "${1:-}" = "--version" ]; then
+    if [ "${QA_SLOW_VERSION:-0}" = 1 ]; then sleep 1; fi
     printf 'codex-cli fixture\n'
 fi
 exit 0
@@ -102,6 +111,9 @@ gsettings set org.cinnamon enabled-desklets "[]"
 gsettings set org.cinnamon.theme name "${QA_THEME:-Mint-Y-Dark}"
 gsettings set org.cinnamon.desktop.interface gtk-theme "${QA_THEME:-Mint-Y-Dark}"
 gsettings set org.cinnamon.desktop.interface icon-theme "${QA_ICON_THEME:-Adwaita}"
+gsettings set org.cinnamon.desktop.interface text-scaling-factor "${QA_TEXT_SCALE:-1.0}"
+gsettings set org.cinnamon.desktop.interface enable-animations "${QA_ANIMATIONS:-true}"
+gsettings set org.cinnamon desktop-effects "${QA_ANIMATIONS:-true}"
 
 cinnamon --replace --sm-disable >"$driver_dir/cinnamon.log" 2>&1 &
 cinnamon_pid=$!
@@ -235,7 +247,7 @@ if [[ "$variant" == settings-* ]]; then
     esac
     python3 /usr/share/cinnamon/cinnamon-settings/xlet-settings.py applet "$uuid" -t "$settings_tab" >"$driver_dir/settings.log" 2>&1 &
     sleep 2
-    eval_cinnamon 'JSON.stringify((function(){var w=global.get_window_actors().map(function(a){return a.meta_window;}).filter(function(w){return w.get_title()==="ChatGPT Usage Monitor";})[0];if(!w)throw new Error("Settings window missing");var r=w.get_frame_rect();w.move_frame(false,global.screen_width-40-r.width-16,global.screen_height-r.height-16);return true;})())' >/dev/null
+    eval_cinnamon 'JSON.stringify((function(){var w=global.get_window_actors().map(function(a){return a.meta_window;}).filter(function(w){return w.get_title()==="ChatGPT Usage Monitor";})[0];if(!w)throw new Error("Settings window missing");var r=w.get_frame_rect();w.move_frame(false,global.screen_width-40-r.width-48,global.screen_height-r.height-48);return true;})())' >/dev/null
     sleep 1
 elif [[ "$variant" == install-* ]]; then
     if [[ "$variant" == "install-chatgpt" ]]; then
@@ -252,9 +264,22 @@ else
 fi
 sleep 1
 
+# Documentation composition requested by the maintainer: keep native dialog
+# contents and size, position beside the right panel, and soften only the
+# private desktop's modal shade. Production modal behavior is unchanged.
+if [[ "$panel_mode" == vertical && ( "$variant" == reset || "$variant" == install-* ) ]]; then
+    eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0],d=a._resetConfirmationDialog||a._installHelpDialog,p=d.dialogLayout.get_transformed_position(),s=d.dialogLayout.get_transformed_size(),panel=a.panel.actor.get_transformed_position();d.dialogLayout.translation_x=panel[0]-48-s[0]-p[0];d.dialogLayout.translation_y=global.screen_height-48-s[1]-p[1];if(d._lightbox){d._lightbox.actor.remove_all_transitions();d._lightbox.actor.opacity=64;}return true;})())' >/dev/null
+    sleep 0.5
+fi
+
 if [[ "${QA_INSTALLATION_PATHS:-}" == 1 && "$variant" == install-* ]]; then
     # shellcheck source=tests/ui/check-installation-paths.sh
     source "$(dirname "$0")/check-installation-paths.sh"
+fi
+
+if [[ "${QA_RELEASE_REVIEW:-0}" == 1 ]]; then
+    # shellcheck source=tests/ui/check-release.sh
+    source "$(dirname "$0")/check-release.sh"
 fi
 
 if [[ "${QA_MODEL_SPECIFIC_LIMITS:-}" == off ]]; then
@@ -264,6 +289,18 @@ if [[ "${QA_MODEL_SPECIFIC_LIMITS:-}" == off ]]; then
         exit 1
     fi
     printf 'Model visibility: both Spark sections hidden, restored and hidden again; snapshot unchanged\n'
+fi
+
+if [[ "${QA_ALIGNMENT:-0}" == 1 ]]; then
+    eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];a.__alignmentOriginal=a.showModelSpecificLimits;return true;})())' >/dev/null
+    for enabled in true false true; do
+        eval_cinnamon "JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid(\"chatgpt-usage@oss-singularity\")[0];a.showModelSpecificLimits=$enabled;a._onModelVisibilityChanged();return true;})())" >/dev/null
+        sleep 0.4
+        # shellcheck source=tests/ui/check-content-alignment.sh
+        source "$(dirname "$0")/check-content-alignment.sh"
+    done
+    eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];a.showModelSpecificLimits=a.__alignmentOriginal;delete a.__alignmentOriginal;a._onModelVisibilityChanged();return true;})())' >/dev/null
+    sleep 0.4
 fi
 
 if [[ "$variant" == reset && "${QA_RESET_ACKNOWLEDGMENT:-0}" == 1 ]]; then
@@ -281,8 +318,13 @@ case "$variant" in
             fi
             sleep 0.3
             popup_width=$(eval_cinnamon 'String(Math.round(Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0].menu.actor.get_transformed_size()[0]))' | grep -oE '[0-9]+' | tail -1)
-            [[ "$popup_width" == 419 ]] || { printf 'Unexpected popup width after %s: %s\n' "$lifecycle" "$popup_width" >&2; exit 1; }
+            expected_width=$(eval_cinnamon 'String(Math.round(419*(global.ui_scale||1)*Math.max(1,new imports.gi.Gio.Settings({schema_id:"org.cinnamon.desktop.interface"}).get_double("text-scaling-factor"))))' | grep -oE '[0-9]+' | tail -1)
+            [[ "$popup_width" == "$expected_width" ]] || { printf 'Unexpected popup width after %s: %s (expected %s)\n' "$lifecycle" "$popup_width" "$expected_width" >&2; exit 1; }
             printf 'popup-width-%s=%s\n' "$lifecycle" "$popup_width"
+            # shellcheck source=tests/ui/check-popup-content.sh
+            source "$(dirname "$0")/check-popup-content.sh"
+            # shellcheck source=tests/ui/check-content-alignment.sh
+            source "$(dirname "$0")/check-content-alignment.sh"
         done
         ;;
 esac
@@ -322,5 +364,23 @@ if [[ -n "$panel_geometry_file" ]]; then
     printf 'private-panel=%s\n' "$panel_geometry"
 fi
 
+if [[ "${QA_REQUIRE_TRANSPARENT_PANEL:-0}" == 1 ]]; then
+    panel_alpha=$(eval_cinnamon 'String(Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0].panel.actor.get_theme_node().get_background_color().alpha)' | grep -oE '[0-9]+' | tail -1)
+    [[ "$panel_alpha" =~ ^[0-9]+$ && "$panel_alpha" -lt 255 ]] || { printf 'Expected transparent native panel, got alpha=%s\n' "$panel_alpha" >&2; exit 1; }
+    printf 'private-panel-alpha=%s\n' "$panel_alpha"
+fi
+
+if [[ "${QA_TEARDOWN:-0}" == 1 ]]; then
+    # Exercise Cinnamon's actual removal path with a visible native tooltip.
+    eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];global.__removedUsageApplet=a;global.__removedUsageMenu=a.menu;var def=Main.AppletManager.definitions.filter(function(d){return d.applet===a;})[0];Main.AppletManager.removeAppletFromPanels(def,false);return true;})())' >/dev/null
+    sleep 1
+    removed=$(eval_cinnamon 'String((function(){var a=global.__removedUsageApplet;return a._destroyed && !a.menu && !a._timeoutId && !a._countdownTimeoutId && !a._menuRebuildTimeoutId && !a._refreshSpinnerTimeoutId && !a._clockChangedId && !a._animationsChangedId && !a._textScaleChangedId && !global.__removedUsageMenu._focusSignalId && !global.__removedUsageMenu._focusRevealId && !a._cancellable && !a._resetCancellable && !a._activityTooltips.length && global.menuStack.indexOf(global.__removedUsageMenu)<0 && !Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity").length;})())')
+    if ! grep -qE "['\"]true['\"]" <<< "$removed"; then
+        printf 'Native applet teardown failed: %s\n' "$removed" >&2
+        exit 1
+    fi
+    printf 'Release QA: native removal with tooltip clears menu, timers, settings signals and cancellables\n'
+fi
+
 # Keep Cinnamon alive until run-isolated.sh takes its single root frame.
-sleep 12
+sleep 30

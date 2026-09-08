@@ -26,7 +26,9 @@ xsetroot, xdotool, xdpyinfo, Python 3.10+, GTK settings tools and the chosen
 installed theme. Run from the repository root:
 
 ```bash
-python3 tests/ui/capture.py --output /tmp/chatgpt-usage-captures
+python3 tests/ui/capture.py --output /tmp/chatgpt-usage-captures \
+  --extension "$HOME/.local/share/cinnamon/extensions/transparent-panels@germanfr" \
+  --extension-config "$HOME/.config/cinnamon/spices/transparent-panels@germanfr/transparent-panels@germanfr.json"
 ```
 
 Use `--only usage-menu settings-colors` to limit variants. `--theme Mint-Y`
@@ -40,6 +42,11 @@ For complete model-visibility QA, use `QA_MODEL_SPECIFIC_LIMITS=off` with
 `--only usage-menu`: the fixture still contains Spark data, but its menu,
 history, rings, panel and tooltip must show Codex only. Notification options
 remain independent of this display setting.
+`QA_ALIGNMENT=1` switches model-specific limits on, off and on again in the
+same native session and checks visible ring/plot edges against the footer
+buttons. Every popup capture repeats content-bound and alignment checks after
+rebuild and reopen. Text checks measure glyph bounds and scrollbar checks use
+actual visibility; unused allocation space is not visible content.
 
 For panel threshold-color QA, run `QA_PANEL_ALERTS=on` or `QA_PANEL_ALERTS=off`
 with `--only topbar vertical-panel` into separate output directories. This
@@ -73,6 +80,28 @@ The final raw frame shows the open notification center. No live notification
 settings, account data or real notifications are touched.
 
 Every screenshot must be inspected before copying it to `docs/model-limits`.
+Use the approved bright blue desktop from `tests/assets`. Setup and reset
+dialogs sit 48 px left of the right vertical panel and 48 px above the screen
+bottom at scale 1. The 8 px margin above/left belongs to the crop, not dialog
+placement. Preserve the whole panel anchor, including every model indicator.
+Only the private capture fixture moves the native modal and softens its
+lightbox to 64/255; controls, geometry and input blocking remain native.
+The inventory checker rejects clipped anchors, incorrect modal gaps, stale
+backgrounds and dark modal backdrops.
+Public captures require the reference Transparent Panels extension and settings.
+The driver verifies the rendered panel background alpha; the inventory records
+it and the settings hash, and rejects an opaque panel. These requirements apply
+only to documentation composition, not to users' applet installations.
+
+Set `QA_RELEASE_REVIEW=1` for native named-action, focus, animation and menu-stack
+checks on right/top/bottom/left panels. `QA_TEXT_SCALE=1.25` and
+`QA_ANIMATIONS=false` exercise larger text and reduced motion. Use a 24-second
+capture delay for this review. `QA_SLOW_VERSION=1` adds a delayed fake version
+probe and verifies that Cinnamon's main loop keeps advancing until it completes.
+`QA_TEARDOWN=1` with the `bucket` variant removes
+the applet through Cinnamon's manager while its tooltip is open and verifies
+cleanup; this diagnostic frame is not a documentation screenshot.
+
 Menu captures must measure 419 px on the native actor, plus Cinnamon's 1 px
 visible edge (420 px total at scale 1). The capture fails on a width mismatch
 and records actor geometry in the inventory. PNG dimensions additionally

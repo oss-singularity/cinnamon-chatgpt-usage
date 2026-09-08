@@ -15,11 +15,14 @@ The release candidate makes backend discovery and subprocess transport
 consistent, retains uncertain reset attempts safely, and adds explicit reset
 acknowledgment. It also provides optional installation-path overrides with
 automatic hints, persistent notification-center alerts, model visibility
-controls and theme-aware fixed-width menus.
+controls and theme-aware menus. Gettext/POT covers the runtime, metadata and
+settings. Normal text retains 420 px; larger text grows proportionally and long
+menus scroll without hiding keyboard-focused actions.
 
-Before creating this PR, replace this paragraph with the final candidate
-commit, Cinnamon 6.6 support, original project artwork and completed
-translation/accessibility results. Include the final package hashes. The six
+Candidate: version 1.0.0 for Cinnamon 6.6, with original project artwork,
+42 Python tests, JavaScript regressions and 15 current native screenshots.
+The exact checks, qualified accessibility baseline and package hashes are in
+`docs/spices-readiness.md` and `docs/release-checkpoint.json`. The six
 required remote checks must pass on the actual PR; local checks are not a
 substitute. Link the release-preparation issue intentionally at creation time.
 
@@ -43,10 +46,10 @@ Suggested title: **ChatGPT Usage Monitor: add usage-limit applet**.
 > travel with the package. The applet is not affiliated with or endorsed by
 > OpenAI.
 
-Before submission add the actual final version, declared/tested Cinnamon
-range, translation and UI results, final validator SHA, artifact hashes and
-verified asset inventory. Do not submit the current 0.3.12 review archive as
-an approved 1.0.0 candidate.
+Prepared version: 1.0.0; declared Cinnamon series: 6.6, tested on 6.6.9.
+English fallback with gettext/POT; no completed translated languages yet.
+Attach the approved commit and exact package receipt at submission time.
+The candidate archive remains review-only until the maintainer approves it.
 
 ## GitHub release and forum announcement drafts
 

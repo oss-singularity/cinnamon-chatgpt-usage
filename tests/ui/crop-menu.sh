@@ -74,6 +74,19 @@ if [[ "$panel_mode" == horizontal && -n "$panel_geometry_file" ]]; then
 fi
 crop_right=$screen_w
 crop_bottom=$((menu_y + menu_h + 8))
+# Include the complete applet anchor, not just a strip of the panel. Modal
+# dialogs and settings windows may end above the bottom-aligned applet.
+if [[ -n "$panel_geometry_file" ]]; then
+    IFS=, read -r panel_x panel_y panel_w panel_h applet_x applet_y applet_w applet_h < "$panel_geometry_file"
+    for value in "$applet_x" "$applet_y" "$applet_w" "$applet_h"; do
+        [[ "$value" =~ ^[0-9]+$ ]] || { printf 'Missing applet anchor geometry\n' >&2; exit 2; }
+    done
+    (( applet_w > 0 && applet_h > 0 )) || { printf 'Empty applet anchor\n' >&2; exit 2; }
+    (( applet_x < crop_x )) && crop_x=$applet_x
+    (( applet_y < crop_y )) && crop_y=$applet_y
+    anchor_bottom=$((applet_y + applet_h))
+    (( anchor_bottom > crop_bottom )) && crop_bottom=$anchor_bottom
+fi
 (( crop_bottom > screen_h )) && crop_bottom=$screen_h
 crop_w=$((crop_right - crop_x))
 crop_h=$((crop_bottom - crop_y))
@@ -84,5 +97,6 @@ convert "$raw_image" \
     +repage \
     "$output_image"
 output_dimensions=$(identify -format '%wx%h' "$output_image")
+printf '[%s,%s,%s,%s]\n' "$crop_x" "$crop_y" "$crop_w" "$crop_h" > "${output_image%.png}.crop.json"
 printf 'cropped %s %s from %s,%s,%s,%s with 8px inset\n' \
     "$output_image" "$output_dimensions" "$menu_x" "$menu_y" "$menu_w" "$menu_h"

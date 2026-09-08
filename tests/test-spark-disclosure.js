@@ -17,8 +17,8 @@ const AppletClass = new Function("imports", "require",
     `${read("applet.js")}\nreturn ChatGptUsageApplet;`
 )(
     {
-        ui: {
-            applet: { Applet: class {} },
+        gettext: imports.gettext, format: imports.format, ui: {
+            applet: { Applet: class {}, AppletPopupMenu: class {} },
             popupMenu: { PopupSeparatorMenuItem: class {} }
         },
         misc: {},

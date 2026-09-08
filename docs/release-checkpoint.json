@@ -1,14 +1,14 @@
 {
   "checkedAt": "2026-09-08",
-  "status": "review-only-not-release-ready",
-  "version": "0.3.12",
+  "status": "ready-for-maintainer-review-not-published",
+  "version": "1.0.0",
   "targetVersion": "1.0.0",
   "maintainer": "ClaudiuSchuster",
   "projectIdentity": "OSS Singularity",
   "uuid": "chatgpt-usage@oss-singularity",
-  "installedPayloadFiles": 23,
+  "installedPayloadFiles": 24,
   "verifiedScreenshotCount": 15,
-  "pythonTestCount": 38,
+  "pythonTestCount": 42,
   "localVerify": "passed",
   "upstreamStructuralValidator": "passed",
   "upstreamHeadChecked": "b425f4d648196d279ff972d642f1693d5b23b55b",
@@ -16,13 +16,13 @@
   "validatorSha256": "3b74a9b8360314ebb42ece78fe3215513144f8b64078e327ca0c03c9d8b63928",
   "validatorMatchesCheckedUpstreamHead": true,
   "artifacts": {
-    "install.zip": "852929f6eee91c65a982771bd69cf49f71fa5463b1950b85a85049bafcdfd8bc",
-    "submission.zip": "f2f12c5e0d0da14d152de6bf38574036a4d74d620ed5b6bec4bf62a58b30456d"
+    "install.zip": "020d367eb3aa6a7e2fd85bce32d89beafd8ff3de3cb7af685afac8a00e392f23",
+    "submission.zip": "9f26d13b042d3a3904db3ea88c2d7d5c974c266c5cfc5846ab73273a16877ede"
   },
   "remotePrChecks": "not-run-no-pull-request",
   "spicesSubmission": "not-submitted",
   "tagOrReleasePublished": false,
-  "sourceBaseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
+  "sourceBaseCommit": "1397370e3ba4dc2ea1bd60d1c3568e5252d978a3",
   "sourceState": "Working-tree candidate after base commit; exact installed bytes identified by payloadSha256 and archive hashes below",
   "publicAppletName": "ChatGPT Usage Monitor",
   "socialHeading": "ChatGPT Usage Monitor",
@@ -32,16 +32,16 @@
   "legalClearance": false,
   "openBrandReview": "Explicitly chosen public app name contains ChatGPT; no legal clearance or permission inquiry",
   "payloadSha256": {
-    "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
-    "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
-    "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
-    "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
+    "applet.js": "fcd53598b4c7ff5aaaf704caa163bcb8f3b0d97897d82c638652eef4e12c8114",
+    "usage-format.js": "bccdde73912ebf95caff8023cbbb3651d09b7adc23b5883ffb435cdcad09c769",
+    "chatgpt_usage.py": "f9a6d6ab2a3685ca867213e753e6b9741a17cc6e56cee3f2cd1a8c4c5ec74dc8",
+    "metadata.json": "97101d167d0be4da44adb65329ead2be03e20eeeed3f0c7cdb31e5e9c4213fa6",
     "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
     "icon.png": "68d4b41a069af25c0c680b7d088a0652bc1853ce4151cacb58fcec3b1a644cd5",
     "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "ATTRIBUTION.md": "fd085d95de96408d0d6dbc1021e7e57fa0a3cac5903abad61b70a4128feff44d",
     "SECURITY.md": "a4b8a40807d6b664aab85929e16588c0c2e4052ff15192d8d0372ad18c639fed",
-    "README.md": "50b2ad5b908442bf90c806aeb5e63c4222822a101ae707b70fcc871bb1f15b28",
+    "README.md": "f848e41e30ef3deab3e7df238bc79e1c5cd6da56ea1e32804a74580629846958",
     "icons/ATTRIBUTION.md": "cd7ff1ccccb0c55f481d83182ac37aaf774d5e3c3333738a59ceac56c2090044",
     "icons/LICENSE-CC-BY-SA-4.0.txt": "351041923dd6d18f88ca4e40d68d7b38ca520fda73f32509aedf9c2f01dfaffa",
     "icons/usage-white.png": "39efe23d65131c2222b10927a3387d6cb5f066889ff7c8e0bfc2949491abc735",
@@ -54,6 +54,39 @@
     "icons/utilities-system-monitor-symbolic.svg": "d3240cf7e1d0a0440e21b27686c499359361d55136e8970286e406842bb72ea2",
     "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
     "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e",
-    "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea"
+    "path_settings.py": "2c0b264c7694ce45ea5df26f58e4d5b8ff7fe34548814c5990a6fa2ebbeedd0a",
+    "po/chatgpt-usage@oss-singularity.pot": "4868e23cd944fb319b43e9bb97bf018afe6a6b43a837d78e91e5349e6d5086a3"
+  },
+  "verifiedDesktopBaseline": {
+    "cinnamon": "6.6.9",
+    "session": "X11",
+    "themes": ["Mint-Y", "Mint-Y-Dark-Aqua"],
+    "displayScale": 1,
+    "textScaleRange": [1, 2],
+    "screens": ["1366x768", "1920x1080"],
+    "panelPositions": ["top", "right", "bottom", "left"]
+  },
+  "nativeChecks": [
+    "ring-chart-and-rotated-disclosure-edges-match-footer-with-models-enabled-and-disabled",
+    "visible-content-bounds-after-rebuild-and-reopen",
+    "small-screen-scroll-and-keyboard-focus",
+    "reduced-motion",
+    "delayed-backend-probe-remains-responsive",
+    "removal-with-tooltip-clears-timers-signals-and-cancellables"
+  ],
+  "outsideVerifiedBaseline": [
+    "multiple-monitors-and-mixed-DPI",
+    "fractional-display-scaling",
+    "RTL-translations",
+    "high-contrast-shell-themes",
+    "full-Orca-navigation"
+  ],
+  "shippedLanguages": ["en"],
+  "gettextCompiledCatalogTests": "passed-with-synthetic-test-catalog",
+  "documentationPanel": {
+    "extension": "transparent-panels@germanfr",
+    "referenceStyle": "panel-semi-transparent",
+    "backgroundAlpha": 102,
+    "configSha256": "6a7f7230461a5eee77946683b3b294e9a6143cf08f2875236d48f552311402d9"
   }
 }

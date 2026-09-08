@@ -6,6 +6,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -20,9 +21,9 @@ SPECS = [
     ("bucket-tooltip", "bucket", "vertical"),
     ("topbar", "panel", "horizontal"),
     ("vertical-panel", "panel", "vertical"),
-    ("reset-confirmation", "reset", "horizontal"),
-    ("install-chatgpt", "install-chatgpt", "horizontal"),
-    ("install-codex", "install-codex", "horizontal"),
+    ("reset-confirmation", "reset", "vertical"),
+    ("install-chatgpt", "install-chatgpt", "vertical"),
+    ("install-codex", "install-codex", "vertical"),
     ("panel-tooltip", "panel-tooltip", "horizontal"),
     ("settings-general", "settings-general", "vertical"),
     ("settings-colors", "settings-colors", "vertical"),
@@ -34,14 +35,30 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def verify_composition(actor, panel, crop, screen, variant):
+    x, y, width, height = crop
+    ax, ay, aw, ah = panel[4:]
+    if aw <= 0 or ah <= 0 or not (x <= ax and y <= ay and ax + aw <= x + width and ay + ah <= y + height):
+        raise ValueError("Crop must include the complete applet anchor")
+    if variant in {"reset", "install-chatgpt", "install-codex"}:
+        if panel[2] != 40 or panel[0] <= 0:
+            raise ValueError("Documentation dialogs require the right vertical panel")
+        if panel[0] - actor[0] - actor[2] != 48 or screen[1] - actor[1] - actor[3] != 48:
+            raise ValueError("Dialog must sit 48 px from the panel and bottom edge")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--theme", default="Mint-Y-Dark-Aqua")
-    parser.add_argument("--extension", type=Path)
-    parser.add_argument("--extension-config", type=Path)
+    parser.add_argument("--extension", required=True, type=Path)
+    parser.add_argument("--extension-config", required=True, type=Path)
     parser.add_argument("--only", nargs="*")
     args = parser.parse_args()
+    if args.extension.name != "transparent-panels@germanfr" or not args.extension.is_dir():
+        parser.error("Public captures require the installed transparent-panels@germanfr extension")
+    if not args.extension_config.is_file():
+        parser.error("Public captures require the reference panel transparency settings")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     stage = output / "stage"
@@ -55,6 +72,7 @@ def main():
         "metadata.json",
         "settings-schema.json",
         "path_settings.py",
+        "tests/assets/cinnamon-teal-background.svg",
     ]
     source_paths += [str(path.relative_to(ROOT)) for path in sorted(UI.iterdir()) if path.is_file()]
     source_paths += ["icon.png"] + [
@@ -93,21 +111,44 @@ def main():
                 check=True,
                 stdout=log,
                 stderr=subprocess.STDOUT,
-                env={**os.environ, "QA_THEME": args.theme},
+                env={**os.environ, "QA_THEME": args.theme, "QA_REQUIRE_TRANSPARENT_PANEL": "1"},
                 cwd=ROOT,
             )
+        alpha_match = re.search(r"private-panel-alpha=(\d+)", (output / f"{name}.log").read_text())
+        if not alpha_match or int(alpha_match[1]) >= 255:
+            raise ValueError("Native panel transparency was not verified")
         if variant == "panel":
             crop = [str(UI / "crop-panel.sh"), str(raw), str(panel), str(image), mode]
         else:
             crop = [str(UI / "crop-menu.sh"), str(raw), str(geometry), str(image), str(panel), mode]
         subprocess.run(crop, check=True)
         actor_geometry = [int(value) for value in geometry.read_text().strip().split(",")]
+        panel_geometry = [int(value) for value in panel.read_text().strip().split(",")]
+        crop_geometry = json.loads(image.with_suffix(".crop.json").read_text())
+        screen_geometry = [int(value) for value in size.split("x")[:2]]
+        verify_composition(actor_geometry, panel_geometry, crop_geometry, screen_geometry, variant)
+        corner = subprocess.check_output(
+            [
+                "convert",
+                str(image),
+                "-format",
+                "%[fx:int(255*p{0,0}.r)],%[fx:int(255*p{0,0}.g)],%[fx:int(255*p{0,0}.b)]",
+                "info:",
+            ],
+            text=True,
+        )
+        corner_rgb = [int(value) for value in corner.split(",")]
+        if variant in {"reset", "install-chatgpt", "install-codex"} and min(corner_rgb) < 60:
+            raise ValueError("Modal backdrop is too dark for the approved blue composition")
         is_popup = variant in {"overview", "basic", "spark", "four", "codex-two", "bucket"}
         if is_popup and actor_geometry[2] != 419:
             raise RuntimeError(f"{name}: expected 419 px popup actor plus 1 px edge, got {actor_geometry[2]}")
         manifest[name + ".png"] = {
             "surface": "popup" if is_popup else "panel" if variant == "panel" else "dialog-or-tooltip",
             "actorGeometry": actor_geometry,
+            "panelGeometry": panel_geometry,
+            "cropGeometry": crop_geometry,
+            "backgroundCornerRgb": corner_rgb,
             "variant": variant,
             "panel": mode,
             "theme": args.theme,
@@ -116,6 +157,8 @@ def main():
             "scale": 1,
             "screen": size,
             "extension": args.extension.name if args.extension else None,
+            "extensionConfigSha256": sha(args.extension_config),
+            "panelBackgroundAlpha": int(alpha_match[1]),
             "capturedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
             "baseCommit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "sourceSha256": sources,

@@ -20,6 +20,10 @@ separately; a panel switch lets threshold colors take precedence. Model-specific
 panel mode selects the tightest remaining quota for each duration. A separate
 global switch hides model-specific limits from the popup, history and panel.
 Notification defaults are enabled and delivered alerts remain in the center.
+Normal text uses a 420 px popup; larger text scales the layout and long menus
+scroll to keep actions reachable. Rings and charts stay aligned with the buttons
+when model-specific limits are hidden. English is the fallback language;
+the bundled gettext template prepares future translations.
 
 Usage history stores eight days of sampled percentages and reset timestamps.
 It reports observed changes, including incomplete periods marked with `~`, and

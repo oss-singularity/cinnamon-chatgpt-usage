@@ -15,7 +15,7 @@ class Process {
     get_exit_status() { return 0; }
 }
 const AppletClass = new Function("imports", "require", "global", `${source}\nreturn ChatGptUsageApplet;`)(
-    { ui: { applet: { Applet: class {} } }, misc: {}, gi: {
+    { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} } }, misc: {}, gi: {
         GLib, Gio: { Subprocess: Process, SubprocessFlags: {}, Cancellable: class {} }
     } }, () => ({}), { logWarning() {}, logError() {} }
 );

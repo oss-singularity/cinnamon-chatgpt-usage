@@ -28,8 +28,8 @@ class Modal {
 const AppletClass = new Function("imports", "require",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
-    { ui: {
-        applet: { Applet: class {} },
+    { gettext: imports.gettext, format: imports.format, ui: {
+        applet: { Applet: class {}, AppletPopupMenu: class {} },
         modalDialog: { ModalDialog: Modal },
         dialog: { MessageDialogContent: class { constructor(options) { Object.assign(this, options); } } },
         checkBox: { CheckBox: class {

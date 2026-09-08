@@ -25,7 +25,7 @@ class Modal {
     open() {}
 }
 const AppletClass = new Function("imports", "require", `${source}\nreturn ChatGptUsageApplet;`)(
-    { ui: { applet: { Applet: class {} }, modalDialog: { ModalDialog: Modal }, dialog: { MessageDialogContent: Label } }, misc: {}, gi: {
+    { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} }, modalDialog: { ModalDialog: Modal }, dialog: { MessageDialogContent: Label } }, misc: {}, gi: {
         GLib, St: { Align: {}, BoxLayout: Box, Label, Entry, Button: class { connect() {} } }, Pango: { WrapMode: {} }, Clutter: { KEY_Escape: 27, ActorAlign: {} }
     } }, () => ({})
 );

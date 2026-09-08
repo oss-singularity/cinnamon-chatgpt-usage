@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import gettext
 import json
 import math
 import os
@@ -16,7 +17,12 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+
 from typing import Any
+
+_ = gettext.translation(
+    "chatgpt-usage@oss-singularity", localedir=str(Path.home() / ".local/share/locale"), fallback=True
+).gettext
 
 
 CLIENT_INFO = {
@@ -31,7 +37,7 @@ ACTIVITY_WINDOW_SECONDS = 24 * 60 * 60
 DEFAULT_ACTIVITY_BUCKET_MINUTES = 60
 RESET_TIMESTAMP_JITTER_SECONDS = 60
 AUTH_REQUIRED_PREFIX = "AUTH_REQUIRED:"
-AUTH_REQUIRED_MESSAGE = "Sign in to ChatGPT with the ChatGPT App or Codex CLI, then refresh this applet."
+AUTH_REQUIRED_MESSAGE = _("Sign in to ChatGPT with the ChatGPT App or Codex CLI, then refresh this applet.")
 
 
 class UsageError(RuntimeError):
@@ -484,7 +490,7 @@ def resolve_codex(explicit: str | None, chatgpt_app: str | None = None) -> str:
         candidate = os.path.abspath(os.path.expanduser(explicit))
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
             return candidate
-        raise UsageError(f"Codex CLI is not executable: {candidate}")
+        raise UsageError(_("Codex CLI is not executable: %(path)s") % {"path": candidate})
 
     candidate = shutil.which("codex")
     if candidate:
@@ -497,9 +503,9 @@ def resolve_codex(explicit: str | None, chatgpt_app: str | None = None) -> str:
         return bundled_candidate
     if chatgpt_app:
         raise UsageError(
-            "No Codex CLI or bundled backend found; check the ChatGPT app path and its resources/codex file"
+            _("No Codex CLI or bundled backend found; check the ChatGPT app path and its resources/codex file")
         )
-    raise UsageError("Codex CLI or ChatGPT App backend was not found")
+    raise UsageError(_("Codex CLI or ChatGPT App backend was not found"))
 
 
 def _command_version(executable: str | None, timeout: float = 2) -> str | None:
@@ -586,7 +592,7 @@ def _run_app_server_request(
     """Perform one initialized app-server request and return its result."""
 
     if not math.isfinite(timeout) or timeout <= 0:
-        raise UsageError("Request timeout must be finite and positive")
+        raise UsageError(_("Request timeout must be finite and positive"))
     deadline = time.monotonic() + timeout
     process = subprocess.Popen(
         [codex, "app-server", "--listen", "stdio://"],
@@ -598,7 +604,7 @@ def _run_app_server_request(
     )
     try:
         if process.stdin is None or process.stdout is None:
-            raise UsageError("Could not open Codex app-server pipes")
+            raise UsageError(_("Could not open Codex app-server pipes"))
         os.set_blocking(process.stdin.fileno(), False)
         os.set_blocking(process.stdout.fileno(), False)
         messages = (
@@ -611,7 +617,7 @@ def _run_app_server_request(
         )
         pending = bytearray()
         while time.monotonic() < deadline:
-            readable, writable, _ = select.select(
+            readable, writable, _exceptional = select.select(
                 [process.stdout],
                 [process.stdin] if outgoing else [],
                 [],
@@ -629,10 +635,10 @@ def _run_app_server_request(
             except BlockingIOError:
                 continue
             if not chunk:
-                raise UsageError("Codex app-server closed its output before replying")
+                raise UsageError(_("Codex app-server closed its output before replying"))
             pending.extend(chunk)
             if len(pending) > 4 * 1024 * 1024:
-                raise UsageError("Codex app-server response exceeded the size limit")
+                raise UsageError(_("Codex app-server response exceeded the size limit"))
             lines = pending.split(b"\n")
             pending = lines.pop()
             for line in lines:
@@ -651,7 +657,7 @@ def _run_app_server_request(
                     detail = error.get("message") if isinstance(error, dict) else error
                     if is_authentication_error(detail):
                         raise AuthenticationRequired(AUTH_REQUIRED_MESSAGE)
-                    raise UsageError(f"Codex app-server rejected the request: {detail}")
+                    raise UsageError(_("Codex app-server rejected the request: %(detail)s") % {"detail": detail})
                 if message.get("id") != request.get("id"):
                     continue
                 result = message.get("result")
@@ -687,8 +693,8 @@ def fetch_rate_limits(codex: str, timeout: float) -> dict[str, Any]:
         codex,
         timeout,
         {"method": "account/rateLimits/read", "id": 2},
-        "Codex app-server returned no usage data",
-        "Timed out while reading ChatGPT usage limits",
+        _("Codex app-server returned no usage data"),
+        _("Timed out while reading ChatGPT usage limits"),
     )
 
 
@@ -702,7 +708,7 @@ def consume_rate_limit_reset(
 
     key = str(idempotency_key or "").strip()
     if not key:
-        raise UsageError("Reset consume requires a non-empty idempotency key")
+        raise UsageError(_("Reset consume requires a non-empty idempotency key"))
 
     params: dict[str, str] = {"idempotencyKey": key}
     selected_credit_id = str(credit_id or "").strip()
@@ -717,47 +723,51 @@ def consume_rate_limit_reset(
             "id": 2,
             "params": params,
         },
-        "Codex app-server returned no reset outcome",
-        "Timed out while consuming a rate-limit reset",
+        _("Codex app-server returned no reset outcome"),
+        _("Timed out while consuming a rate-limit reset"),
     )
     if not isinstance(result.get("outcome"), str) or not result["outcome"]:
-        raise UsageError("Codex app-server returned an invalid reset outcome")
+        raise UsageError(_("Codex app-server returned an invalid reset outcome"))
     return result
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--detect-paths", action="store_true", help="Find automatic paths without executing commands")
-    parser.add_argument("--codex", help="Path to the Codex app-server executable")
-    parser.add_argument("--chatgpt-app", help="ChatGPT app executable used for bundled-backend fallback")
-    parser.add_argument(
-        "--describe-backend", action="store_true", help="Discover local commands without account access"
+    parser = argparse.ArgumentParser(
+        description=_("Read ChatGPT Work and Codex limits through the local Codex app-server.")
     )
-    parser.add_argument("--timeout", type=float, default=25, help="Request timeout in seconds")
+    parser.add_argument(
+        "--detect-paths", action="store_true", help=_("Find automatic paths without executing commands")
+    )
+    parser.add_argument("--codex", help=_("Path to the Codex app-server executable"))
+    parser.add_argument("--chatgpt-app", help=_("ChatGPT app executable used for bundled-backend fallback"))
+    parser.add_argument(
+        "--describe-backend", action="store_true", help=_("Discover local commands without account access")
+    )
+    parser.add_argument("--timeout", type=float, default=25, help=_("Request timeout in seconds"))
     parser.add_argument(
         "--consume-reset",
         action="store_true",
-        help="Explicitly consume one earned rate-limit reset credit",
+        help=_("Explicitly consume one earned rate-limit reset credit"),
     )
     parser.add_argument(
         "--idempotency-key",
-        help="Stable key for one explicit reset-redemption attempt",
+        help=_("Stable key for one explicit reset-redemption attempt"),
     )
-    parser.add_argument("--credit-id", help="Optional opaque reset-credit ID")
-    parser.add_argument("--history-file", type=Path, help="Override the local history path")
+    parser.add_argument("--credit-id", help=_("Optional opaque reset-credit ID"))
+    parser.add_argument("--history-file", type=Path, help=_("Override the local history path"))
     parser.add_argument(
         "--activity-bucket-minutes",
         type=int,
         choices=(60, 120),
         default=DEFAULT_ACTIVITY_BUCKET_MINUTES,
-        help="24-hour activity bucket size",
+        help=_("24-hour activity bucket size"),
     )
-    parser.add_argument("--no-history", action="store_true", help="Do not read or write history")
+    parser.add_argument("--no-history", action="store_true", help=_("Do not read or write history"))
     return parser.parse_args()
 
 
 def _cancel_request(_signum: int, _frame: Any) -> None:
-    raise InterruptedError("Usage request cancelled")
+    raise InterruptedError(_("Usage request cancelled"))
 
 
 def main() -> int:
@@ -791,7 +801,7 @@ def main() -> int:
                     args.activity_bucket_minutes,
                 )
             except OSError as error:
-                snapshot["history"] = {"error": f"Could not store local history: {error}"}
+                snapshot["history"] = {"error": _("Could not store local history: %(error)s") % {"error": error}}
         print(json.dumps(snapshot, separators=(",", ":")))
         return 0
     except AuthenticationRequired as error:

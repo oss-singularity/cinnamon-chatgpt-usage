@@ -25,8 +25,8 @@ class Notification {
 const AppletClass = new Function("imports", "require",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
-    { ui: {
-        applet: { Applet: class {} },
+    { gettext: imports.gettext, format: imports.format, ui: {
+        applet: { Applet: class {}, AppletPopupMenu: class {} },
         main: { messageTray: { add(source) { sources.push(source); } },
             notify() { throw new Error("Transient Main.notify delivery is forbidden"); } },
         messageTray: { SystemNotificationSource: Source, Notification }

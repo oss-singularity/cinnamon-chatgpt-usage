@@ -32,7 +32,7 @@
 
 <p align="center"><strong>Default overview on a horizontal panel</strong></p>
 <p align="center">
-  <img src="docs/model-limits/usage-menu-horizontal.png" width="456" alt="Horizontal-panel default with muted unused Spark rings and both Spark sections collapsed">
+  <img src="docs/model-limits/usage-menu-horizontal.png" width="427" alt="Horizontal-panel default with muted unused Spark rings and both Spark sections collapsed">
 </p>
 <p align="center"><sub>Unused Spark stays compact on either panel orientation; positive quota usage opens the upper section and restores its header rings.</sub></p>
 
@@ -50,7 +50,7 @@
 
 <p align="center"><strong>Explicit earned-reset confirmation</strong></p>
 <p align="center">
-  <img src="docs/model-limits/reset-confirmation.png" width="351" alt="Native confirmation dialog before using an earned limit reset with the horizontal panel anchor and both model-specific indicators visible">
+  <img src="docs/model-limits/reset-confirmation.png" width="393" alt="Native confirmation dialog before using an earned limit reset with the vertical panel anchor and both model-specific indicators visible">
 </p>
 <p align="center"><sub>Check the acknowledgment to enable “Use reset now”. Every newly opened dialog starts unchecked; the compact top panel keeps the two model indicators visible.</sub></p>
 
@@ -163,6 +163,14 @@ declares only that version series; older Cinnamon versions are outside this
 release's supported scope. Local Spices preparation is tracked in
 [the readiness report](docs/spices-readiness.md), including the exact tested
 scope and the remaining release gates.
+The tested presentation baseline is X11, Mint-Y/Mint-Y-Dark-Aqua, 100% display
+scale and 100–200% text size. Larger text increases popup width proportionally;
+the normal view stays 420 px wide. Long menus scroll on smaller screens, and
+keyboard focus brings footer actions into view. Mixed-DPI/multiple monitors,
+RTL translations, high-contrast shell themes and full screen-reader operation
+are not certified by this first-release test baseline.
+English is the fallback language; [gettext templates and contributor instructions](po/README.md)
+prepare future translations without claiming completed language coverage.
 
 In **General → Usage data**, both path fields are optional. Leave **codex-cli path**
 empty for automatic limit-backend discovery. **ChatGPT path** selects

@@ -7,7 +7,7 @@ if (!ok) throw new Error("Cannot read applet.js");
 const AppletClass = new Function("imports", "require",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
-    { ui: { applet: { Applet: class {} } }, misc: {}, gi: {} },
+    { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} } }, misc: {}, gi: { St: { Side: { RIGHT: 1 } } } },
     () => ({})
 );
 
@@ -47,3 +47,57 @@ for (const menuX of [1461, -459]) {
 }
 
 print("Action centering regression tests passed.");
+
+// Model visibility changes native column minimums. Those changes must not
+// move the painted rings or the plot edge relative to the footer buttons.
+for (const scale of [1, 1.25, 2]) {
+    for (const naturalShift of [0, -28, 15]) {
+        const ring = {
+            translation_x: -14,
+            get_transformed_position() { return [390 + naturalShift + this.translation_x, 0]; },
+            get_transformed_size() { return [52, 52]; }
+        };
+        const chart = {
+            width: 374 + naturalShift,
+            get_transformed_position() { return [110, 0]; },
+            get_theme_node() { return { get_padding() { return 39; } }; },
+            set_width(width) { this.width = width; }
+        };
+        const arrows = [10, 12].map((width, index) => ({
+            translation_x: 0,
+            rotation_angle_z: index ? 90 : 0,
+            get_transformed_position() {
+                return [480 + naturalShift + this.translation_x + (this.rotation_angle_z ? width : 0), 0];
+            },
+            get_abs_allocation_vertices() {
+                const x = 480 + naturalShift + this.translation_x;
+                return [{ x }, { x: x + width }, { x }, { x: x + width }];
+            },
+            get_transformed_size() { return [width, width]; }
+        }));
+        const applet = Object.create(AppletClass.prototype);
+        const right = 100 + Math.round(352 * scale);
+        Object.assign(applet, {
+            _actionWidthFrame: {
+                get_transformed_position() { return [100, 0]; },
+                get_transformed_size() { return [Math.round(352 * scale), 0]; }
+            },
+            _countdownWidgets: [{ actor: ring }],
+            _limitSections: [{ heading: { arrow: arrows[0] } }],
+            _submenuTriangles: [arrows[1]],
+            _activityCharts: [{ chart }]
+        });
+        for (let rebuild = 0; rebuild < 3; rebuild++) {
+            applet._syncContentRightEdges();
+            if (ring.get_transformed_position()[0] + 51 !== right || 110 + chart.width - 39 !== right) {
+                throw new Error(`Content edge drift after model/layout change: scale=${scale}, shift=${naturalShift}`);
+            }
+            for (const arrow of arrows) {
+                if (Math.max(...arrow.get_abs_allocation_vertices().map(vertex => vertex.x)) !== right) {
+                    throw new Error(`Disclosure edge drift: scale=${scale}, shift=${naturalShift}`);
+                }
+            }
+        }
+    }
+}
+print("Content alignment: model visibility, larger fonts and repeated layout preserve the button edge.");

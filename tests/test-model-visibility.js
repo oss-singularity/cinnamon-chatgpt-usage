@@ -7,7 +7,7 @@ if (!ok) throw new Error("Cannot read applet.js");
 const AppletClass = new Function("imports", "require",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
-    { ui: { applet: { Applet: class {} }, popupMenu: { PopupSeparatorMenuItem: class {} } }, misc: {}, gi: {} },
+    { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} }, popupMenu: { PopupSeparatorMenuItem: class {} } }, misc: {}, gi: {} },
     () => ({ formatDuration: value => `${value}m`, formatPercent: value => `${value}%` })
 );
 function assert(value, message) { if (!value) throw new Error(message); }

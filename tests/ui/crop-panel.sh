@@ -81,6 +81,7 @@ convert "$raw_image" \
     +repage \
     "$output_image"
 output_dimensions=$(identify -format '%wx%h' "$output_image")
+printf '[%s,%s,%s,%s]\n' "$crop_x" "$crop_y" "$crop_w" "$crop_h" > "${output_image%.png}.crop.json"
 printf 'cropped %s %s from panel %s,%s,%s,%s and applet %s,%s,%s,%s\n' \
     "$output_image" "$output_dimensions" "$panel_x" "$panel_y" "$panel_w" "$panel_h" \
     "$applet_x" "$applet_y" "$applet_w" "$applet_h"

@@ -17,8 +17,8 @@ const AppletClass = new Function("imports", "require",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
     {
-        ui: {
-            applet: { Applet: class {} },
+        gettext: imports.gettext, format: imports.format, ui: {
+            applet: { Applet: class {}, AppletPopupMenu: class {} },
             settings: { AppletSettings: class {
                 bind(key, property, changed) { bindings.set(key, { property, changed }); }
             } }
