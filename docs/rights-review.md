@@ -10,7 +10,8 @@ current tree and payload. Original quota, chat and terminal-robot SVGs and their
 generated PNGs replace them. Their sources are included under GPL-3.0-or-later.
 
 **Naming review limit:** the maintainer explicitly chose **ChatGPT Usage Monitor**
-consistently for the applet, popup, settings, social preview and documentation.
+for the applet, settings, social preview and documentation. The popup's first
+line retains the descriptive heading ChatGPT Work & Codex usage.
 The name contains an OpenAI mark; this review does not establish that its use
 as an app name is covered by the published branding conditions. Replacing the
 pictures does not settle that separate question. No inquiry will be sent.

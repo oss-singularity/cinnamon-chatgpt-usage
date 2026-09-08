@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-- Use ChatGPT Usage Monitor consistently in applet metadata, popup headings,
-  settings, documentation and release drafts.
+- Use ChatGPT Usage Monitor consistently in applet metadata, settings,
+  documentation and release drafts; retain the descriptive popup heading
+  ChatGPT Work & Codex usage.
 
 - Remove the inferred date and preceding dash from the ChatGPT app tooltip;
   retain its detected version and the separate Codex tooltip behavior.

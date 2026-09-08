@@ -863,7 +863,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             y_align: Clutter.ActorAlign.CENTER
         });
         text.x_expand = true;
-        const title = new St.Label({ text: this.metadata.name });
+        const title = new St.Label({ text: "ChatGPT Work & Codex usage" });
         title.style = POPUP_HEADING_STYLE;
         text.add_child(title);
         if (this._snapshot) {

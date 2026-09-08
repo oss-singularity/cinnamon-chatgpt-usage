@@ -10,15 +10,15 @@
     "scale": 1,
     "screen": "720x540x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:48:47.370194+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:00:39.349417+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -41,7 +41,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "dc0bfbdf4f3894c68f1ec937d33ed8dc30deb97ea0ce26881414f25b3715d09e",
+    "sha256": "32abc3c5c9c15d26a758a3d393932efa77e2e27cac4ce05698370545eb7af4c2",
     "dimensions": "605x493"
   },
   "install-codex.png": {
@@ -55,15 +55,15 @@
     "scale": 1,
     "screen": "720x540x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:00.951886+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:00:52.957055+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -86,7 +86,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "1e84441e5e674a018e526f5aa2c123582371917c7240a06c322908add1b0a0c0",
+    "sha256": "1faa951ef094106ac230935693dad42d9a5e4e3e21db85c349de5f7b36b7988c",
     "dimensions": "605x501"
   },
   "settings-general.png": {
@@ -100,15 +100,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:14.928956+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:06.978672+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -131,7 +131,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "7951b7f63e718d7f25868af2055dc3b610efcd9a3fcd9d53216c40ed729209d3",
+    "sha256": "3a69cf7f414d9a3c50d7e0ad025267afefafe7649d835a199edb2714a9177f63",
     "dimensions": "864x729"
   },
   "settings-colors.png": {
@@ -145,15 +145,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:28.914293+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:21.045656+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -176,7 +176,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "f592c99c587c3c6d63d16f4d3691319e1542759c747bc62b5012380eab0262ce",
+    "sha256": "b04fb1dbf5ebb742a15d44eef6d5f3e73af6c65fbf142cee14e2f6905a8ad7d4",
     "dimensions": "864x729"
   },
   "settings-notifications.png": {
@@ -190,15 +190,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:42.905761+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:35.060271+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -221,7 +221,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "864ac4e808d6acb9eb6fe85251bee932b523fa62b6a6cf725e0158fad74c7fe0",
+    "sha256": "b0d82f804d14be63a44118e6aac995ad9efbbbb980d8f6f48838041851402511",
     "dimensions": "864x729"
   },
   "usage-menu.png": {
@@ -235,15 +235,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:48:49.189060+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:00:39.897853+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -266,7 +266,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "f1788ffc299134f4ef091f4e9049e56b448216b2147c35a27e27749720b5524b",
+    "sha256": "65cb4a2b90c990bfdd6f8b98e4b7389018c357a56bb62b1b20a5322f1d055cc9",
     "dimensions": "467x787"
   },
   "usage-menu-horizontal.png": {
@@ -280,15 +280,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:03.430406+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:00:54.051276+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -311,7 +311,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "4359d13174abad3ed84cb15304f67a7fc89163b8aa0c97643d57994d63921a8d",
+    "sha256": "26ab7e44efb03877aef58c0cc2b0937bac684fcd69c704afc1ec63600e77eadc",
     "dimensions": "427x713"
   },
   "usage-menu-spark.png": {
@@ -325,15 +325,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:17.608065+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:08.239305+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -356,7 +356,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "d514a1b928bd4c299daf3f85c4e08a6f6dab526efa13353924fdb74f5885e184",
+    "sha256": "3bf0ebe4a0fa39de5cc06fc8aa049b2a5de2c15e3a3fe7c6bb527fab98ed0e81",
     "dimensions": "467x999"
   },
   "usage-menu-four-rings.png": {
@@ -370,15 +370,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:31.713324+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:22.490681+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -401,7 +401,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "8ba0b4ab26c6b7aa59fafb64282c6bbb2f699c5b1242ca84f614acdbbd95937f",
+    "sha256": "582bc1a988f46088edcc1b9aa87b80d07f74f9da1691ebe36d0d6aa8a5419521",
     "dimensions": "467x845"
   },
   "usage-menu-codex-only.png": {
@@ -415,15 +415,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:45.786924+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:36.727000+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -446,7 +446,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "ce80853fe99b94caf029d748d8e446840351553e688e122b9390a2e1b47e73eb",
+    "sha256": "6c7c072cf68bc78ad8af93a27f8e41417ce3d8737ffe6442ee609c5dd076dc91",
     "dimensions": "467x759"
   },
   "bucket-tooltip.png": {
@@ -460,15 +460,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:48:50.298775+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:00:39.826808+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -491,7 +491,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "f299efa5d65d79bad946f45877360371011df4fa636f2e902f6cab01e509ce72",
+    "sha256": "dbb92f11002fe35dabf8d4e6bcc6bd4841068108dedf53ca37caba4149162a0c",
     "dimensions": "467x999"
   },
   "topbar.png": {
@@ -505,15 +505,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:04.407988+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:00:53.979495+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -536,7 +536,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "a0ab0774429a875b620f45bab00a7c8a85a3f62edda3c7d2d74660abbdfc726b",
+    "sha256": "0f68ba58e28c9d4306fe67cefea0d1704adcbc2c3ea8bc51352e5a93433659f1",
     "dimensions": "94x40"
   },
   "vertical-panel.png": {
@@ -550,15 +550,15 @@
     "scale": 1,
     "screen": "1920x1080x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:18.554020+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:08.142082+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -581,7 +581,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "d5e0f916976ed7a83c6b6e039456fe0105ccd08085bc697a38f5287d88c3f22a",
+    "sha256": "0ca8619537ff4a681ed1f3d587f208710a261a5fbad9c1b52e664317eae97840",
     "dimensions": "40x96"
   },
   "reset-confirmation.png": {
@@ -595,15 +595,15 @@
     "scale": 1,
     "screen": "720x540x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:32.225902+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:21.856729+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -626,7 +626,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "e8d5153c4bd52bf93484fcfa287787ad519e52f9c8838949cc660d60dc447995",
+    "sha256": "b432de44f1b7070bc2ca89c7dc707b02dabea7078838790aeee6767e719da881",
     "dimensions": "517x433"
   },
   "panel-tooltip.png": {
@@ -640,15 +640,15 @@
     "scale": 1,
     "screen": "720x540x24",
     "extension": "transparent-panels@germanfr",
-    "capturedAt": "2026-09-08T08:49:45.763630+00:00",
-    "baseCommit": "c6ed6edd94db9cd66800f08b3b6f6f32a38ac15f",
+    "capturedAt": "2026-09-08T09:01:35.408135+00:00",
+    "baseCommit": "a1d32559c25ba117f91a7d5751f7435247a51676",
     "sourceSha256": {
-      "applet.js": "cb42a2fefee961e107e0665b914c5e66be8106befaf164fb1cfd98d09d19199f",
+      "applet.js": "36c906426568788b0467681be30f20c6d0a38210501aa5dc599b355a7386ce8b",
       "chatgpt_usage.py": "be21a2184574d04d299419d433eaa1c0ee7cd284d4125b1b1706ad077ea6f1dc",
       "usage-format.js": "eaa502a3dec525b1be8dfab2e3feb49c73bcd1d0fc1f3786b42dbadfaf7c2e7f",
       "metadata.json": "c43208bf2469692adc872025c9b53290c593ee12e1982fd3a05c36a0dda6c23a",
-      "settings-schema.json": "c25548e52ff5fe2a270c6bcb0bd43a44db8e87d41595f8fe0d965d8993a7eebc",
-      "path_settings.py": "94824e96d97acc8b02f1b0553b80c5e505b661a9c213fa687533c4124c52e941",
+      "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
+      "path_settings.py": "f0558e5226a5a64c6966f32cbad7d954c5c025f2b180ca904ea098e6b6df6fea",
       "tests/ui/README.md": "02764ba253843418377b773328beca7c1c8eba7a4a2dea40421288908252d517",
       "tests/ui/capture-variant.sh": "84de198010d49f36a2a6e73cf08047293532b06c313925399d6e8c6ad1919dbd",
       "tests/ui/capture.py": "83f6980fd9909e478e8a9f5436899c3e33a51ca189e09da3ee6eed6a076ecc0a",
@@ -671,7 +671,7 @@
       "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
       "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e"
     },
-    "sha256": "1dbb6c473987e0691d9d59b0b334acbe15b7582c14c2782bd2385808d39da472",
+    "sha256": "8946603763d1c5a287f81ac6ee4646acc10a606f2d82477eb8c357add51babbc",
     "dimensions": "278x123"
   }
 }

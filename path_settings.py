@@ -21,7 +21,7 @@ class InstallationPaths(SettingsWidget):
         self.content_widget = Gtk.Grid(column_spacing=16, row_spacing=8)
         self.pack_start(self.content_widget, False, False, 0)
         for row, (key, label) in enumerate(
-            [("codex-path", "codex-cli path (optional)"), ("chatgpt-app-path", "ChatGPT app path (optional)")]
+            [("codex-path", "codex-cli path (optional)"), ("chatgpt-app-path", "ChatGPT path (optional)")]
         ):
             title = Gtk.Label(label=label, xalign=0)
             entry = Gtk.Entry(hexpand=True, width_chars=30)
@@ -90,7 +90,7 @@ class InstallationPaths(SettingsWidget):
             return
         if isinstance(paths, dict):
             self._paths = {"codex-path": paths.get("codex"), "chatgpt-app-path": paths.get("chatgpt")}
-            self.status.set_text("Automatic paths checked. Your entries are unchanged.")
+            self.status.set_text("Automatic paths checked. Your manual entries are unchanged.")
         else:
             self._paths = {}
             self.status.set_text("Could not check automatic paths. Try Recheck.")

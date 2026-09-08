@@ -165,7 +165,7 @@ release's supported scope. Local Spices preparation is tracked in
 scope and the remaining release gates.
 
 In **General → Usage data**, both path fields are optional. Leave **codex-cli path**
-empty for automatic limit-backend discovery. **ChatGPT app path** selects
+empty for automatic limit-backend discovery. **ChatGPT path** selects
 the app for both its launch button and bundled-backend fallback, for example
 `~/Applications/ChatGPT/chatgpt`. Backend priority is: explicit Codex backend
 path, installed Codex CLI, then the configured or automatically detected ChatGPT

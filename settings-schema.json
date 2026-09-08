@@ -103,7 +103,7 @@
   "chatgpt-app-path": {
     "type": "entry",
     "default": "",
-    "description": "ChatGPT app path (optional)",
+    "description": "ChatGPT path (optional)",
     "tooltip": "Leave empty for automatic detection. Otherwise enter the ChatGPT executable path, such as ~/Applications/ChatGPT/chatgpt, without quotes or arguments. Used to launch the app and find its bundled backend when no Codex CLI is installed. An explicit Codex backend path takes priority."
   },
   "show-panel-icon": {
