@@ -9,6 +9,9 @@ check:
 	cjs tests/test-panel-colors.js
 	cjs tests/test-model-visibility.js
 	cjs tests/test-notification-delivery.js
+	cjs tests/test-installation-paths.js
+	cjs tests/test-backend-paths.js
+	cjs tests/test-chatgpt-launch.js
 	cjs tests/test-settings-schema.js
 	cjs tests/test-reset-lifecycle.js
 	cjs tests/test-reset-confirmation.js

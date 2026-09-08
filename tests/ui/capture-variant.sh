@@ -252,6 +252,11 @@ else
 fi
 sleep 1
 
+if [[ "${QA_INSTALLATION_PATHS:-}" == 1 && "$variant" == install-* ]]; then
+    # shellcheck source=tests/ui/check-installation-paths.sh
+    source "$(dirname "$0")/check-installation-paths.sh"
+fi
+
 if [[ "${QA_MODEL_SPECIFIC_LIMITS:-}" == off ]]; then
     model_visibility=$(eval_cinnamon 'String((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0],original=JSON.stringify(a._snapshot);if(a._limitSections.length||a._historySubmenus.length)return false;a.showModelSpecificLimits=true;a._onModelVisibilityChanged();if(!a._limitSections.length||!a._historySubmenus.length)return false;a.showModelSpecificLimits=false;a._onModelVisibilityChanged();return !a._limitSections.length&&!a._historySubmenus.length&&JSON.stringify(a._snapshot)===original;})())')
     if ! grep -qE "['\"]true['\"]" <<< "$model_visibility"; then

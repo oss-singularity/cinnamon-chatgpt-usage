@@ -16,5 +16,6 @@
   "icons/emblem-ok-symbolic.svg": "icons/emblem-ok-symbolic.svg",
   "icons/utilities-system-monitor-symbolic.svg": "icons/utilities-system-monitor-symbolic.svg",
   "icons/view-refresh-symbolic.svg": "icons/view-refresh-symbolic.svg",
-  "icons/web-browser-symbolic.svg": "icons/web-browser-symbolic.svg"
+  "icons/web-browser-symbolic.svg": "icons/web-browser-symbolic.svg",
+  "path_settings.py": "path_settings.py"
 }

@@ -446,10 +446,19 @@ def update_usage_history(
     return snapshot
 
 
-def _resolve_bundled_chatgpt_codex() -> str | None:
+def _resolve_chatgpt_launcher(explicit: str | None = None) -> str | None:
+    if explicit:
+        candidate = os.path.expanduser(explicit)
+        if os.path.isabs(candidate) and os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+        return None
+    return shutil.which("chatgpt")
+
+
+def _resolve_bundled_chatgpt_codex(chatgpt_app: str | None = None) -> str | None:
     """Find the app-server binary shipped beside the ChatGPT desktop launcher."""
 
-    launcher = shutil.which("chatgpt")
+    launcher = _resolve_chatgpt_launcher(chatgpt_app)
     if not launcher:
         return None
 
@@ -468,7 +477,7 @@ def _resolve_bundled_chatgpt_codex() -> str | None:
     return None
 
 
-def resolve_codex(explicit: str | None) -> str:
+def resolve_codex(explicit: str | None, chatgpt_app: str | None = None) -> str:
     """Resolve an explicit, installed, or ChatGPT-bundled app-server binary."""
 
     if explicit:
@@ -483,9 +492,13 @@ def resolve_codex(explicit: str | None) -> str:
     local_candidate = os.path.expanduser("~/.local/bin/codex")
     if os.path.isfile(local_candidate) and os.access(local_candidate, os.X_OK):
         return local_candidate
-    bundled_candidate = _resolve_bundled_chatgpt_codex()
+    bundled_candidate = _resolve_bundled_chatgpt_codex(chatgpt_app)
     if bundled_candidate:
         return bundled_candidate
+    if chatgpt_app:
+        raise UsageError(
+            "No Codex CLI or bundled backend found; check the ChatGPT app path and its resources/codex file"
+        )
     raise UsageError("Codex CLI or ChatGPT App backend was not found")
 
 
@@ -529,15 +542,24 @@ def _command_version(executable: str | None, timeout: float = 2) -> str | None:
     return None
 
 
-def describe_backend(explicit: str | None) -> dict[str, Any]:
+def detect_automatic_paths() -> dict[str, str | None]:
+    """Read automatic installation paths without running commands or accessing an account."""
+    try:
+        codex = resolve_codex(None)
+    except (UsageError, OSError, RuntimeError):
+        codex = None
+    return {"codex": codex, "chatgpt": _resolve_chatgpt_launcher()}
+
+
+def describe_backend(explicit: str | None, chatgpt_app: str | None = None) -> dict[str, Any]:
     """Discover commands without authentication, history access or backend RPCs."""
     error = None
     try:
-        codex = resolve_codex(explicit)
+        codex = resolve_codex(explicit, chatgpt_app)
     except (UsageError, OSError, RuntimeError) as exception:
         codex = None
         error = str(exception)
-    chatgpt = shutil.which("chatgpt")
+    chatgpt = _resolve_chatgpt_launcher(chatgpt_app)
     modified = None
     if chatgpt:
         try:
@@ -705,7 +727,9 @@ def consume_rate_limit_reset(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--codex", help="Path to the Codex CLI")
+    parser.add_argument("--detect-paths", action="store_true", help="Find automatic paths without executing commands")
+    parser.add_argument("--codex", help="Path to the Codex app-server executable")
+    parser.add_argument("--chatgpt-app", help="ChatGPT app executable used for bundled-backend fallback")
     parser.add_argument(
         "--describe-backend", action="store_true", help="Discover local commands without account access"
     )
@@ -740,10 +764,13 @@ def main() -> int:
     signal.signal(signal.SIGTERM, _cancel_request)
     args = parse_args()
     try:
-        if args.describe_backend:
-            print(json.dumps(describe_backend(args.codex)))
+        if args.detect_paths:
+            print(json.dumps(detect_automatic_paths()))
             return 0
-        codex = resolve_codex(args.codex)
+        if args.describe_backend:
+            print(json.dumps(describe_backend(args.codex, args.chatgpt_app)))
+            return 0
+        codex = resolve_codex(args.codex, args.chatgpt_app)
         if args.consume_reset:
             result = consume_rate_limit_reset(
                 codex,

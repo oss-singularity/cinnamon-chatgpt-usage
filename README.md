@@ -152,12 +152,28 @@ with ChatGPT or a supported ChatGPT desktop app package. The Linux ChatGPT
 package can provide the local app-server backend by itself; the applet discovers
 its bundled `resources/codex` binary when no configured/PATH CLI is available.
 If neither option is installed, both native launch/install buttons remain
-available as the initial setup choice.
+available as the initial setup choice. Their setup dialogs also offer both optional
+path fields: **Save and check** saves them to General settings and retries detection.
+Closing the dialog leaves the saved settings unchanged. Setup and General settings
+show detected paths as gray placeholders. Focusing an entry hides its placeholder;
+leaving it empty restores the hint. **Recheck** refreshes automatic paths without
+changing manual values or launching apps.
 The v0.3.12 audit baseline was checked on Cinnamon 6.6.9. Local Spices
 preparation is tracked in [the readiness report](docs/spices-readiness.md),
 including the exact tested scope and the remaining release gates. Metadata
 lists Cinnamon 5.8–6.6; this does not claim that every version was exercised.
 See that report before treating an older release as verified.
+
+In **General → Usage data**, both path fields are optional. Leave **codex-cli path**
+empty for automatic limit-backend discovery. **ChatGPT app path** selects
+the app for both its launch button and bundled-backend fallback, for example
+`~/Applications/ChatGPT/chatgpt`. Backend priority is: explicit Codex backend
+path, installed Codex CLI, then the configured or automatically detected ChatGPT
+app's `resources/codex` (beside the executable or one directory above). Packed
+AppImages can be launched but require an extracted bundle for backend discovery.
+Paths with spaces work without quotes; do not append command-line arguments.
+An invalid app override does not fall back to another ChatGPT installation.
+Clearing it restores automatic discovery and the `chatgpt.desktop` launcher.
 
 Run `./install.sh` again after updates. `./uninstall.sh` removes the applet while
 retaining its settings.

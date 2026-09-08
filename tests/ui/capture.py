@@ -48,7 +48,14 @@ def main():
     subprocess.run([str(ROOT / "install.sh")], check=True, env={**os.environ, "XDG_DATA_HOME": str(stage)})
     manifest_path = output / "inventory.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
-    source_paths = ["applet.js", "chatgpt_usage.py", "usage-format.js", "metadata.json", "settings-schema.json"]
+    source_paths = [
+        "applet.js",
+        "chatgpt_usage.py",
+        "usage-format.js",
+        "metadata.json",
+        "settings-schema.json",
+        "path_settings.py",
+    ]
     source_paths += [str(path.relative_to(ROOT)) for path in sorted(UI.iterdir()) if path.is_file()]
     sources = {name: sha(ROOT / name) for name in source_paths}
     for name, variant, mode in SPECS:

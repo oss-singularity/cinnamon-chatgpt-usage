@@ -20,7 +20,11 @@
     "data-section": {
       "type": "section",
       "title": "Usage data",
-      "keys": ["refresh-interval", "activity-bucket-minutes", "codex-path"]
+      "keys": [
+        "refresh-interval",
+        "activity-bucket-minutes",
+        "installation-paths"
+      ]
     },
     "display-section": {
       "type": "section",
@@ -85,13 +89,22 @@
     "type": "combobox",
     "default": "60",
     "description": "24h activity bucket size",
-    "options": { "1 hour": "60", "2 hours": "120" }
+    "options": {
+      "1 hour": "60",
+      "2 hours": "120"
+    }
   },
   "codex-path": {
     "type": "entry",
     "default": "",
-    "description": "Codex backend path (optional)",
+    "description": "codex-cli path (optional)",
     "tooltip": "Leave empty to find Codex CLI or the ChatGPT app's bundled backend automatically. Set an executable path only to override detection. Example: /home/user/.local/bin/codex"
+  },
+  "chatgpt-app-path": {
+    "type": "entry",
+    "default": "",
+    "description": "ChatGPT app path (optional)",
+    "tooltip": "Leave empty for automatic detection. Otherwise enter the ChatGPT executable path, such as ~/Applications/ChatGPT/chatgpt, without quotes or arguments. Used to launch the app and find its bundled backend when no Codex CLI is installed. An explicit Codex backend path takes priority."
   },
   "show-panel-icon": {
     "type": "switch",
@@ -131,7 +144,7 @@
   },
   "separator": {
     "type": "entry",
-    "default": "·",
+    "default": "\u00b7",
     "description": "Separator in horizontal panels",
     "tooltip": "Separators are hidden automatically in vertical panels."
   },
@@ -251,5 +264,10 @@
     "units": "%",
     "dependency": "enable-weekly-low-notifications",
     "description": "7d critical at or below"
+  },
+  "installation-paths": {
+    "type": "custom",
+    "file": "path_settings.py",
+    "widget": "InstallationPaths"
   }
 }

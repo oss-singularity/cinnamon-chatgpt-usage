@@ -12,6 +12,15 @@ Space, Escape, cancel/reopen, an unchecked callback and repeated activation;
 dispatch is replaced by an in-memory counter, and the final frame shows the
 checked state. No reset request is sent.
 
+Run `tests/ui/check-path-settings.py` through the isolated wrapper for native GTK
+placeholder, focus, Recheck and no-implicit-save checks. It uses fake executable
+files and fails if discovery executes them.
+
+For installation-path QA, set `QA_INSTALLATION_PATHS=1` with an `install-*`
+variant. Native entries and the real private settings store exercise invalid
+input, save/reopen, cancel and clearing. Usage refresh is replaced by a counter;
+no real installation or account is touched.
+
 Requirements: Cinnamon, CJS, Xvfb, dbus-run-session, gsettings, gdbus, ImageMagick,
 xsetroot, xdotool, xdpyinfo, Python 3.10+, GTK settings tools and the chosen
 installed theme. Run from the repository root:

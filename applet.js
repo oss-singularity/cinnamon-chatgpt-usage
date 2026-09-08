@@ -146,6 +146,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.refreshInterval = 3;
         this.activityBucketMinutes = "60";
         this.codexPath = "";
+        this.chatGptAppPath = "";
         this.showPanelIcon = true;
         this.showWindowLabels = true;
         this.showModelSpecificLimits = true;
@@ -188,6 +189,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             this._refreshUsage.bind(this)
         );
         this.settings.bind("codex-path", "codexPath", this._refreshUsage.bind(this));
+        this.settings.bind("chatgpt-app-path", "chatGptAppPath", this._onChatGptAppPathChanged.bind(this));
         this.settings.bind("show-panel-icon", "showPanelIcon", layoutChanged);
         this.settings.bind("show-window-labels", "showWindowLabels", layoutChanged);
         this.settings.bind("show-model-specific-limits", "showModelSpecificLimits", this._onModelVisibilityChanged.bind(this));
@@ -1312,7 +1314,7 @@ class ChatGptUsageApplet extends Applet.Applet {
             { iconName: "chatgpt" },
             true,
             () => {
-                if (chatGptApp) {
+                if (chatGptApp || this._configuredChatGptAppPath()) {
                     this._launchChatGptApp(chatGptApp);
                     return;
                 }
@@ -1323,7 +1325,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                     CHATGPT_LINUX_INSTALL_URL
                 );
             },
-            UsageFormat.formatAppTooltip(
+            this._configuredChatGptAppPath() ? (this._resolveChatGptAppPath()
+                ? "Open the configured ChatGPT app"
+                : "ChatGPT app path is unavailable. Choose an executable file in settings.") : UsageFormat.formatAppTooltip(
                 Boolean(chatGptApp),
                 chatGptVersion,
                 "chatgpt",
@@ -1615,6 +1619,54 @@ class ChatGptUsageApplet extends Applet.Applet {
         const dialog = new ModalDialog.ModalDialog();
         const content = new Dialog.MessageDialogContent({ title, description });
         dialog.contentLayout.add_child(content);
+        const fields = new St.BoxLayout({ vertical: true, x_expand: true });
+        fields.style = "spacing: 8px;";
+        const addPathEntry = (label, value) => {
+            fields.add_child(new St.Label({ text: label }));
+            const entry = new St.Entry({ style_class: "run-dialog-entry", text: value || "", hint_text: "Automatic detection", can_focus: true, x_expand: true });
+            entry.accessible_name = label;
+            entry._automaticPath = "Checking automatic paths…";
+            entry.hint_text = entry._automaticPath;
+            entry.clutter_text.connect("key-focus-in", () => {
+                entry._pathFocused = true;
+                entry.hint_text = "";
+            });
+            entry.clutter_text.connect("key-focus-out", () => {
+                entry._pathFocused = false;
+                entry.hint_text = entry._automaticPath;
+            });
+            fields.add_child(entry);
+            return entry;
+        };
+        const codexEntry = addPathEntry("codex-cli path (optional)", this.codexPath);
+        const chatGptEntry = addPathEntry("ChatGPT app path (optional)", this.chatGptAppPath);
+        const status = new St.Label({ text: "Leave empty for automatic detection. Codex CLI is preferred.", x_expand: true });
+        status.clutter_text.set_line_wrap(true);
+        status.clutter_text.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
+        fields.add_child(status);
+        const recheck = new St.Button({ label: "Recheck", style_class: "notification-button", can_focus: true });
+        fields.add(recheck, { x_fill: false, x_align: St.Align.END });
+        dialog.contentLayout.add_child(fields);
+        let cancelDetection = null;
+        let destroyed = false;
+        const detect = () => {
+            if (cancelDetection) cancelDetection();
+            recheck.reactive = false;
+            cancelDetection = this._detectAutomaticPaths(paths => {
+                if (destroyed) return;
+                for (const [entry, key] of [[codexEntry, "codex"], [chatGptEntry, "chatgpt"]]) {
+                    entry._automaticPath = paths && paths[key] ? paths[key] : "No automatic path found";
+                    if (!entry._pathFocused) entry.hint_text = entry._automaticPath;
+                }
+                status.set_text(paths ? "Leave empty for automatic detection. Codex CLI is preferred." : "Could not check automatic paths. Try Recheck.");
+                recheck.reactive = true;
+            });
+        };
+        recheck.connect("clicked", detect);
+        dialog.connect("destroy", () => {
+            destroyed = true;
+            if (cancelDetection) cancelDetection();
+        });
         const close = () => {
             dialog.destroy();
             if (this._installHelpDialog === dialog) this._installHelpDialog = null;
@@ -1626,16 +1678,82 @@ class ChatGptUsageApplet extends Applet.Applet {
                 key: Clutter.KEY_Escape
             },
             {
-                label: "Open installation guide",
+                label: "Installation guide",
                 action: () => {
                     close();
                     Util.spawn(["xdg-open", url]);
+                }
+            },
+            {
+                label: "Save and check",
+                action: () => {
+                    try {
+                        this._saveInstallationPaths(codexEntry.get_text(), chatGptEntry.get_text());
+                        close();
+                    } catch (error) {
+                        status.set_text(String(error.message || error));
+                    }
                 },
                 default: true
             }
         ]);
         this._installHelpDialog = dialog;
         dialog.open();
+        detect();
+    }
+
+    _detectAutomaticPaths(callback) {
+        let process = null;
+        let timeout = 0;
+        let finished = false;
+        const finish = paths => {
+            if (finished) return;
+            finished = true;
+            if (timeout) Mainloop.source_remove(timeout);
+            timeout = 0;
+            if (!this._destroyed) callback(paths);
+        };
+        try {
+            const python = GLib.find_program_in_path("python3");
+            if (!python) throw new Error("python3 was not found");
+            process = Gio.Subprocess.new([python, `${this.metadata.path}/chatgpt_usage.py`, "--detect-paths"],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
+            timeout = Mainloop.timeout_add_seconds(5, () => {
+                timeout = 0;
+                process.force_exit();
+                finish(null);
+                return GLib.SOURCE_REMOVE;
+            });
+            process.communicate_utf8_async(null, null, (source, result) => {
+                try {
+                    const [ok, stdout] = source.communicate_utf8_finish(result);
+                    finish(ok && source.get_exit_status() === 0 ? JSON.parse(stdout) : null);
+                } catch {
+                    finish(null);
+                }
+            });
+        } catch {
+            finish(null);
+        }
+        return () => {
+            if (finished) return;
+            finished = true;
+            if (timeout) Mainloop.source_remove(timeout);
+            if (process) process.force_exit();
+        };
+    }
+
+    _saveInstallationPaths(codex, chatgpt) {
+        const paths = [["codex-path", "Codex CLI", String(codex || "").trim()],
+            ["chatgpt-app-path", "ChatGPT app", String(chatgpt || "").trim()]];
+        for (const [, label, value] of paths) {
+            if (value && !this._resolveExecutableFile(value)) {
+                throw new Error(`${label}: choose an executable file, or leave empty for automatic detection.`);
+            }
+        }
+        for (const [key, , value] of paths) this.settings.setValue(key, value);
+        this._backendCacheKey = null;
+        this._onChatGptAppPathChanged();
     }
 
     _launchButtonStyle(state, compact = false, transparent = false) {
@@ -1664,8 +1782,15 @@ class ChatGptUsageApplet extends Applet.Applet {
         ].join("; ") + ";";
     }
 
+    _backendPathArguments() {
+        const codex = String(this.codexPath || "").trim();
+        const chatgpt = this._configuredChatGptAppPath();
+        return [...(codex ? ["--codex", codex] : []), ...(chatgpt ? ["--chatgpt-app", chatgpt] : [])];
+    }
+
     _refreshBackendInfo() {
-        const configured = String(this.codexPath || "").trim();
+        const pathArguments = this._backendPathArguments();
+        const configured = JSON.stringify(pathArguments);
         if (this._destroyed || this._backendDiscovery) return;
         const now = GLib.get_monotonic_time();
         if (this._backendCacheKey === configured && now - this._backendCachedAt < 300000000) return;
@@ -1675,7 +1800,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const python = GLib.find_program_in_path("python3");
         if (!python) return;
         const argv = [python, `${this.metadata.path}/chatgpt_usage.py`, "--describe-backend"];
-        if (configured) argv.push("--codex", configured);
+        argv.push(...pathArguments);
         try {
             const process = Gio.Subprocess.new(argv,
                 Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
@@ -1684,7 +1809,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 this._backendDiscovery = null;
                 try {
                     const [ok, stdout] = source.communicate_utf8_finish(result);
-                    if (!this._destroyed && configured === String(this.codexPath || "").trim() &&
+                    if (!this._destroyed && configured === JSON.stringify(this._backendPathArguments()) &&
                         ok && source.get_exit_status() === 0) {
                         this._backendInfo = JSON.parse(stdout);
                         this._scheduleMenuRebuild();
@@ -1692,7 +1817,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 } catch (error) {
                     global.logWarning(`${UUID}: backend discovery failed: ${error}`);
                 }
-                if (!this._destroyed && configured !== String(this.codexPath || "").trim()) {
+                if (!this._destroyed && configured !== JSON.stringify(this._backendPathArguments())) {
                     this._refreshBackendInfo();
                 }
             });
@@ -1712,11 +1837,13 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _chatGptAppInstallDate() {
+        if (this._configuredChatGptAppPath()) return null;
         return this._backendInfo && this._backendInfo.chatgptModifiedAt
             ? UsageFormat.formatLocalDate(this._backendInfo.chatgptModifiedAt) : null;
     }
 
     _chatGptAppVersion(appInfo) {
+        if (this._configuredChatGptAppPath()) return null;
         this._refreshBackendInfo();
         if (this._backendInfo && this._backendInfo.chatgptVersion) {
             return this._backendInfo.chatgptVersion;
@@ -1730,7 +1857,26 @@ class ChatGptUsageApplet extends Applet.Applet {
         return null;
     }
 
+    _configuredChatGptAppPath() {
+        const configured = String(this.chatGptAppPath || "").trim();
+        return configured.startsWith("~/")
+            ? GLib.build_filenamev([GLib.get_home_dir(), configured.slice(2)]) : configured;
+    }
+
+    _resolveExecutableFile(value) {
+        const path = value.startsWith("~/")
+            ? GLib.build_filenamev([GLib.get_home_dir(), value.slice(2)]) : value;
+        return path && GLib.path_is_absolute(path) &&
+            GLib.file_test(path, GLib.FileTest.IS_REGULAR) &&
+            GLib.file_test(path, GLib.FileTest.IS_EXECUTABLE) ? path : null;
+    }
+
+    _resolveChatGptAppPath() {
+        return this._resolveExecutableFile(this._configuredChatGptAppPath());
+    }
+
     _chatGptAppInfo() {
+        if (this._configuredChatGptAppPath()) return null;
         try {
             return Gio.DesktopAppInfo.new("chatgpt.desktop");
         } catch (error) {
@@ -1741,7 +1887,7 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _resolveBundledCodexPath() {
         // Python is the single discovery implementation for CLI and app layouts.
-        return this._backendInfo && this._backendCacheKey === String(this.codexPath || "").trim()
+        return this._backendInfo && this._backendCacheKey === JSON.stringify(this._backendPathArguments())
             ? this._backendInfo.codex : null;
     }
 
@@ -1773,9 +1919,17 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _launchChatGptApp(appInfo) {
         try {
-            appInfo.launch([], null);
+            if (this._configuredChatGptAppPath()) {
+                const path = this._resolveChatGptAppPath();
+                if (!path) throw new Error("Choose an executable ChatGPT app file in settings");
+                // Pass the path as one argv element; it is never a shell command.
+                Gio.Subprocess.new([path], Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE);
+            } else {
+                appInfo.launch([], null);
+            }
         } catch (error) {
-            this._reportLaunchError("ChatGPT App", error);
+            this._reportLaunchError("ChatGPT App", error,
+                this._configuredChatGptAppPath() ? "Check the ChatGPT app path in settings." : "");
         }
     }
 
@@ -1787,8 +1941,8 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
     }
 
-    _reportLaunchError(target, error) {
-        this._lastError = `Could not open ${target}`;
+    _reportLaunchError(target, error, hint = "") {
+        this._lastError = `Could not open ${target}${hint ? `. ${hint}` : ""}`;
         global.logError(`${UUID}: ${this._lastError}: ${error}`);
         this._rebuildMenu();
     }
@@ -2669,6 +2823,11 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._rebuildPanel();
     }
 
+    _onChatGptAppPathChanged() {
+        this._rebuildMenu();
+        this._refreshUsage();
+    }
+
     _onModelVisibilityChanged() {
         this._rebuildPanel();
         this._rebuildMenu();
@@ -2718,7 +2877,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         const python = GLib.find_program_in_path("python3");
         const helper = `${this.metadata.path}/chatgpt_usage.py`;
         this._refreshBackendInfo();
-        const codex = String(this.codexPath || "").trim();
+        const pathArguments = this._backendPathArguments();
         if (!python) {
             this._authenticationRequired = false;
             this._lastError = !python
@@ -2740,7 +2899,7 @@ class ChatGptUsageApplet extends Applet.Applet {
                 argv: [
                     python,
                     helper,
-                    ...(codex ? ["--codex", codex] : []),
+                    ...pathArguments,
                     "--timeout",
                     "25",
                     "--activity-bucket-minutes",

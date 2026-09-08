@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a separate optional ChatGPT app executable path for launching and bundled-backend fallback; preserve explicit-backend and installed Codex CLI priority. Offer both path overrides in the initial setup dialogs as well as settings, with detected-path placeholders and a read-only Recheck action.
+
 - Add an applet-wide model visibility switch that hides additional quotas and history, including both Spark sections; clarify the optional backend path override.
 
 - Require a fresh checkbox acknowledgment before enabling reset consumption or an unresolved-reset retry; relock when unchecked and prevent duplicate activation.
