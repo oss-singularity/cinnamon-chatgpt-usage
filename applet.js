@@ -12,6 +12,7 @@ const Main = imports.ui.main;
 const MessageTray = imports.ui.messageTray;
 const ModalDialog = imports.ui.modalDialog;
 const Dialog = imports.ui.dialog;
+const CheckBox = imports.ui.checkBox;
 const Mainloop = imports.mainloop;
 const Util = imports.misc.util;
 const Gio = imports.gi.Gio;
@@ -147,6 +148,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.codexPath = "";
         this.showPanelIcon = true;
         this.showWindowLabels = true;
+        this.showModelSpecificLimits = true;
         this.showModelLimitsInPanel = false;
         this.showWeeklyWithFiveHour = true;
         this.fontSize = 100;
@@ -188,6 +190,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this.settings.bind("codex-path", "codexPath", this._refreshUsage.bind(this));
         this.settings.bind("show-panel-icon", "showPanelIcon", layoutChanged);
         this.settings.bind("show-window-labels", "showWindowLabels", layoutChanged);
+        this.settings.bind("show-model-specific-limits", "showModelSpecificLimits", this._onModelVisibilityChanged.bind(this));
         this.settings.bind(
             "show-model-limits-in-panel",
             "showModelLimitsInPanel",
@@ -516,7 +519,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._clearActor(this._root);
         const fontSize = this._panelFontSize();
 
-        let panelLimits = this._snapshot ? this._snapshot.limits : [];
+        let panelLimits = this._filterModelLimits(this._snapshot ? this._snapshot.limits : []);
         if (!this.showModelLimitsInPanel) {
             const accountLimits = panelLimits.filter(limit => limit.id === "codex");
             if (accountLimits.length > 0) panelLimits = accountLimits;
@@ -552,6 +555,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         }
 
         this._updateTooltip(summaries);
+    }
+
+    _filterModelLimits(limits) {
+        return this.showModelSpecificLimits === false
+            ? limits.filter(limit => (limit.id || "codex") === "codex")
+            : limits;
     }
 
     _modelBadge(limit) {
@@ -657,10 +666,11 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _updateTooltip(summaries) {
         let text = "ChatGPT Work & Codex usage";
-        if (this._snapshot && this._snapshot.limits.length > 0) {
-            const showLimitLabels = this._snapshot.limits.length > 1;
+        const limits = this._filterModelLimits(this._snapshot ? this._snapshot.limits : []);
+        if (limits.length > 0) {
+            const showLimitLabels = limits.length > 1;
             const values = [];
-            for (const limit of this._snapshot.limits) {
+            for (const limit of limits) {
                 for (const window of limit.windows || []) {
                     const duration = UsageFormat.formatDuration(window.durationMinutes);
                     const prefix = showLimitLabels ? `${limit.label || limit.id} ` : "";
@@ -778,7 +788,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         this._addHeaderItem();
         if (this._snapshot) {
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-            const limits = this._snapshot.limits || [];
+            const limits = this._filterModelLimits(this._snapshot.limits || []);
             const usageTitle = this._addSectionHeading("Usage limits");
             usageTitle.actor.style = "padding-bottom: 2px;";
             const showLimitLabels = limits.length > 1;
@@ -876,7 +886,7 @@ class ChatGptUsageApplet extends Applet.Applet {
         row.add_child(text);
 
         if (this._snapshot) {
-            const summaries = UsageFormat.listQuotaWindows(this._snapshot.limits);
+            const summaries = UsageFormat.listQuotaWindows(this._filterModelLimits(this._snapshot.limits));
             const compact = summaries.length >= 4;
             const rings = new St.BoxLayout({
                 vertical: false,
@@ -2070,6 +2080,13 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         const dialog = new ModalDialog.ModalDialog();
         dialog.contentLayout.add_child(content);
+        const acknowledgment = new CheckBox.CheckBox(
+            this._pendingReset ? "I confirm retrying this reset." : "I confirm using one reset credit.",
+            undefined,
+            false
+        );
+        dialog.contentLayout.add_child(acknowledgment.actor);
+        let submitted = false;
         dialog.connect("destroy", () => {
             if (this._resetConfirmationDialog === dialog) {
                 this._resetConfirmationDialog = null;
@@ -2083,15 +2100,23 @@ class ChatGptUsageApplet extends Applet.Applet {
         });
         const useButton = dialog.addButton({
             label: this._pendingReset ? "Retry same reset" : "Use reset now",
-            action: () => this._consumeResetCredit(
-                details,
-                dialog,
-                content,
-                [cancelButton, useButton]
-            ),
+            action: () => {
+                if (!acknowledgment.actor.checked || submitted || this._destroyed ||
+                    this._resetConsumeBusy || this._resetConfirmationDialog !== dialog) return;
+                submitted = true;
+                this._consumeResetCredit(details, dialog, content, [cancelButton, useButton, acknowledgment.actor]);
+            },
             default: false,
             destructive_action: true
         });
+        const syncAcknowledgment = () => {
+            const enabled = acknowledgment.actor.checked && !submitted && !this._resetConsumeBusy;
+            useButton.reactive = enabled;
+            useButton.can_focus = enabled;
+            useButton.change_style_pseudo_class("insensitive", !enabled);
+        };
+        acknowledgment.actor.connect("notify::checked", syncAcknowledgment);
+        syncAcknowledgment();
         this._resetConfirmationDialog = dialog;
         dialog.open();
     }
@@ -2239,10 +2264,12 @@ class ChatGptUsageApplet extends Applet.Applet {
             return;
         }
 
+        const visibleWindows = this._filterModelLimits(history.windows);
+        if (visibleWindows.length === 0) return;
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._addSectionHeading("Recent consumption");
         const windowsByLimit = new Map();
-        for (const window of history.windows) {
+        for (const window of visibleWindows) {
             const limitId = window.id || "codex";
             if (!windowsByLimit.has(limitId)) windowsByLimit.set(limitId, []);
             windowsByLimit.get(limitId).push(window);
@@ -2317,6 +2344,7 @@ class ChatGptUsageApplet extends Applet.Applet {
     }
 
     _openActiveSparkHistory() {
+        if (this.showModelSpecificLimits === false) return;
         const history = this._snapshot ? this._snapshot.history : null;
         if (!history || !Array.isArray(history.windows)) return;
 
@@ -2639,6 +2667,11 @@ class ChatGptUsageApplet extends Applet.Applet {
 
     _onLayoutSettingChanged() {
         this._rebuildPanel();
+    }
+
+    _onModelVisibilityChanged() {
+        this._rebuildPanel();
+        this._rebuildMenu();
     }
 
     _onStyleSettingChanged() {

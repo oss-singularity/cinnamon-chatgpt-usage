@@ -210,6 +210,7 @@ JSON.stringify((function(){
         a.showPanelThresholdColors=alertMode==="on";
         a._snapshot.limits=[{id:"codex",label:codexLabel,windows:[win(300,25,3600),win(10080,10,86400)]}];
     }
+    if(GLib.getenv("QA_MODEL_SPECIFIC_LIMITS")==="off")a.showModelSpecificLimits=false;
     a._lastError=null;a._authenticationRequired=false;a._resetConsumeBusy=false;a._resetFeedback=null;a.showModelLimitsInPanel=true;
     if("VARIANT"==="install-chatgpt")a._chatGptAppInfo=function(){return null;};
     if("VARIANT"==="install-codex")a._codexTerminalCommand=function(){return null;};
@@ -250,6 +251,20 @@ else
     eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];if(a.menu.isOpen)a.menu.close(false);a.on_applet_clicked();return {menuOpen:!!a.menu.isOpen};})())' >/dev/null
 fi
 sleep 1
+
+if [[ "${QA_MODEL_SPECIFIC_LIMITS:-}" == off ]]; then
+    model_visibility=$(eval_cinnamon 'String((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0],original=JSON.stringify(a._snapshot);if(a._limitSections.length||a._historySubmenus.length)return false;a.showModelSpecificLimits=true;a._onModelVisibilityChanged();if(!a._limitSections.length||!a._historySubmenus.length)return false;a.showModelSpecificLimits=false;a._onModelVisibilityChanged();return !a._limitSections.length&&!a._historySubmenus.length&&JSON.stringify(a._snapshot)===original;})())')
+    if ! grep -qE "['\"]true['\"]" <<< "$model_visibility"; then
+        printf 'Model-specific limits did not hide/restore cleanly\n' >&2
+        exit 1
+    fi
+    printf 'Model visibility: both Spark sections hidden, restored and hidden again; snapshot unchanged\n'
+fi
+
+if [[ "$variant" == reset && "${QA_RESET_ACKNOWLEDGMENT:-0}" == 1 ]]; then
+    # shellcheck source=tests/ui/check-reset-acknowledgment.sh
+    source "$(dirname -- "$0")/check-reset-acknowledgment.sh"
+fi
 
 case "$variant" in
     basic|overview|spark|bucket|four|codex-two)

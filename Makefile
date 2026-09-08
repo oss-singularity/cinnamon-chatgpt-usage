@@ -7,9 +7,11 @@ check:
 	cjs tests/test-action-centering.js
 	cjs tests/test-popup-width.js
 	cjs tests/test-panel-colors.js
+	cjs tests/test-model-visibility.js
 	cjs tests/test-notification-delivery.js
 	cjs tests/test-settings-schema.js
 	cjs tests/test-reset-lifecycle.js
+	cjs tests/test-reset-confirmation.js
 	python3 -m unittest discover -s tests -p 'test*.py'
 	python3 -m json.tool metadata.json >/dev/null
 	python3 -m json.tool settings-schema.json >/dev/null

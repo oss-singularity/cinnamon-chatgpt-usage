@@ -5,6 +5,12 @@ Codex home and dconf. They never fall back to the live display. The applet is
 staged through the repository installer, then copied into the private session.
 A disposable fake Codex executable prevents account-backed usage requests.
 Reset captures open the native confirmation without activating redemption.
+The reset button starts disabled until its acknowledgment is checked. For
+native keyboard/activation regression QA, set `QA_RESET_ACKNOWLEDGMENT=1`
+and use the `reset` driver variant with `--settle-ms 20000`. It checks Enter,
+Space, Escape, cancel/reopen, an unchecked callback and repeated activation;
+dispatch is replaced by an in-memory counter, and the final frame shows the
+checked state. No reset request is sent.
 
 Requirements: Cinnamon, CJS, Xvfb, dbus-run-session, gsettings, gdbus, ImageMagick,
 xsetroot, xdotool, xdpyinfo, Python 3.10+, GTK settings tools and the chosen
@@ -20,6 +26,11 @@ extension, pass `--extension /absolute/extension-directory` and optionally
 `--extension-config /absolute/settings.json`. Both are copied into the private
 session; no host setting changes. The manifest records whether an extension
 was used. Do not silently substitute a missing reference theme or extension.
+
+For complete model-visibility QA, use `QA_MODEL_SPECIFIC_LIMITS=off` with
+`--only usage-menu`: the fixture still contains Spark data, but its menu,
+history, rings, panel and tooltip must show Codex only. Notification options
+remain independent of this display setting.
 
 For panel threshold-color QA, run `QA_PANEL_ALERTS=on` or `QA_PANEL_ALERTS=off`
 with `--only topbar vertical-panel` into separate output directories. This

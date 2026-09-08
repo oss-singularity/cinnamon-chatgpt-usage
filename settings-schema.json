@@ -24,10 +24,11 @@
     },
     "display-section": {
       "type": "section",
-      "title": "Panel display",
+      "title": "Applet display",
       "keys": [
         "show-panel-icon",
         "show-window-labels",
+        "show-model-specific-limits",
         "show-model-limits-in-panel",
         "show-weekly-with-five-hour",
         "font-size",
@@ -89,8 +90,8 @@
   "codex-path": {
     "type": "entry",
     "default": "",
-    "description": "Codex CLI path (optional)",
-    "tooltip": "Leave empty for automatic detection. Example: /home/user/.local/bin/codex"
+    "description": "Codex backend path (optional)",
+    "tooltip": "Leave empty to find Codex CLI or the ChatGPT app's bundled backend automatically. Set an executable path only to override detection. Example: /home/user/.local/bin/codex"
   },
   "show-panel-icon": {
     "type": "switch",
@@ -102,9 +103,16 @@
     "default": true,
     "description": "Show 5h / 7d window labels"
   },
+  "show-model-specific-limits": {
+    "type": "switch",
+    "default": true,
+    "description": "Show model-specific limits in the applet",
+    "tooltip": "Show additional model limits such as Spark in the menu, history, rings, panel and tooltip. Turn off to show only Codex. Notification preferences are configured separately."
+  },
   "show-model-limits-in-panel": {
     "type": "switch",
     "default": false,
+    "dependency": "show-model-specific-limits",
     "description": "Show model-specific limits in the panel"
   },
   "show-weekly-with-five-hour": {

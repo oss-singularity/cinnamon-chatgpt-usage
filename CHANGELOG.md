@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add an applet-wide model visibility switch that hides additional quotas and history, including both Spark sections; clarify the optional backend path override.
+
+- Require a fresh checkbox acknowledgment before enabling reset consumption or an unresolved-reset retry; relock when unchecked and prevent duplicate activation.
+
 - Enable all notification options by default and retain usage alerts in Cinnamon's notification center after the banner timeout; preserve saved choices on upgrade.
 
 - Add an enabled-by-default panel switch for warning and critical percentage colors, independent of menu coloring and the normal panel text color.

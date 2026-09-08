@@ -52,7 +52,7 @@
 <p align="center">
   <img src="docs/model-limits/reset-confirmation.png" width="351" alt="Native confirmation dialog before using an earned limit reset with the horizontal panel anchor and both model-specific indicators visible">
 </p>
-<p align="center"><sub>An available reset is consumed only after this native confirmation; the compact top panel keeps the two model indicators visible.</sub></p>
+<p align="center"><sub>Check the acknowledgment to enable “Use reset now”. Every newly opened dialog starts unchecked; the compact top panel keeps the two model indicators visible.</sub></p>
 
 | Precise hourly bucket details                                                                                    | Every active quota at a glance                                                                                  |
 | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -111,6 +111,11 @@
 - Follows Cinnamon's system 12 / 24-hour clock preference and local time zone.
 - Offers native settings for refresh rate, colors, thresholds, labels, icon,
   font size and Codex CLI path.
+- **Show model-specific limits in the applet** hides additional models such as
+  Spark from both menu sections, rings, panel and tooltip when disabled.
+  Re-enabling restores the display without deleting tracked history.
+  Notification settings remain independent. The panel-specific switch applies
+  only while this main display switch is enabled.
 - Uses the same configured usage colors for quota rings, their labels and
   values with or without model-specific panel limits; normal usage defaults
   to blue (`#62c7f5`).
