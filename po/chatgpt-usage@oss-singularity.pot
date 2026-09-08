@@ -283,7 +283,7 @@ msgid "7d warning at or below"
 msgstr ""
 
 #: metadata.json.js
-msgid "A tiny Cinnamon companion that keeps ChatGPT Work and Codex usage beautifully in view."
+msgid "A tiny Cinnamon companion keeping ChatGPT Work & Codex usage beautifully in view."
 msgstr ""
 
 #: usage-format.js

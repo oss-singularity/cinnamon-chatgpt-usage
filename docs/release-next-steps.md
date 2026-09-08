@@ -39,8 +39,12 @@ erst beim freigegebenen Einreichungsschritt.
   GTK-Einstellungen, Pfad-Erkennung, Platzhalter/Fokus und Recheck geprüft.
 - Transport, Reset-Journal und Sicherheits-Haken, Benachrichtigungen,
   Modell-Anzeigeschalter und 420-px-Menübreite mit gezielten Regressionen.
-- Normaler lokaler Install/Reload: alle 24 Paketdateien identisch, gesunde
-  laufende Instanz. Keine echte Reset-Gutschrift für Tests verbraucht.
+- Lokales Paket zusätzlich über Cinnamons nativen Spices-Installer installiert:
+  23 Dateien byteidentisch, Metadaten bis auf Cinnamons `last-edited` und
+  JSON-Formatierung identisch. Im Manager erkannt, gezielter Reload gesund;
+  Einstellungen unverändert. Keine echte Reset-Gutschrift für Tests verbraucht.
+- Die Beschreibung behält „usage beautifully in view“ und passt einzeilig
+  in die geprüfte native Manager-Zeile.
 - Neues Installations- und Einreichungspaket besteht den offiziellen
   Strukturvalidator; [genauer Paketbeleg](release-checkpoint.json).
 
@@ -62,7 +66,8 @@ erst beim freigegebenen Einreichungsschritt.
   manuelle Archivierung bei Konto-Wechsel sowie die unabhängige Reset-Journal-
   Grenze sind mit synthetischen Daten geprüft; keine Zugangsdaten wurden gelesen.
 
-Die sechs geschützten **Remote-PR-Prüfungen** folgen jetzt auf dem Projekt-PR.
+Die sechs geschützten **Remote-PR-Prüfungen** laufen auf
+[Projekt-PR #46](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/46).
 Erfolgreiche lokale Tests ersetzen sie nicht. Den aktuellen PR-Status hält das
 [Release-Issue](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45) fest.
 Die [Readiness-Dokumentation](spices-readiness.md) und der
@@ -72,8 +77,8 @@ Die [Readiness-Dokumentation](spices-readiness.md) und der
 
 1. **Erledigt:** Claudiu hat Bilder, Readiness-Umfang und Paketbeleg akzeptiert.
    UUID bleibt `chatgpt-usage@oss-singularity`; kein zusätzlicher 0.4.0-Release.
-2. **Jetzt:** Den Projekt-PR erstellen; die sechs geschützten
-   Prüfungen bestehen lassen und den Merge separat freigeben lassen.
+2. **Jetzt:** Den bestehenden Projekt-PR #46 auf seinem aktuellen Stand prüfen;
+   alle sechs geschützten Prüfungen müssen bestehen. Den Merge separat freigeben.
 3. Den fertigen Spices-Pull-Request mit genau einem Applet vorlegen und erst
    nach Freigabe absenden. Dafür den persönlichen GitHub-Maintainer verwenden;
    eine gewünschte Organisation als `info.json.author` vorher mit Upstream

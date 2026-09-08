@@ -16,14 +16,14 @@
   "validatorSha256": "3b74a9b8360314ebb42ece78fe3215513144f8b64078e327ca0c03c9d8b63928",
   "validatorMatchesCheckedUpstreamHead": true,
   "artifacts": {
-    "install.zip": "d7e5c3f46a5260997acfe863eeb417a8d2c2601523016b69bf009142abbe8ffe",
-    "submission.zip": "37b98de761637e4933ac34a1af73e258c476ea3d9d7435f9666b30ed71363dfa"
+    "install.zip": "4407a3520da29c9ded6671f4b653cdc6cf36bcfd5844762a435afe33c1093a04",
+    "submission.zip": "c70292bfb4fecf76b8ceb5f4a2d78516d91b3a01c312d03479ec44362e1fe27f"
   },
   "remotePrChecks": "tracked-on-project-pull-request",
   "spicesSubmission": "not-submitted",
   "tagOrReleasePublished": false,
-  "sourceBaseCommit": "099d26b3dad79dd9a944832b77ba84ca86ba34ae",
-  "sourceState": "Approved runtime and screenshots at sourceBaseCommit; subsequent documentation-only approval update. Exact packaged bytes are identified by payloadSha256 and archive hashes.",
+  "sourceBaseCommit": "95b6cb175c720b9db5d132249aa40b0d00d8dbf7",
+  "sourceState": "Accepted candidate after sourceBaseCommit with a shorter manager description and refreshed screenshot provenance. Exact packaged bytes are identified by payloadSha256 and archive hashes.",
   "publicAppletName": "ChatGPT Usage Monitor",
   "socialHeading": "ChatGPT Usage Monitor",
   "cinnamonVersions": ["6.6"],
@@ -34,7 +34,7 @@
     "applet.js": "fcd53598b4c7ff5aaaf704caa163bcb8f3b0d97897d82c638652eef4e12c8114",
     "usage-format.js": "bccdde73912ebf95caff8023cbbb3651d09b7adc23b5883ffb435cdcad09c769",
     "chatgpt_usage.py": "f9a6d6ab2a3685ca867213e753e6b9741a17cc6e56cee3f2cd1a8c4c5ec74dc8",
-    "metadata.json": "97101d167d0be4da44adb65329ead2be03e20eeeed3f0c7cdb31e5e9c4213fa6",
+    "metadata.json": "8609eb925569d3ee0fbf6241001c3273014a7d79e69f164906c06c1e31cf1aa5",
     "settings-schema.json": "6c8ed92096e5509cbf7c6820a8a7718c1a3476e63945906997584806049abc14",
     "icon.png": "68d4b41a069af25c0c680b7d088a0652bc1853ce4151cacb58fcec3b1a644cd5",
     "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
@@ -54,7 +54,7 @@
     "icons/view-refresh-symbolic.svg": "5b622db6cb96af2eb95ebedf0321d6a25648a39797cd5292ea11a72b3d7ad5c9",
     "icons/web-browser-symbolic.svg": "133e08cc25085af1d51ee2e53071ef3fdf0d61fed3dd8de95e3611d10f17b69e",
     "path_settings.py": "2c0b264c7694ce45ea5df26f58e4d5b8ff7fe34548814c5990a6fa2ebbeedd0a",
-    "po/chatgpt-usage@oss-singularity.pot": "4868e23cd944fb319b43e9bb97bf018afe6a6b43a837d78e91e5349e6d5086a3"
+    "po/chatgpt-usage@oss-singularity.pot": "e290b1bbcc78aa899df40f8c40f53946614492cc88dd37fb71f69ef061acfe7d"
   },
   "verifiedDesktopBaseline": {
     "cinnamon": "6.6.9",
@@ -105,5 +105,10 @@
       "readiness-baseline",
       "package-receipt"
     ]
+  },
+  "managerDescription": {
+    "text": "A tiny Cinnamon companion keeping ChatGPT Work & Codex usage beautifully in view.",
+    "nativeGtkRowWidth": 646,
+    "nativeLineCount": 1
   }
 }

@@ -10,6 +10,11 @@ This is the reviewable 1.0.0 candidate, not a published release or an accepted S
 The approved runtime and screenshots are recorded at `099d26b3dad79dd9a944832b77ba84ca86ba34ae`.
 The subsequent documentation update records that approval and refreshes the
 package receipt after removing the obsolete naming-review notice.
+The manager description retains “usage beautifully in view” and fits one line
+in a native 646 px manager row. The current local archive was installed through
+Cinnamon's own Spices folder installer and recognized in Manage; metadata differs
+only by Cinnamon's generated `last-edited` and JSON formatting. The other 23
+payload files match exactly, and enabled applets/settings remain unchanged.
 
 - [x] All 13 audit areas below are implemented, verified or explicitly scoped
       to the accepted Cinnamon 6.6 baseline.
