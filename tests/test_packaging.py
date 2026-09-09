@@ -73,6 +73,7 @@ class PackageTests(unittest.TestCase):
 
     def test_metadata_and_notices(self):
         files = package.payload()
+        compile(files["notification_settings.py"], "notification_settings.py", "exec")
         metadata = json.loads(files["metadata.json"])
         self.assertTrue(json.dumps(metadata, ensure_ascii=False).isascii())
         self.assertFalse({"icon", "dangerous", "last-edited"}.intersection(metadata))

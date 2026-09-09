@@ -71,7 +71,9 @@ The other variants exercise unused Spark, expanded Spark, four rings, Codex
 only, actual pointer-triggered tooltips, settings and setup dialogs. No real
 account is required. The general settings image enables model-specific panel display as an
 explicit example; all other general controls retain their defaults. Notifications
-also shows defaults, with all notification options enabled and threshold controls visible.
+shows the master refresh option enabled and the low-limit options disabled, with
+the dependent reset switches shown as effectively enabled while disabled, and
+the threshold controls still visible in their native disabled state.
 
 For native notification retention QA, run the private wrapper with
 `QA_NOTIFICATION_RETENTION=1`, an absolute `QA_NOTIFICATION_GEOMETRY` output

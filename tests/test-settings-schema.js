@@ -48,16 +48,6 @@ assertEqual(
     "Spark weekly reset label"
 );
 assertEqual(
-    schema["notify-codex-weekly-reset"].dependency,
-    "!notify-all-weekly-resets",
-    "Master switch disables the Codex-specific switch"
-);
-assertEqual(
-    schema["notify-spark-weekly-reset"].dependency,
-    "!notify-all-weekly-resets",
-    "Master switch disables the Spark-specific switch"
-);
-assertEqual(
     schema["enable-five-hour-low-notifications"].default,
     true,
     "Five-hour notifications default on"
@@ -69,17 +59,60 @@ assertEqual(
 );
 
 for (const prefix of ["five-hour", "weekly"]) {
-    const enabledKey = prefix === "five-hour"
-        ? "enable-five-hour-low-notifications"
-        : "enable-weekly-low-notifications";
     const warning = schema[`${prefix}-warning-remaining`];
     const critical = schema[`${prefix}-critical-remaining`];
-    assertEqual(warning.dependency, enabledKey, `${prefix} warning dependency`);
-    assertEqual(critical.dependency, enabledKey, `${prefix} critical dependency`);
     assertEqual(warning.default, 25, `${prefix} warning default`);
     assertEqual(critical.default, 10, `${prefix} critical default`);
     assertEqual(warning.min, 1, `${prefix} warning lower bound`);
     assertEqual(critical.max, 99, `${prefix} critical upper bound`);
+}
+
+function assertVisibleDependentControl(controlKey, settingKey, dependencyKey, inverted, widget, message) {
+    const layoutKeys = schema.layout["reset-notification-section"].keys
+        .concat(schema.layout["low-notification-section"].keys);
+    const control = schema[controlKey];
+    assertEqual(layoutKeys.includes(controlKey), true, `${message} is in the layout`);
+    assertEqual(layoutKeys.includes(settingKey), false, `${message} does not duplicate the native setting`);
+    assertEqual(control.type, "custom", `${message} uses a custom visible control`);
+    assertEqual(control.file, "notification_settings.py", `${message} widget file`);
+    assertEqual(control.widget, widget, `${message} widget class`);
+    assertEqual(control.default, "", `${message} has a UI-only default`);
+    assertEqual(control["setting-key"], settingKey, `${message} native setting key`);
+    assertEqual(control["dependency-key"], dependencyKey, `${message} dependency key`);
+    assertEqual(control["dependency-invert"] === true, inverted, `${message} dependency direction`);
+    assertEqual(schema[settingKey].dependency, undefined, `${message} native setting is not hidden`);
+}
+
+assertVisibleDependentControl(
+    "notify-codex-weekly-reset-control",
+    "notify-codex-weekly-reset",
+    "notify-all-weekly-resets",
+    true,
+    "NotificationSwitchWidget",
+    "Codex weekly reset control"
+);
+assertVisibleDependentControl(
+    "notify-spark-weekly-reset-control",
+    "notify-spark-weekly-reset",
+    "notify-all-weekly-resets",
+    true,
+    "NotificationSwitchWidget",
+    "Spark weekly reset control"
+);
+for (const prefix of ["five-hour", "weekly"]) {
+    const enabledKey = prefix === "five-hour"
+        ? "enable-five-hour-low-notifications"
+        : "enable-weekly-low-notifications";
+    for (const level of ["warning", "critical"]) {
+        assertVisibleDependentControl(
+            `${prefix}-${level}-remaining-control`,
+            `${prefix}-${level}-remaining`,
+            enabledKey,
+            false,
+            "NotificationThresholdWidget",
+            `${prefix} ${level} threshold control`
+        );
+    }
 }
 
 print("Settings schema tests passed.");

@@ -22,5 +22,6 @@
   "icons/view-refresh-symbolic.svg": "icons/view-refresh-symbolic.svg",
   "icons/web-browser-symbolic.svg": "icons/web-browser-symbolic.svg",
   "path_settings.py": "path_settings.py",
+  "notification_settings.py": "notification_settings.py",
   "po/chatgpt-usage@oss-singularity.pot": "po/chatgpt-usage@oss-singularity.pot"
 }

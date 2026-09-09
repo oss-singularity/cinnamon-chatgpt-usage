@@ -240,6 +240,11 @@ if [[ "${QA_NOTIFICATION_RETENTION:-0}" == 1 ]]; then
 fi
 
 if [[ "$variant" == settings-* ]]; then
+    if [[ "$variant" == settings-notifications ]]; then
+        # Keep the dependent notification rows in the screenshot while showing
+        # the real disabled state from the native custom widgets.
+        eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];a.settings.setValue("notify-all-weekly-resets",true);a.settings.setValue("notify-codex-weekly-reset",false);a.settings.setValue("notify-spark-weekly-reset",false);a.settings.setValue("enable-five-hour-low-notifications",false);a.settings.setValue("enable-weekly-low-notifications",false);return true;})())' >/dev/null
+    fi
     case "$variant" in
         settings-general) settings_tab=0 ;;
         settings-colors) settings_tab=1 ;;

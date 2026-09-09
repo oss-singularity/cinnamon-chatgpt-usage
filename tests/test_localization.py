@@ -35,7 +35,13 @@ class LocalizationTests(unittest.TestCase):
                 + "\n"
             )
             subprocess.run(["msgfmt", "--check-format", str(po), "-o", str(catalog)], check=True)
-            env = {**os.environ, "HOME": str(home), "LANGUAGE": "zz", "LC_ALL": "en_US.UTF-8"}
+            env = {
+                **os.environ,
+                "HOME": str(home),
+                "XDG_DATA_HOME": str(home / ".local/share"),
+                "LANGUAGE": "zz",
+                "LC_ALL": "en_US.UTF-8",
+            }
             js = """
 const GLib=imports.gi.GLib, ByteArray=imports.byteArray;
 const module={exports:{}};

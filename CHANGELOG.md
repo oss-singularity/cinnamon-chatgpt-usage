@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Keep dependent notification switches and warning/critical thresholds visible
+  in Cinnamon Settings while disabling the controls that are currently inactive;
+  show per-model reset switches as effectively enabled when the master switch
+  covers them without changing their stored individual values.
+- Resolve gettext catalogs below the XDG user data directory so the Cinnamon
+  Spices best-practices scanner does not report a hardcoded data path.
+
 ## 1.0.1 — 2026-09-08
 
 - Restore automatic-path hints when clicking outside either executable-path field

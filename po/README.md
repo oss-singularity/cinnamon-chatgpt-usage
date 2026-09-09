@@ -10,7 +10,8 @@ JavaScript supports reordered placeholders such as `%2$s`.
 
 Name a contributed catalog `LANGUAGE.po` in this directory. For local testing,
 compile it with `msgfmt --check` to
-`~/.local/share/locale/LANGUAGE/LC_MESSAGES/chatgpt-usage@oss-singularity.mo`,
+`$XDG_DATA_HOME/locale/LANGUAGE/LC_MESSAGES/chatgpt-usage@oss-singularity.mo`
+(normally `~/.local/share/locale/...`),
 then reload the applet under that locale. Cinnamon Spices installs contributed
 catalogs through its translation workflow. The repository's current installer
 ships the template and does not compile development catalogs automatically.
