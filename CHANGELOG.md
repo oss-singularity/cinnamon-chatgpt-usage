@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.4 — 2026-09-09
+
+- Track observed credit-balance consumption over the last eight days and show
+  the last 24 hours as a critical-color series stacked above quota activity.
+- Keep available credit balances at one decimal place while rendering consumed
+  credit periods as whole numbers with a compact, non-bold bullet separator.
+- Preserve fractional remaining percentages below the configured critical
+  threshold, use `<1%` only for positive sub-one-percent panel-ring values,
+  and avoid replaying capped usage when reset timestamps drift.
+- Keep synthetic UI captures aligned with the real exhausted-quota-to-credit
+  fallback sequence.
+
 ## 1.0.3 — 2026-09-09
 
 - Expand the declared Cinnamon compatibility from 6.6 only to Cinnamon 5.8,

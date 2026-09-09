@@ -8,7 +8,11 @@ const AppletClass = new Function("imports", "require",
     `${ByteArray.toString(contents)}\nreturn ChatGptUsageApplet;`
 )(
     { gettext: imports.gettext, format: imports.format, ui: { applet: { Applet: class {}, AppletPopupMenu: class {} }, popupMenu: { PopupSeparatorMenuItem: class {} } }, misc: {}, gi: {} },
-    () => ({ formatDuration: value => `${value}m`, formatPercent: value => `${value}%` })
+    () => ({
+        formatDuration: value => `${value}m`,
+        formatPercent: value => `${value}%`,
+        hasRecentActivity: () => false
+    })
 );
 function assert(value, message) { if (!value) throw new Error(message); }
 const applet = Object.create(AppletClass.prototype);

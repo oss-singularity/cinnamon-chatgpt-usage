@@ -120,6 +120,44 @@ assertEqual(
 );
 assertEqual(UsageFormat.formatPercent(99.6), "100%", "Percentage rounding");
 assertEqual(UsageFormat.formatPercent(-2), "0%", "Percentage lower clamp");
+assertEqual(UsageFormat.formatPercent(0), "0%", "Exact zero percentage stays zero");
+assertEqual(UsageFormat.formatPanelPercent(0), "0%", "Panel zero percentage stays zero");
+assertEqual(
+    UsageFormat.formatPanelPercent(0.01),
+    "<1%",
+    "Panel tiny positive percentages stay compact"
+);
+assertEqual(
+    UsageFormat.formatPanelPercent(0.99),
+    "<1%",
+    "Panel sub-one percentages stay compact"
+);
+assertEqual(UsageFormat.formatPanelPercent(1), "1%", "Panel one percent stays numeric");
+assertEqual(
+    UsageFormat.formatPercent(0, 15),
+    "0%",
+    "Exact zero remains an integer percentage below the critical threshold"
+);
+assertEqual(
+    UsageFormat.formatPercent(0.01, 15),
+    "0.01%",
+    "Positive critical percentages keep two decimals"
+);
+assertEqual(
+    UsageFormat.formatPercent(0.49, 15),
+    "0.49%",
+    "Small positive critical percentages remain visible"
+);
+assertEqual(
+    UsageFormat.formatPercent(14.99, 15),
+    "14.99%",
+    "Critical percentages keep two decimals below the threshold"
+);
+assertEqual(
+    UsageFormat.formatPercent(15, 15),
+    "15%",
+    "Critical threshold itself keeps normal rounding"
+);
 assertEqual(
     UsageFormat.formatConsumedPercent({ consumedPercent: 2.25, complete: true }),
     "2.3%",
@@ -469,6 +507,107 @@ assertEqual(
     "unavailable",
     "Missing credit balance stays unavailable"
 );
+assertEqual(
+    UsageFormat.formatConsumedCredits({ consumed: 2.4, complete: true }),
+    "2",
+    "Consumed credits show whole numbers"
+);
+assertEqual(
+    UsageFormat.formatConsumedCredits({ consumed: 2.4, complete: false }),
+    "2",
+    "Partial consumed credits show whole numbers without approximation markers"
+);
+assertEqual(
+    UsageFormat.formatCreditNumber("158.04"),
+    "158.0",
+    "Credit balances show one decimal place"
+);
+assertEqual(
+    UsageFormat.formatCreditNumber("239.071181"),
+    "239.1",
+    "Fractional credit balances round to one decimal place"
+);
+assertEqual(
+    UsageFormat.formatCreditNumber(null),
+    "unavailable",
+    "Missing fractional credit balance stays unavailable"
+);
+assertEqual(
+    UsageFormat.formatCreditConsumption({
+        "24h": { consumed: 9, complete: true },
+        "12h": { consumed: 4, complete: true },
+        "4h": { consumed: 2, complete: true },
+        "1h": { consumed: 1, complete: true }
+    }),
+    "24h 9  •  12h 4  •  4h 2  •  1h 1",
+    "Credit consumption periods use the requested order"
+);
+assertEqual(
+    UsageFormat.formatCreditConsumption({
+        "24h": { consumed: 0, complete: true },
+        "12h": { consumed: 0, complete: true },
+        "4h": { consumed: 0, complete: true },
+        "1h": { consumed: 0, complete: true }
+    }),
+    null,
+    "Unused credits stay off the compact balance line"
+);
+const creditActivityChart = UsageFormat.buildCreditActivityChart([
+    { consumed: 0, complete: true, observed: true },
+    { consumed: 3, complete: true, observed: true }
+]);
+assertEqual(creditActivityChart.totalPercent, 3, "Credit activity total");
+assertEqual(creditActivityChart.bars[1].known, true, "Credit activity bucket is known");
+assertEqual(
+    UsageFormat.hasRecentActivity([
+        { consumed: 0, complete: true, observed: true },
+        { consumed: 1, complete: true, observed: true }
+    ], "consumed"),
+    true,
+    "Credit activity opens the combined graph"
+);
+const creditTooltip = UsageFormat.formatActivityBucketTooltip(
+    creditActivityChart.bars[1],
+    1,
+    2,
+    60,
+    1700000000,
+    true,
+    "credits"
+);
+if (!creditTooltip.includes("3 credits consumed")) {
+    throw new Error(`Expected credit tooltip, got ${creditTooltip}`);
+}
+const sharedTooltipRange = UsageFormat.formatActivityBucketRange(
+    1,
+    2,
+    60,
+    1700000000,
+    true
+);
+const greenTooltipLine = UsageFormat.formatActivityBucketTooltipLine(
+    chart.bars[3],
+    3,
+    4,
+    120,
+    1700000000,
+    true
+);
+const unknownTooltipLine = UsageFormat.formatActivityBucketTooltipLine(
+    chart.bars[0],
+    0,
+    4,
+    120,
+    1700000000,
+    true,
+    "credits"
+);
+if (!sharedTooltipRange || greenTooltipLine.includes("\n") ||
+    unknownTooltipLine !== "No observed data") {
+    throw new Error(
+        `Expected shared tooltip range and detail-only lines, got ${sharedTooltipRange} / ${greenTooltipLine} / ${unknownTooltipLine}`
+    );
+}
 assertEqual(
     UsageFormat.formatWholeNumber("3.0000000000"),
     "3",

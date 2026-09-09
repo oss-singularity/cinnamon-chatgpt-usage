@@ -179,12 +179,15 @@ JSON.stringify((function(){
     var now=Math.floor(Date.now()/1000),updated=now-120;
     function win(duration,remaining,offset){return {durationMinutes:duration,usedPercent:100-remaining,remainingPercent:remaining,resetsAt:now+offset};}
     function bucket(value){return {consumedPercent:value,complete:true,observed:true};}
+    function creditBucket(value){return {consumed:value,complete:true,observed:true};}
     function historyWindow(id,label,duration,periods,values){periods["24h"]={consumedPercent:values.reduce(function(a,b){return a+b;},0),complete:true};return {id:id,label:label,durationMinutes:duration,trackedSince:now-8*86400,periods:periods,activity24h:values.map(bucket)};}
     var codexLabel="Codex",sparkLabel="GPT-5.3-Codex-Spark",hasSpark="VARIANT"!=="codex-two";
-    var codexWindows=[win(10080,62,4*86400+5*3600)];
+    var codexWindows=[win(10080,0,4*86400+5*3600)];
     var sparkWindows=[win(300,82,3*3600+41*60),win(10080,76,6*86400+3*3600)];
     if("VARIANT"==="four"||"VARIANT"==="codex-two")codexWindows.unshift(win(300,68,2*3600+13*60));
-    var codexValues=[0,0,0,1,0,0,0,2,0,0,1,0,0,0,2,0,0,0,1,0,0,0,0,1];
+    // Mirror the live fallback story: the last green quota bucket is the only
+    // mixed bucket; once the quota is exhausted, later buckets are credit-only.
+    var codexValues=[0,0,0,1,0,0,0,2,0,0,1,0,0,0,2,0,0,0,1,1,0,0,0,0];
     var sparkFiveValues=[0,0,0,0,0,0,1,0,0,0,0,0,0,2,0,0,0,0,1,0,0,0,0,0];
     var sparkWeeklyValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,1,0];
     if("VARIANT"==="basic"||"VARIANT"==="four"){
@@ -192,12 +195,14 @@ JSON.stringify((function(){
         sparkFiveValues=sparkFiveValues.map(function(){return 0;});
         sparkWeeklyValues=sparkWeeklyValues.map(function(){return 0;});
     }
-    var codexPeriods={"1h":{consumedPercent:1,complete:true},"4h":{consumedPercent:5,complete:true},"12h":{consumedPercent:26,complete:true},today:{consumedPercent:26,complete:true}};
+    var codexPeriods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:1,complete:true},today:{consumedPercent:8,complete:true}};
     var sparkFivePeriods={"1h":{consumedPercent:3,complete:true},"4h":{consumedPercent:10,complete:true}};
     var sparkWeeklyPeriods={"1h":{consumedPercent:3,complete:true},"4h":{consumedPercent:10,complete:true},"12h":{consumedPercent:18,complete:true},today:{consumedPercent:18,complete:true}};
     var codexHistory=historyWindow("codex",codexLabel,10080,codexPeriods,codexValues);
     var sparkFiveHistory=historyWindow("spark",sparkLabel,300,sparkFivePeriods,sparkFiveValues);
     var sparkWeeklyHistory=historyWindow("spark",sparkLabel,10080,sparkWeeklyPeriods,sparkWeeklyValues);
+    var creditPeriods={"24h":{consumed:84.4,complete:true},"12h":{consumed:84.4,complete:true},"4h":{consumed:73.8,complete:true},"1h":{consumed:20.1,complete:true}};
+    var creditValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10.6,17.2,28.4,8.1,20.1];
     var historyWindows=[codexHistory];
     if("VARIANT"==="four"||"VARIANT"==="codex-two")historyWindows.push(historyWindow("codex",codexLabel,300,{"1h":{consumedPercent:2,complete:true},"4h":{consumedPercent:5,complete:true}},[0,0,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,2,0,0]));
     if(hasSpark)historyWindows.push(sparkFiveHistory,sparkWeeklyHistory);
@@ -207,20 +212,22 @@ JSON.stringify((function(){
     a._snapshot={
         updatedAt:updated,
         limits:limits,
-        credits:{balance:"158",availableResetCount:"VARIANT"==="reset"?1:2,nextResetExpiresAt:now+10*86400+4*3600,resetCredits:[{id:"demo-reset-1",expiresAt:now+10*86400+4*3600},{id:"demo-reset-2",expiresAt:now+11*86400}],hasCredits:true,unlimited:false},
-        history:{trackedSince:now-8*86400,activityBucketMinutes:60,activityEndAt:Math.ceil(now/3600)*3600,windows:historyWindows}
+        credits:{balance:"158.4",availableResetCount:"VARIANT"==="reset"?1:2,nextResetExpiresAt:now+10*86400+4*3600,resetCredits:[{id:"demo-reset-1",expiresAt:now+10*86400+4*3600},{id:"demo-reset-2",expiresAt:now+11*86400}],hasCredits:true,unlimited:false},
+        history:{trackedSince:now-8*86400,activityBucketMinutes:60,activityEndAt:Math.ceil(now/3600)*3600,creditPeriods:creditPeriods,creditActivity24h:creditValues.map(creditBucket),windows:historyWindows}
     };
     if("VARIANT"==="overview"){
-        a._snapshot.limits[0].windows=[win(10080,5,6*86400+16*3600)];
-        a._snapshot.credits={balance:"250",availableResetCount:1,nextResetExpiresAt:now+29*86400+13*3600,hasCredits:true,unlimited:false};
-        a._snapshot.history.windows[0].periods={"1h":{consumedPercent:11,complete:true},"4h":{consumedPercent:35,complete:true},"12h":{consumedPercent:95,complete:true},today:{consumedPercent:123,complete:true}};
-        a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,3,21,21,0,0,0,0,0,0,0,7,8,8,7,2,3,3,2].map(bucket);
+        a._snapshot.limits[0].windows=[win(10080,0,6*86400+16*3600)];
+        a._snapshot.credits={balance:"250.0",availableResetCount:1,nextResetExpiresAt:now+29*86400+13*3600,hasCredits:true,unlimited:false};
+        a._snapshot.history.windows[0].periods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:30,complete:true},today:{consumedPercent:85,complete:true}};
+        a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,3,21,21,0,0,0,0,0,0,0,7,8,8,7,0,0,0,0].map(bucket);
         a._snapshot.history.windows.slice(1).forEach(function(w){w.activity24h=w.activity24h.map(function(){return bucket(0);});});
     }
     var alertMode=GLib.getenv("QA_PANEL_ALERTS");
     if(alertMode==="on"||alertMode==="off"){
         a.showPanelThresholdColors=alertMode==="on";
         a._snapshot.limits=[{id:"codex",label:codexLabel,windows:[win(300,25,3600),win(10080,10,86400)]}];
+        a._snapshot.history.creditPeriods={};
+        a._snapshot.history.creditActivity24h=[];
     }
     if(GLib.getenv("QA_MODEL_SPECIFIC_LIMITS")==="off")a.showModelSpecificLimits=false;
     a._lastError=null;a._authenticationRequired=false;a._resetConsumeBusy=false;a._resetFeedback=null;a.showModelLimitsInPanel=true;

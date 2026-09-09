@@ -32,7 +32,7 @@ def fail(message):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", required=True, help="Version from metadata.json, for example 1.0.3")
+    parser.add_argument("--version", required=True, help="Version from metadata.json, for example 1.0.4")
     parser.add_argument(
         "--main-ref",
         default="refs/remotes/origin/main",
