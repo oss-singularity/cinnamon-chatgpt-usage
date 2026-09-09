@@ -1,10 +1,12 @@
 # Veröffentlichung und Upstream-Nachlauf
 
 Stand: 9. September 2026. Die ursprüngliche 1.0.0-Einreichung und der
-1.0.2-Fix sind veröffentlicht; Version 1.0.3 erweitert die deklarierte
-Cinnamon-Kompatibilität auf 5.8, 6.0, 6.2, 6.4 und 6.6. Die Aufnahme in den
-Cinnamon-Katalog steht noch aus. Die folgenden ursprünglichen Freigaben und
-Nachlauf-Schritte bleiben als Hand-off dokumentiert.
+1.0.3-Fix sind veröffentlicht; der falsch entstandene 1.0.2-Release samt Tag
+wurde nach der 1.0.3-Verifikation entfernt. Der historische 1.0.2-Receipt bleibt
+als Provenienz im Repository erhalten. Version 1.0.3 deklariert Cinnamon 5.8,
+6.0, 6.2, 6.4 und 6.6. Die Aufnahme in den Cinnamon-Katalog steht noch aus.
+Die folgenden ursprünglichen Freigaben und Nachlauf-Schritte bleiben als
+Hand-off dokumentiert.
 
 ## Main-first-Release-Gate
 
@@ -105,10 +107,12 @@ Die [Readiness-Dokumentation](spices-readiness.md) und der
 2. **Erledigt:** Projekt-PR #46 gemergt; Spices-PR
    [#9024](https://github.com/linuxmint/cinnamon-spices-applets/pull/9024)
    mit `ClaudiuSchuster` als Maintainer abgesendet. OSS Singularity bleibt
-   Projektidentität. Upstream-Review und Freigabe des PR-Workflows stehen aus.
-3. **Jetzt:** Den freigegebenen GitHub-Release 1.0.0 mit Installations-ZIP und
-   Prüfsummen veröffentlichen. Die Release-Notizen benennen den offenen
-   Spices-Status ausdrücklich; ein GitHub-Release bedeutet keine Katalogaufnahme.
+   Projektidentität. Source-Release 1.0.3, Main-first-Tag und Upstream-PR-
+   Synchronisierung sind erledigt; nur die Upstream-Katalogaufnahme steht aus.
+3. **Erledigt:** GitHub-Release 1.0.3 mit Installations-ZIP und Prüfsummen
+   veröffentlicht. Der falsche 1.0.2-Release/Tag wurde erst nach Aktualisierung
+   aller aktiven Upstream-Verweise entfernt; ein GitHub-Release bedeutet keine
+   Katalogaufnahme.
 4. Nach Annahme den tatsächlichen Katalogeintrag, das heruntergeladene Paket
    und Installation/Update über Cinnamon prüfen. Erst dann als **offizielle
    Spice** ankündigen und die vorbereiteten Katalog-/Forum-Texte mit den
