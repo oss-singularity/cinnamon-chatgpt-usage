@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.2 — 2026-09-09
 
 - Keep dependent notification switches and warning/critical thresholds visible
   in Cinnamon Settings while disabling the controls that are currently inactive;
