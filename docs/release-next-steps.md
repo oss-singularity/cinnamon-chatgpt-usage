@@ -58,7 +58,7 @@ erst beim freigegebenen Einreichungsschritt.
 
 ## Was bereits grün ist
 
-- `make verify`: 42 Python-Tests, JavaScript-Regressionen, Paket-Roundtrips,
+- `make verify`: 45 Python-Tests, JavaScript-Regressionen, Paket-Roundtrips,
   PNG-/Quellinventar und die Repository-Prüfungen bestanden.
 - Gepinnter Super-Linter erfolgreich; bestehender allgemeiner Hinweis zur
   nicht gesetzten React-Version, kein neuer Codebefund.
@@ -67,13 +67,13 @@ erst beim freigegebenen Einreichungsschritt.
 - Transport, Reset-Journal und Sicherheits-Haken, Benachrichtigungen,
   Modell-Anzeigeschalter und 420-px-Menübreite mit gezielten Regressionen.
 - Lokales Paket zusätzlich über Cinnamons nativen Spices-Installer installiert:
-  23 Dateien byteidentisch, Metadaten bis auf Cinnamons `last-edited` und
-  JSON-Formatierung identisch. Im Manager erkannt, gezielter Reload gesund;
+  25 Dateien byteidentisch und als reguläre Dateien vorhanden. Im Manager
+  erkannt, gezielter Reload gesund;
   Einstellungen unverändert. Keine echte Reset-Gutschrift für Tests verbraucht.
 - Die Beschreibung behält „usage beautifully in view“ und passt einzeilig
   in die geprüfte native Manager-Zeile.
 - Neues Installations- und Einreichungspaket besteht den offiziellen
-  Strukturvalidator; [genauer Paketbeleg](release-checkpoint.json).
+  Strukturvalidator; [genauer Paketbeleg](release-1.0.4.json).
 
 ## Technischer Umfang und bewusste Grenzen
 
@@ -94,17 +94,17 @@ erst beim freigegebenen Einreichungsschritt.
   Grenze sind mit synthetischen Daten geprüft; keine Zugangsdaten wurden gelesen.
 
 Die sechs geschützten **Remote-PR-Prüfungen** sind erfolgreich auf
-[Projekt-PR #46](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/46).
+[Projekt-PR #52](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/52).
 Auch beide Workflows nach dem Merge sind erfolgreich. Den aktuellen Status hält das
 [Release-Issue](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45) fest.
 Die [Readiness-Dokumentation](spices-readiness.md) und der
-[Paketbeleg](release-checkpoint.json) halten den genauen Umfang fest.
+[Paketbeleg](release-1.0.4.json) halten den genauen Umfang fest.
 
 ## Reihenfolge ab hier
 
 1. **Erledigt:** Claudiu hat Bilder, Readiness-Umfang und Paketbeleg akzeptiert.
    UUID bleibt `chatgpt-usage@oss-singularity`; kein zusätzlicher 0.4.0-Release.
-2. **Erledigt:** Projekt-PR #46 gemergt; Spices-PR
+2. **Erledigt:** Projekt-PR #52 gemergt; Spices-PR
    [#9024](https://github.com/linuxmint/cinnamon-spices-applets/pull/9024)
    mit `ClaudiuSchuster` als Maintainer abgesendet. OSS Singularity bleibt
    Projektidentität. Source-Release 1.0.4, Main-first-Tag und Upstream-PR-

@@ -7,15 +7,15 @@ Cinnamon Spices catalog acceptance are separate milestones.
 
 ## Current checkpoint — 2026-09-09
 
-**Candidate review complete and accepted by Claudiu on 2026-09-08.**
-The approved runtime and screenshots are recorded at `099d26b3dad79dd9a944832b77ba84ca86ba34ae`.
-The subsequent documentation update records that approval and refreshes the
-package receipt after removing the obsolete naming-review notice.
+**Version 1.0.4 candidate review complete and accepted by Claudiu on 2026-09-08.**
+The approved runtime and screenshots are included in the source state merged by
+project PR #52 (`f9d02b325f6dbb759dcf81c210f19045014a027a`).
+The current documentation records that approval and the 1.0.4 package receipt.
 The manager description retains “usage beautifully in view” and fits one line
 in a native 646 px manager row. The current local archive was installed through
-Cinnamon's own Spices folder installer and recognized in Manage; metadata differs
-only by Cinnamon's generated `last-edited` and JSON formatting. The other 23
-payload files match exactly, and enabled applets/settings remain unchanged.
+Cinnamon's own Spices folder installer and recognized in Manage; all 25 managed
+payload files match exactly as regular files, and enabled applets/settings remain
+unchanged.
 
 - [x] All 13 audit areas below are implemented, verified or explicitly scoped
       to the declared Cinnamon 5.8+ series and the accepted 6.6.9 baseline.
@@ -26,8 +26,8 @@ payload files match exactly, and enabled applets/settings remain unchanged.
 - [x] Local tests, native UI checks, linter and structural package validation passed.
 - [x] Package receipt reviewed; real archive and payload hashes recorded.
 
-[Project PR #46](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/46)
-was merged as `ef77e9851ca73a4d113da7a62be49ecc75deefdf`, with all six PR checks
+[Project PR #52](https://github.com/oss-singularity/cinnamon-chatgpt-usage/pull/52)
+was merged as `f9d02b325f6dbb759dcf81c210f19045014a027a`, with all six PR checks
 and both post-merge workflows passing. The maintainer authorized publication.
 [Spices PR #9024](https://github.com/linuxmint/cinnamon-spices-applets/pull/9024)
 has been submitted and is awaiting upstream review. Catalog acceptance and the
@@ -37,14 +37,14 @@ actual store installation/update check remain open; this is not yet an accepted 
 manual decisions and publication order. The earlier commit-pinned copy is a
 historical checkpoint, not the status of every later change.
 
-The current candidate builds on `1397370`, adding gettext, native popup lifecycle
-and accessibility/layout fixes: 42 Python tests plus the
+The current candidate builds on `f9d02b3`, adding credit consumption history,
+low-percentage precision and accessibility/layout fixes: 45 Python tests plus the
 JavaScript suites pass; all 15 screenshots match their producing sources;
-the installed payload now has 24 files, including the native GTK path widget and POT.
+the installed payload now has 25 files, including the native GTK path widget and POT.
 Reset acknowledgment, retained notifications, panel warning colors, global
 model visibility, dual installation-path hints and Recheck have additional
 unit/native evidence. A fresh package passes the official structural validator.
-[Artifact receipt](release-checkpoint.json) and
+[Artifact receipt](release-1.0.4.json) and
 [unsent publication/contact drafts](release-drafts.md) are prepared.
 
 The upstream validator at current HEAD
@@ -88,7 +88,7 @@ the naming item on 2026-09-08. It is no longer an open release-planning gate.
 
 ## Version and support decisions
 
-The candidate version is 1.0.0; no intermediate 0.4.0 release is needed.
+The current release version is 1.0.4; no intermediate 0.4.0 release is needed.
 Store submission and store acceptance
 are separate events and must never be inferred from a tag.
 
@@ -182,7 +182,7 @@ external settings, history and unresolved-reset state.
 
 The candidate's visuals, tests, changelog and package receipt have been reviewed
 and accepted by Claudiu. The project PR is merged and the Spices PR submitted.
-GitHub 1.0.0 publication is authorized while catalog review is pending.
+GitHub 1.0.4 publication is authorized while catalog review is pending.
 A submission should affect only this applet and use the
 upstream title format `ChatGPT Usage Monitor: ...`. Preserve protected squash merges
 and all six project PR checks; no administrator bypass.
