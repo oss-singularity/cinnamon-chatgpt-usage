@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -257,11 +258,19 @@ class UsageHistoryTests(unittest.TestCase):
         }
 
     @staticmethod
-    def sample(timestamp: int, used: float, resets_at: int = 9999) -> dict:
-        return {
+    def sample(
+        timestamp: int,
+        used: float,
+        resets_at: int = 9999,
+        credit_balance: float | None = None,
+    ) -> dict:
+        sample = {
             "timestamp": timestamp,
             "windows": {"codex:10080": {"usedPercent": used, "resetsAt": resets_at}},
         }
+        if credit_balance is not None:
+            sample["creditBalance"] = credit_balance
+        return sample
 
     def test_periods_sum_only_positive_observed_consumption(self) -> None:
         now = 1_800_000_000
@@ -299,6 +308,42 @@ class UsageHistoryTests(unittest.TestCase):
         periods = build_usage_history(self.snapshot(now, 5, 200), samples)["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 5)
 
+    def test_credit_consumption_counts_balance_decreases_and_ignores_refills(self) -> None:
+        now = 1_800_000_000
+        samples = [
+            self.sample(now - 13 * 3600, 10, credit_balance=20),
+            self.sample(now - 11 * 3600, 10, credit_balance=15),
+            self.sample(now - 10 * 3600, 10, credit_balance=30),
+            self.sample(now - 2 * 3600, 10, credit_balance=26),
+            self.sample(now - 3700, 10, credit_balance=25),
+            self.sample(now - 1800, 10, credit_balance=23),
+            self.sample(now, 10, credit_balance=22),
+        ]
+
+        history = build_usage_history(self.snapshot(now, 10), samples)
+        periods = history["creditPeriods"]
+        self.assertEqual(periods["24h"]["consumed"], 13)
+        self.assertEqual(periods["12h"]["consumed"], 13)
+        self.assertEqual(periods["4h"]["consumed"], 8)
+        self.assertEqual(periods["1h"]["consumed"], 3)
+        self.assertEqual(sum(bucket["consumed"] for bucket in history["creditActivity24h"]), 13)
+
+    def test_credit_balance_samples_round_trip_through_history(self) -> None:
+        now = 1_800_000_000
+        first = self.snapshot(now - 100, 10)
+        first["credits"]["balance"] = "12"
+        second = self.snapshot(now, 10)
+        second["credits"]["balance"] = "8"
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "history.json"
+            update_usage_history(first, path)
+            update_usage_history(second, path)
+            payload = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload["samples"][-1]["creditBalance"], 8)
+        self.assertEqual(second["history"]["creditPeriods"]["1h"]["consumed"], 4)
+
     def test_reset_timestamp_jitter_does_not_create_phantom_usage(self) -> None:
         now = 1_800_000_000
         samples = [
@@ -311,6 +356,17 @@ class UsageHistoryTests(unittest.TestCase):
         periods = history["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 4)
         self.assertEqual(periods["4h"]["consumedPercent"], 4)
+
+    def test_capped_usage_does_not_replay_on_reset_timestamp_drift(self) -> None:
+        now = 1_800_000_000
+        samples = [
+            self.sample(now - 1800, 100, 1000),
+            self.sample(now, 100, 4000),
+        ]
+
+        history = build_usage_history(self.snapshot(now, 100, 4000), samples)
+        periods = history["windows"][0]["periods"]
+        self.assertEqual(periods["1h"]["consumedPercent"], 0)
 
     def test_falling_rolling_value_is_ignored_before_new_consumption(self) -> None:
         now = 1_800_000_000
@@ -364,6 +420,7 @@ class UsageHistoryTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
 
             self.assertIn('"codex:10080"', text)
+            self.assertIn('"creditBalance":0', text)
             self.assertNotIn("credits", text)
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             self.assertIn("history", snapshot)

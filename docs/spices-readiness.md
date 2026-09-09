@@ -94,7 +94,7 @@ are separate events and must never be inferred from a tag.
 
 The audit baseline and current private GUI work use Cinnamon 6.6.9. Python
 syntax/runtime prerequisites are 3.10 or newer; the local interpreter is recorded
-in the work log. Version 1.0.3 declares Cinnamon **5.8, 6.0, 6.2, 6.4 and 6.6**,
+in the work log. Version 1.0.4 declares Cinnamon **5.8, 6.0, 6.2, 6.4 and 6.6**,
 matching the compatibility series used by the sibling Spices applets. The custom
 settings-widget and binding APIs used by this applet are present in the official
 Cinnamon 5.8 source; a separate 5.8 live desktop is not available on this host,

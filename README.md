@@ -94,6 +94,12 @@
   estimate from the more sensitive 5h history. Two-hour buckets remain
   selectable in settings, and Spark's summaries share one chart in their
   native expandable section, which opens automatically after recent activity.
+  When credits are available, observed balance decreases appear as a separate
+  critical-color series stacked above the quota bars in the account 7d chart and
+  as `Consumed: 24h …  •  12h …  •  4h …  •  1h …` beside the current credit balance;
+  the available credit balance uses one decimal place; consumption values are
+  shown as whole numbers. Remaining percentages below the configured critical
+  threshold retain two decimal places (except exact zero, shown as `0%`).
 - Launches an installed ChatGPT desktop app or Codex CLI directly, with native
   installation guidance when either is missing. The usage backend prefers the
   configured/PATH Codex CLI and can alternatively discover the app-server
@@ -158,7 +164,7 @@ Closing the dialog leaves the saved settings unchanged. Setup and General settin
 show detected paths as gray placeholders. Focusing an entry hides its placeholder;
 leaving it empty restores the hint. **Recheck** refreshes automatic paths without
 changing manual values or launching apps.
-Version 1.0.3 declares Cinnamon **5.8, 6.0, 6.2, 6.4 and 6.6** support,
+Version 1.0.4 declares Cinnamon **5.8, 6.0, 6.2, 6.4 and 6.6** support,
 following the Cinnamon Spices compatibility convention. Native runtime
 validation on this host remains Cinnamon 6.6.9; the 5.8 settings-widget API
 was checked against the official Cinnamon source, but no separate 5.8 live
@@ -196,9 +202,11 @@ is never consumed in the background: the confirmed popup action starts a
 separate `account/rateLimitResetCredit/consume` request with one UUID
 idempotency key and then refetches the complete usage snapshot. There is no
 HTML scraping, API key, browser access or background daemon. To calculate recent
-consumption, it stores only timestamps, window durations, percentages and reset
-timestamps for eight days in `$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json`
-(normally `~/.local/state/...`, mode `0600`). No prompts or credentials are recorded. Reset-credit details are not part of
+consumption, it stores only timestamps, window durations, percentages, reset
+timestamps and sampled numeric credit balances for eight days in
+`$XDG_STATE_HOME/cinnamon-chatgpt-usage/history.json` (normally
+`~/.local/state/...`, mode `0600`). No prompts or credentials are recorded.
+Reset-credit details are not part of
 usage history. An unresolved, explicitly confirmed reset keeps its idempotency
 key, selected opaque credit ID and backend path in a separate mode-0600
 `reset-attempt.json` beside history. It survives applet removal/reload and is

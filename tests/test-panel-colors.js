@@ -30,7 +30,11 @@ const AppletClass = new Function("imports", "require",
             Pango: { Alignment: { CENTER: 0 } }
         }
     },
-    () => ({ formatDuration: value => `${value}m`, formatPercent: value => `${value}%` })
+    () => ({
+        formatDuration: value => `${value}m`,
+        formatPercent: value => `${value}%`,
+        formatPanelPercent: value => `${value}%`
+    })
 );
 const applet = Object.create(AppletClass.prototype);
 applet._setDefaults();
