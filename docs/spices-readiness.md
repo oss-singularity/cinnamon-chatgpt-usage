@@ -1,11 +1,11 @@
-# Cinnamon Spices and 1.0.0 preparation
+# Cinnamon Spices and 1.0.x preparation
 
 Tracking: [issue #45](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45).
 Baseline: v0.3.12, `a2b366ea56b02e0bb184a270e8b331b04e371e59`.
 This records the validated 1.0.0 package baseline. GitHub release publication and
 Cinnamon Spices catalog acceptance are separate milestones.
 
-## Current checkpoint — 2026-09-08
+## Current checkpoint — 2026-09-09
 
 **Candidate review complete and accepted by Claudiu on 2026-09-08.**
 The approved runtime and screenshots are recorded at `099d26b3dad79dd9a944832b77ba84ca86ba34ae`.
@@ -18,8 +18,9 @@ only by Cinnamon's generated `last-edited` and JSON formatting. The other 23
 payload files match exactly, and enabled applets/settings remain unchanged.
 
 - [x] All 13 audit areas below are implemented, verified or explicitly scoped
-      to the accepted Cinnamon 6.6 baseline.
-- [x] Maintainer identity, unchanged UUID and Cinnamon 6.6 support accepted.
+      to the declared Cinnamon 5.8+ series and the accepted 6.6.9 baseline.
+- [x] Maintainer identity, unchanged UUID and Cinnamon 5.8+ compatibility declared;
+      native Cinnamon 6.6.9 support accepted.
 - [x] Public name and original artwork accepted; naming review closed.
 - [x] All 15 screenshots accepted by the maintainer.
 - [x] Local tests, native UI checks, linter and structural package validation passed.
@@ -79,7 +80,7 @@ the naming item on 2026-09-08. It is no longer an open release-planning gate.
 | 6. Invalid inputs    | Non-finite numbers rejected; invalid windows omitted; invalid history points ignored                                            | Legacy and named-limit robustness tests                                                                        |
 | 7. Themes            | Secondary/menu foregrounds, ring tracks and quota glyph tint derive from the menu theme                                         | Light/dark and large-font checks; other desktop configurations are outside the verified baseline below         |
 | 8. Screenshots       | Private capture scripts and 15-variant inventory, including Notifications                                                       | All 15 final images visually reviewed, source/hash verified and accepted                                       |
-| 9. Documentation     | README, SECURITY and bug form updated; installed README is portable                                                             | Cinnamon 6.6 scope selected; existing post-1.0 policy confirmed                                                |
+| 9. Documentation     | README, SECURITY and bug form updated; installed README is portable                                                             | Cinnamon 5.8–6.6 declared; native 6.6.9 evidence; post-1.0 policy confirmed                                    |
 | 10. Artwork          | Code/asset separation and full notices travel with package                                                                      | Original artwork, notices, final inventory and captures verified and accepted                                  |
 | 11. Discovery        | One Python discovery algorithm used by refresh and JS launch/version cache                                                      | CLI/app-only, explicit `~`, spaces, symlink-chain and precedence fixtures                                      |
 | 12. Compatibility    | Existing geometry preserved; scope and investigations made explicit below                                                       | Native 6.6 evidence, real gettext catalog and synthetic history/reset boundary tests                           |
@@ -93,10 +94,12 @@ are separate events and must never be inferred from a tag.
 
 The audit baseline and current private GUI work use Cinnamon 6.6.9. Python
 syntax/runtime prerequisites are 3.10 or newer; the local interpreter is recorded
-in the work log. On 2026-09-08 the maintainer chose Cinnamon **6.6 only** for
-the first Spices release and explicitly dropped the proposed 5.8–6.4 test series.
-Metadata now declares only 6.6. Older versions are outside this release's
-supported scope. The existing SECURITY policy already covers 1.0 and later:
+in the work log. Version 1.0.3 declares Cinnamon **5.8, 6.0, 6.2, 6.4 and 6.6**,
+matching the compatibility series used by the sibling Spices applets. The custom
+settings-widget and binding APIs used by this applet are present in the official
+Cinnamon 5.8 source; a separate 5.8 live desktop is not available on this host,
+so native runtime evidence remains explicitly anchored at 6.6.9. The existing
+SECURITY policy already covers 1.0 and later:
 fixes target the latest published release and current main, without backports
 to older releases.
 

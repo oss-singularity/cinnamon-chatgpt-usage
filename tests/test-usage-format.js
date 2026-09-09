@@ -284,6 +284,29 @@ assertEqual(chart.bars[1].intensity, 0, "Zero-consumption bucket");
 assertEqual(chart.bars[2].intensity, 4, "Relative activity intensity");
 assertEqual(chart.bars[3].intensity, 7, "Peak activity intensity");
 
+const unevenChart = UsageFormat.buildActivityChart([1, 2, 14]);
+assertEqual(
+    UsageFormat.activityBarHeight(unevenChart.bars[0], unevenChart.peakPercent),
+    9,
+    "One-percent activity keeps a distinct bar height"
+);
+assertEqual(
+    UsageFormat.activityBarHeight(unevenChart.bars[1], unevenChart.peakPercent),
+    11,
+    "Two-percent activity keeps a distinct bar height"
+);
+assertEqual(
+    UsageFormat.activityBarHeight(unevenChart.bars[0], unevenChart.peakPercent) <
+        UsageFormat.activityBarHeight(unevenChart.bars[1], unevenChart.peakPercent),
+    true,
+    "Nearby measured activity values do not collapse to one height"
+);
+assertEqual(
+    UsageFormat.activityBarHeight(unevenChart.bars[2], unevenChart.peakPercent),
+    26,
+    "Activity peak keeps the maximum bar height"
+);
+
 const partialChart = UsageFormat.buildActivityChart([
     { consumedPercent: 0, complete: false },
     { consumedPercent: 4, complete: false }

@@ -72,6 +72,7 @@ def main():
         "metadata.json",
         "settings-schema.json",
         "path_settings.py",
+        "notification_settings.py",
         "tests/assets/cinnamon-teal-background.svg",
     ]
     source_paths += [str(path.relative_to(ROOT)) for path in sorted(UI.iterdir()) if path.is_file()]

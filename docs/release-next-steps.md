@@ -1,8 +1,33 @@
-# Nächster Schritt zur ersten offiziellen Spice
+# Veröffentlichung und Upstream-Nachlauf
 
-Stand: 8. September 2026. **1.0.0** ist geprüft und zur Veröffentlichung
-freigegeben. Der Projekt-PR ist gemergt und die Spices-Einreichung abgesendet.
-Die Aufnahme in den Cinnamon-Katalog steht noch aus.
+Stand: 9. September 2026. Die ursprüngliche 1.0.0-Einreichung und der
+1.0.2-Fix sind veröffentlicht; Version 1.0.3 erweitert die deklarierte
+Cinnamon-Kompatibilität auf 5.8, 6.0, 6.2, 6.4 und 6.6. Die Aufnahme in den
+Cinnamon-Katalog steht noch aus. Die folgenden ursprünglichen Freigaben und
+Nachlauf-Schritte bleiben als Hand-off dokumentiert.
+
+## Main-first-Release-Gate
+
+Ein GitHub-Release darf erst entstehen, wenn der vollständige Quellstand über
+einen PR in `main` gelandet ist. GitHubs `targetCommitish`-Anzeige ist dafür
+kein Herkunftsnachweis; maßgeblich ist der Commit, auf den der Tag tatsächlich
+zeigt.
+
+Für jede neue Version gilt daher diese Reihenfolge:
+
+1. `git fetch --prune origin main --tags`
+2. `python3 scripts/check-release-base.py --version X.Y.Z`
+3. Paket exportieren, validieren und den Release-Receipt auf diesem sauberen,
+   exakt zu `origin/main` passenden Checkout committen.
+4. Den annotierten Tag `vX.Y.Z` auf genau diesen `main`-Commit setzen und
+   anschließend mit `python3 scripts/check-release-base.py --version X.Y.Z --tag vX.Y.Z`
+   den aufgewickelten Tag verifizieren.
+5. Erst danach GitHub-Release und Assets veröffentlichen.
+
+Ein bereits falsch erzeugter Tag wird nicht verschoben. Nach einem explizit
+freigegebenen Aufräumen werden der falsche Release und Tag erst gelöscht, wenn
+der korrigierte Release verifiziert und alle aktiven externen Verweise angepasst
+sind. Die historischen Receipts bleiben als Provenienz im Repository erhalten.
 
 ## Bereits von Claudiu freigegeben
 
@@ -12,9 +37,9 @@ Die Aufnahme in den Cinnamon-Katalog steht noch aus.
    vorbereiteten `info.json.author`. OSS Singularity bleibt Projektidentität
    und Repository-Eigentümer. Ein separates Spices-/Forum-Konto gehört nicht
    zu den dokumentierten Voraussetzungen für diesen Pull-Request.
-2. **Supportumfang ist entschieden:** Cinnamon **6.6**, tatsächlich geprüft
-   auf 6.6.9. Die Metadatei nennt nur diese Versionsreihe. Claudiu hat die
-   zusätzliche Testreihe für 5.8–6.4 ausdrücklich abgewählt.
+2. **Supportumfang der Erstfreigabe:** Cinnamon **6.6**, tatsächlich geprüft
+   auf 6.6.9. Version 1.0.3 erweitert die Metadaten nun auf die deklarierte
+   Reihe 5.8, 6.0, 6.2, 6.4 und 6.6; der native Live-Nachweis bleibt 6.6.9.
 3. **Kandidatenreview abgeschlossen.** Keine Rechte-Anfragen:
    Claudiu hat eigene Ersatzgrafiken gewählt. Der öffentliche Name ist
    **ChatGPT Usage Monitor**, mit eigenen Quoten-/Chat-/Terminal-Roboter-Symbolen.

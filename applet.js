@@ -2658,12 +2658,11 @@ class ChatGptUsageApplet extends Applet.Applet {
                 slot.style = `border-left: 1px solid ${this._menuColor(0.10)};`;
             }
 
-            let height = 2;
+            const height = UsageFormat.activityBarHeight(bar, model.peakPercent);
             let style = `background-color: ${this._menuColor(0.16)}; border-radius: 2px 2px 0 0;`;
             if (bar.known && bar.intensity === 0) {
                 style = `background-color: ${this._menuColor(0.38)}; border-radius: 2px 2px 0 0;`;
             } else if (bar.known) {
-                height = 5 + bar.intensity * 3;
                 style = "background-gradient-direction: vertical; background-gradient-start: #8ed891; background-gradient-end: #5dbb73; border-radius: 2px 2px 0 0;";
             }
             const barWidth = model.bars.length >= 24 ? 8 : 14;
@@ -3197,6 +3196,9 @@ class ChatGptUsageApplet extends Applet.Applet {
 // Cinnamon loads this entry point by name.
 // eslint-disable-next-line no-unused-vars
 function main(metadata, orientation, panelHeight, instanceId) {
-    Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
+    Gettext.bindtextdomain(
+        UUID,
+        GLib.build_filenamev([GLib.get_user_data_dir(), "locale"])
+    );
     return new ChatGptUsageApplet(metadata, orientation, panelHeight, instanceId);
 }

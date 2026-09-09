@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.3 — 2026-09-09
+
+- Expand the declared Cinnamon compatibility from 6.6 only to Cinnamon 5.8,
+  6.0, 6.2, 6.4 and 6.6. The custom settings-widget path is available in
+  Cinnamon 5.8; native runtime validation remains on Cinnamon 6.6.9.
+- Preserve distinct visual heights for nearby measured activity values instead
+  of collapsing them into seven coarse relative bars.
+
+## 1.0.2 — 2026-09-09
+
+- Keep dependent notification switches and warning/critical thresholds visible
+  in Cinnamon Settings while disabling the controls that are currently inactive;
+  show per-model reset switches as effectively enabled when the master switch
+  covers them without changing their stored individual values.
+- Resolve gettext catalogs below the XDG user data directory so the Cinnamon
+  Spices best-practices scanner does not report a hardcoded data path.
+
 ## 1.0.1 — 2026-09-08
 
 - Restore automatic-path hints when clicking outside either executable-path field

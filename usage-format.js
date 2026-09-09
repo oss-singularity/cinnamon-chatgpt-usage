@@ -13,7 +13,10 @@ function _f(text, ...args) {
 }
 
 
-Gettext.bindtextdomain("chatgpt-usage@oss-singularity", GLib.get_home_dir() + "/.local/share/locale");
+Gettext.bindtextdomain(
+    "chatgpt-usage@oss-singularity",
+    GLib.build_filenamev([GLib.get_user_data_dir(), "locale"])
+);
 
 function clamp(value, minimum, maximum) {
     return Math.min(maximum, Math.max(minimum, value));
@@ -377,6 +380,36 @@ function activityValue(bucket) {
         ? Number(bucket.consumedPercent)
         : Number(bucket);
     return Number.isFinite(value) ? Math.max(0, value) : null;
+}
+
+const ACTIVITY_BAR_EMPTY_HEIGHT = 2;
+const ACTIVITY_BAR_MIN_HEIGHT = 8;
+const ACTIVITY_BAR_MAX_HEIGHT = 26;
+
+function activityBarHeight(bar, peakPercent) {
+    if (
+        !bar || !bar.known || !Number.isFinite(bar.consumedPercent) ||
+        bar.consumedPercent <= 0 || !Number.isFinite(peakPercent) ||
+        peakPercent <= 0
+    ) {
+        return ACTIVITY_BAR_EMPTY_HEIGHT;
+    }
+
+    // Estimated values intentionally retain the smallest visible positive bar.
+    // Measured values use the full pixel range so nearby values such as 1% and
+    // 2% remain distinguishable even when the chart peak is 14%.
+    const fraction = bar.estimated
+        ? 0
+        : clamp(bar.consumedPercent / peakPercent, 0, 1);
+    return Math.min(
+        ACTIVITY_BAR_MAX_HEIGHT,
+        Math.max(
+            ACTIVITY_BAR_MIN_HEIGHT,
+            ACTIVITY_BAR_MIN_HEIGHT + Math.round(
+                fraction * (ACTIVITY_BAR_MAX_HEIGHT - ACTIVITY_BAR_MIN_HEIGHT)
+            )
+        )
+    );
 }
 
 function buildSharedActivityValues(windows, shortToWeeklyScale = 0.5) {
@@ -753,6 +786,7 @@ module.exports = {
     formatResetCountdownTooltip,
     buildQuotaIndicator,
     buildActivityChart,
+    activityBarHeight,
     formatWholeNumber,
     parseUsageHelperError,
     hasRecentActivity,

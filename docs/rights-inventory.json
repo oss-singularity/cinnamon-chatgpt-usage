@@ -24,91 +24,91 @@
       "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public name accepted by maintainer on 2026-09-08"
     },
     "docs/model-limits/bucket-tooltip.png": {
-      "sha256": "c863b9bb6f500ac5ffca825d9bc6e826aae5da3d941e2e45f5832b8564c45af9",
+      "sha256": "cd183e3a406177bae467788c5e45f1109fd8752bf6d5a9b1317c9f06f22fc467",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/install-chatgpt.png": {
-      "sha256": "0b032040d78274a90f9cf9c945b768a8c956d2d5b24a050066332ef00d1e34c2",
+      "sha256": "4fd2326838f8da9b02b4f65db98f6e3ae7af6ba044418afd6ad1e1508c9c2061",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/install-codex.png": {
-      "sha256": "2475494412929de79920cd89ba852c3c1ddf5d0f4ce096cc754fc667e943846d",
+      "sha256": "1b12f9f6b8438d96d30bc9e11a58ade2fe3e1165b48cb8870b7c675b589e3945",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/panel-tooltip.png": {
-      "sha256": "d059a2fa951ef5c0d39026dea843ecbab9e6ebda69e8f17673e59fa901438283",
+      "sha256": "6f732bbe34d5a14edb574147c82253bee5ff4d23a7e22cec58a2e85105ed7ea9",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/reset-confirmation.png": {
-      "sha256": "8f75dd0334888edad00c01cc8d2501619019138e23ed3b0beb54697965c88914",
+      "sha256": "76434590a898e37d8b6caa5c7a68a03314d2e487bfd514a50e2d43de2c40fb50",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/settings-colors.png": {
-      "sha256": "62852b9c0da811343b7544e9f90ea5ee044437e1177cd3da383a3c111c8ae762",
+      "sha256": "5f9a84ba79788af28089b52f7191b314013491e78ab064da968dc0fbe5c199bb",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/settings-general.png": {
-      "sha256": "c980e63f5edb724a57925c786d37dc91c92b5869278bd4e4b382529d78532dad",
+      "sha256": "585688a609ebf9d9d648e2639bc46abd0dab25ddef05172493ce2670f2bed24f",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/settings-notifications.png": {
-      "sha256": "185836fafb29ce3e3339ac869c7c9c48977e2fa5fa59f7da5c85e2af64690881",
+      "sha256": "199162dcb843f8063d98d8ab1b927494ff1134a7529f762595d2ca60555ffbcd",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/topbar.png": {
-      "sha256": "70d7100cc3cc542477d8e05c35c3c362b1e696489be9eecf3b57dbcbe6ce3dde",
+      "sha256": "29e223c44771ac2f1072bdba3e0e40bc671a1dee4345194695f6df9467f52c8f",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-codex-only.png": {
-      "sha256": "ca1c15290a136f59d012f1f52b8b3f285f452256c3297dcb11b682b3ea3c6950",
+      "sha256": "89e220924b3d5d0b5dd5ccad800f4142504a3388b79061e4c468a5c4801fdeea",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-four-rings.png": {
-      "sha256": "0d4db5382a9fb239982255c4e59fd68966ead0c79c22fc9cc2cc15e950e9900a",
+      "sha256": "a9de4390423d0851927dc1042e931782441da0a878e3c70dd0e091b520850924",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-horizontal.png": {
-      "sha256": "fe3aa8cbcb675a37e96f22f2f0608a75e4d3c925ca558d1b33dc58b82cf1c11a",
+      "sha256": "e06c16795dff2ba68c141bfdd11d709174381e21432ae3e7eb91121d3946c58f",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-spark.png": {
-      "sha256": "141b00d6d28abdfeb0791541ca00fb73d40411f0b72dca3d6ec927f28e2136e5",
+      "sha256": "ae39c21c5eea48379f0403d9f3339148174b00196cabf6a0f6899e0a39ecb73f",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu.png": {
-      "sha256": "1f2a7355016d42fc6241d2c418f8427822b26fabc476abe114c1b1c59b699c14",
+      "sha256": "bb78f6dc19fdb3c2009bd9185f745923d54c800f238a2165bee62acb7449df40",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/vertical-panel.png": {
-      "sha256": "ba3be1ad66212ba1b6ed7010031c094f308a6e4ffa7cb2ffaf39061368fe2c2a",
+      "sha256": "d670c5c3e0306c4a40ca902f84798e17fa7d134164a24a93ac9f21124f000589",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
