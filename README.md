@@ -14,7 +14,7 @@
 <p align="center">
   <a href="https://github.com/oss-singularity/cinnamon-chatgpt-usage/actions/workflows/check.yml"><img alt="Checks" src="https://github.com/oss-singularity/cinnamon-chatgpt-usage/actions/workflows/check.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-6f5bd5"></a>
-  <img alt="Cinnamon 6.6 tested" src="https://img.shields.io/badge/Cinnamon-6.6%20tested-75c46b">
+  <img alt="Cinnamon 5.8 or newer supported" src="https://img.shields.io/badge/Cinnamon-5.8%2B%20supported-75c46b">
   <img alt="Codex app-server" src="https://img.shields.io/badge/data-Codex%20app--server-111111">
 </p>
 
@@ -158,9 +158,11 @@ Closing the dialog leaves the saved settings unchanged. Setup and General settin
 show detected paths as gray placeholders. Focusing an entry hides its placeholder;
 leaving it empty restores the hint. **Recheck** refreshes automatic paths without
 changing manual values or launching apps.
-The first Spices release targets Cinnamon **6.6**, tested on 6.6.9. Metadata
-declares only that version series; older Cinnamon versions are outside this
-release's supported scope. Local Spices preparation is tracked in
+Version 1.0.3 declares Cinnamon **5.8, 6.0, 6.2, 6.4 and 6.6** support,
+following the Cinnamon Spices compatibility convention. Native runtime
+validation on this host remains Cinnamon 6.6.9; the 5.8 settings-widget API
+was checked against the official Cinnamon source, but no separate 5.8 live
+desktop is claimed here. Local Spices preparation is tracked in
 [the readiness report](docs/spices-readiness.md), including the exact tested
 scope and the remaining release gates.
 The tested presentation baseline is X11, Mint-Y/Mint-Y-Dark-Aqua, 100% display

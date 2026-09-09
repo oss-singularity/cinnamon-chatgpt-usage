@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3 — 2026-09-09
+
+- Expand the declared Cinnamon compatibility from 6.6 only to Cinnamon 5.8,
+  6.0, 6.2, 6.4 and 6.6. The custom settings-widget path is available in
+  Cinnamon 5.8; native runtime validation remains on Cinnamon 6.6.9.
+- Preserve distinct visual heights for nearby measured activity values instead
+  of collapsing them into seven coarse relative bars.
+
 ## 1.0.2 — 2026-09-09
 
 - Keep dependent notification switches and warning/critical thresholds visible
