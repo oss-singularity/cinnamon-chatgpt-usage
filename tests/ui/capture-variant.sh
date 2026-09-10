@@ -182,14 +182,15 @@ JSON.stringify((function(){
     function creditBucket(value){return {consumed:value,complete:true,observed:true};}
     function historyWindow(id,label,duration,periods,values){periods["24h"]={consumedPercent:values.reduce(function(a,b){return a+b;},0),complete:true};return {id:id,label:label,durationMinutes:duration,trackedSince:now-8*86400,periods:periods,activity24h:values.map(bucket)};}
     var codexLabel="Codex",sparkLabel="GPT-5.3-Codex-Spark",hasSpark="VARIANT"!=="codex-two";
-    var codexWindows=[win(10080,0,4*86400+5*3600)];
+    // Use a healthy 7d baseline for the secondary README states; the primary
+    // overview below intentionally overrides this with the critical 0% case.
+    var codexWindows=[win(10080,76,6*86400+3*3600)];
     var sparkWindows=[win(300,82,3*3600+41*60),win(10080,76,6*86400+3*3600)];
     if("VARIANT"==="four"||"VARIANT"==="codex-two")codexWindows.unshift(win(300,68,2*3600+13*60));
-    // Keep both real-world credit stories visible: several early pink-only
-    // buckets belong to the tail of an exhausted short-window cycle. The last
-    // early pink bucket shares its slot with green quota activity, then the
-    // reset boundary continues with further green buckets. Near the present,
-    // the last green bucket is mixed and later buckets are credit-only.
+    // Keep the credit story chronological: early pink-only buckets belong to
+    // an exhausted short-window cycle, followed by a single possible
+    // mid-bucket transition and green quota activity. Near the present, the
+    // green quota phase ends before later buckets become credit-only.
     var codexValues=[0,0,0,0,1,2,3,1,0,0,1,0,0,0,2,0,0,0,1,1,0,0,0,0];
     var sparkFiveValues=[0,0,0,0,0,0,1,0,0,0,0,0,0,2,0,0,0,0,1,0,0,0,0,0];
     var sparkWeeklyValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,1,0];
@@ -223,8 +224,9 @@ JSON.stringify((function(){
         a._snapshot.credits={balance:"250.0",availableResetCount:1,nextResetExpiresAt:now+29*86400+13*3600,hasCredits:true,unlimited:false};
         a._snapshot.history.windows[0].periods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:30,complete:true},today:{consumedPercent:85,complete:true}};
         // Keep the reset-boundary example in the primary README overview too:
-        // the pink-only bucket at -20h is followed by green quota activity.
-        a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,1,21,21,0,0,0,0,0,0,0,7,8,8,7,0,0,0,0].map(bucket);
+        // pink-only buckets lead into one mixed transition, then green quota
+        // activity; the later pink phase starts only after quota exhaustion.
+        a._snapshot.history.windows[0].activity24h=[0,0,0,0,1,3,5,3,2,4,3,2,21,21,0,7,8,8,0,0,0,0,0,0].map(bucket);
         a._snapshot.history.windows.slice(1).forEach(function(w){w.activity24h=w.activity24h.map(function(){return bucket(0);});});
     }
     var alertMode=GLib.getenv("QA_PANEL_ALERTS");

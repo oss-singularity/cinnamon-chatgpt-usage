@@ -1,4 +1,4 @@
-v<p align="center">
+<p align="center">
   <picture>
     <img src="icon.png" width="96" height="96" alt="ChatGPT Usage Monitor icon">
   </picture>

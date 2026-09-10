@@ -2919,8 +2919,12 @@ class ChatGptUsageApplet extends Applet.Applet {
         row.add_child(labelActor);
         const valueLabel = new St.Label({ text: value });
         if (emphasized) {
-            valueLabel.style = this._emphasizedValueStyle(this.normalColor, 4);
-            valueLabel.opacity = 195;
+            const zeroValue = String(value) === "0";
+            valueLabel.style = this._emphasizedValueStyle(
+                zeroValue ? this._menuColor(0.68) : this.normalColor,
+                4
+            );
+            valueLabel.opacity = zeroValue ? 255 : 195;
         } else {
             valueLabel.style = "padding-left: 4px;";
         }
@@ -2946,8 +2950,9 @@ class ChatGptUsageApplet extends Applet.Applet {
                 text: suffix,
                 y_align: Clutter.ActorAlign.CENTER
             });
-            expiresLabel.translation_y = 0;
-            expiryDateLabel.translation_y = 0;
+            const suffixTranslationY = suffixFitToChart ? 1 : 0;
+            expiresLabel.translation_y = suffixTranslationY;
+            expiryDateLabel.translation_y = suffixTranslationY;
             if (suffixEmphasized) {
                 expiresLabel.style = this._emphasizedValueStyle(
                     suffixLabelColor || this._menuColor(1)

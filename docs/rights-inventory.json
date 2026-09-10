@@ -24,49 +24,49 @@
       "evidence": "Original ImageGen source prompt plus project SVG overlay; .github/social-preview-src/README.md; public name accepted by maintainer on 2026-09-08"
     },
     "docs/model-limits/bucket-tooltip.png": {
-      "sha256": "90d4ec4ab8ead3073ad58989851dcd26f152f95b9b4b41f684838a99afbd7c43",
+      "sha256": "7ca8300be1ff257484b74db5867f52734725e2e401f98a043bf1d5cab81c4fc3",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/install-chatgpt.png": {
-      "sha256": "2bf7526ec45ba7ef3a42edf0972f38958e8c47af713ee0373c6e6a669ac2c043",
+      "sha256": "8f663346234d18dd7acc3541451613850435e1d3ea6e171d53e64aa9c4ba9f2b",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/install-codex.png": {
-      "sha256": "2e468a5483bcda3ca915a730c0f684ac6ea461c9634024ddac880f7e21d61576",
+      "sha256": "db5503120a07ddca14a3565fa487c483361dbd250ed33127b04d08cb5f4fac00",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/panel-tooltip.png": {
-      "sha256": "4a09cf70a3ceee45307edefd4dc29d5f15879d91f3e334874df379bd91fc837a",
+      "sha256": "a8969dce9e029faf3c3a4d46524bd00a4f0d4fe22d21ecb7d2823ff35da1bf98",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/reset-confirmation.png": {
-      "sha256": "d073c41c1f90d446cb4ec7215d743f5159605dfb36927526e06c17a42f3f1914",
+      "sha256": "c8ca4432e433f728d5cefe6ea1c9f7fbdcc1c93624afdfa9ec22bc2159a3207e",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/settings-colors.png": {
-      "sha256": "f2f722725b022130018aff59afe7cd691f3b77bf291486d1fab00bb8bf4b8ada",
+      "sha256": "765c4a6593c7f8cf0a9571095d09b741a906e35f3465c0b94a41531d8382b1e1",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/settings-general.png": {
-      "sha256": "2cb86fb7df56659548cd44dbc91bae0a981a96e91de2cc6f09717d98b81293c6",
+      "sha256": "6155d805bf0238a2ec644075037e01abb299752a5ed53e9fdde5bc7a0265ff65",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/settings-notifications.png": {
-      "sha256": "e409b0b1076e6c87db1b17b8a89fb90e4a9df8f96a3f35519d6a0c6ecd25eb75",
+      "sha256": "a27a69e14035defdfb96b804da44fdea55914baf950d28c9da2165c67aa26845",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
@@ -78,31 +78,31 @@
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-codex-only.png": {
-      "sha256": "ac88613bc5e5ed02437f9005b4774d5751e92f01d7ddbcecc5ad664a068bce4b",
+      "sha256": "6d270d8bd3207a57d17e1300141c78ccb5f01f29ce9279f26dc6ff5e3a474af5",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-four-rings.png": {
-      "sha256": "6b0713b809b3c5a3c043d88a0677e6a7cb4b3b8f81239cc07d17aa5e313bb4bb",
+      "sha256": "8f2381106d57cc585fe343a3edbc7e5d621687f9dcbd016d9bf127d3a19ccc59",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-horizontal.png": {
-      "sha256": "e8aee9a456a8577ef2ab40dd58dea638a58f960d0cacd2cb91e4b370fd2ee970",
+      "sha256": "ae3b0afbeab92fa1b8cfa424aa712bbc27f5aa59d275ffe7131e0f1ea0a5979f",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu-spark.png": {
-      "sha256": "b1757a19bdf93bf9160aaaf4ba7e141855a41d6cf01070769fc99e1e345e078f",
+      "sha256": "3d86db790f11de2c2ca51d5e26771c96ca0dcde4ef3622d6bb23d61efa4017c6",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
     },
     "docs/model-limits/usage-menu.png": {
-      "sha256": "4c2d57fc2d2843f3dcab55d7ef935dedff23ce0b32aba8a4f2591cd782a5fa19",
+      "sha256": "56e097b5af1e03245f699218356b33b5b4e881c8d15e13802346e6281039a1dc",
       "shippedInApplet": false,
       "license": "CC-BY-SA-4.0",
       "evidence": "Native private capture, synthetic data, current original project/Yaru artwork; ATTRIBUTION.md and docs/model-limits/inventory.json"
