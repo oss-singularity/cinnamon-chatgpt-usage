@@ -5,6 +5,7 @@ raw_image=${1:?raw image path is required}
 geometry_file=${2:?panel geometry path is required}
 output_image=${3:?output image path is required}
 panel_mode=${4:-vertical}
+crop_context=${5:-native}
 
 for command in identify convert; do
     command -v "$command" >/dev/null 2>&1 || {
@@ -23,6 +24,10 @@ done
 }
 [[ "$panel_mode" == vertical || "$panel_mode" == horizontal ]] || {
     printf 'crop-panel-geometry: unsupported panel mode: %s\n' "$panel_mode" >&2
+    exit 2
+}
+[[ "$crop_context" == native || "$crop_context" == context ]] || {
+    printf 'crop-panel-geometry: unsupported crop context: %s\n' "$crop_context" >&2
     exit 2
 }
 
@@ -53,7 +58,25 @@ if (( panel_x + panel_w > screen_w || panel_y + panel_h > screen_h ||
     exit 2
 fi
 
-if [[ "$panel_mode" == horizontal ]]; then
+if [[ "$crop_context" == context ]]; then
+    if [[ "$panel_mode" == horizontal ]]; then
+        crop_w=94
+        crop_h=$panel_h
+        crop_x=$((panel_x + panel_w - crop_w))
+        crop_y=$panel_y
+    else
+        crop_w=$panel_w
+        crop_h=96
+        crop_x=$panel_x
+        crop_y=$((panel_y + panel_h - crop_h))
+    fi
+    crop_right=$((crop_x + crop_w))
+    crop_bottom=$((crop_y + crop_h))
+    (( crop_w <= panel_w && crop_h <= panel_h )) || {
+        printf 'crop-panel-geometry: context crop exceeds panel dimensions\n' >&2
+        exit 2
+    }
+elif [[ "$panel_mode" == horizontal ]]; then
     crop_x=$applet_x
     crop_y=$panel_y
     crop_right=$((panel_x + panel_w))

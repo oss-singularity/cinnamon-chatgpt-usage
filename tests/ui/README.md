@@ -58,8 +58,9 @@ private fixture shows 25% warning and 10% critical values at the exact default
 boundaries, with the switch enabled or disabled. It does not alter live settings.
 
 Outputs include raw frames, geometry, cropped PNGs, diagnostic logs and
-`inventory.json`: variant, panel, theme, locale, scale, screen, producing base
-commit, exact source hashes, capture time, output dimensions and SHA-256.
+`inventory.json`: variant, panel, panel scope, theme, locale, scale, screen,
+producing base commit, exact source hashes, capture time, output dimensions and
+SHA-256.
 The producing tree can contain local changes; its hashes, not merely the base
 commit, identify it. Dates/countdowns are relative to the capture clock, and
 native rendering can differ by system font/theme version. Reproducibility here
@@ -74,6 +75,22 @@ explicit example; all other general controls retain their defaults. Notification
 shows the master refresh option enabled and the low-limit options disabled, with
 the dependent reset switches shown as effectively enabled while disabled, and
 the threshold controls still visible in their native disabled state.
+
+`topbar-codex-two.png` and `vertical-panel-codex-two.png` are the common Codex
+5h+7d two-window panel state, produced by the `panel-codex-two` fixture.
+`topbar-codex-only.png` and `vertical-panel-codex-only.png` use the same
+native path with model-specific limits disabled, matching the compact default
+configuration. `topbar.png` and `vertical-panel.png` are the current
+Codex+Spark all-visible-model anchors. All three panel-state pairs retain the
+common panel context crop (94×40 horizontally and 40×96 vertically), so the
+panel placement remains visible instead of isolating the icons too tightly.
+They must be regenerated when the applet icon or panel rendering changes, so
+the public anchors always show the current packaged artwork. A historical
+panel capture may be retained only when it is explicitly approved as a
+historical comparison and clearly marked in the inventory. Their dedicated
+panel fixtures keep every displayed remaining value above the warning
+threshold, so all four anchor sets remain fully white; do not use the critical
+0% overview fixture for these images.
 
 For native notification retention QA, run the private wrapper with
 `QA_NOTIFICATION_RETENTION=1`, an absolute `QA_NOTIFICATION_GEOMETRY` output
@@ -100,7 +117,9 @@ it and the settings hash, and rejects an opaque panel. These requirements apply
 only to documentation composition, not to users' applet installations.
 
 Set `QA_RELEASE_REVIEW=1` for native named-action, focus, animation and menu-stack
-checks on right/top/bottom/left panels. `QA_TEXT_SCALE=1.25` and
+checks on right/top/bottom/left panels. Add `QA_SCREENSHOT_COPY=1` to click the
+production Copy Screenshot action and verify that a PNG reaches Cinnamon's
+clipboard. `QA_TEXT_SCALE=1.25` and
 `QA_ANIMATIONS=false` exercise larger text and reduced motion. Use a 24-second
 capture delay for this review. `QA_SLOW_VERSION=1` adds a delayed fake version
 probe and verifies that Cinnamon's main loop keeps advancing until it completes.

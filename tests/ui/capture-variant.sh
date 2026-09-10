@@ -8,7 +8,7 @@ panel_geometry_file=${4:-}
 uuid='chatgpt-usage@oss-singularity'
 
 case "$variant" in
-    basic|overview|spark|bucket|four|codex-two|reset|panel|panel-tooltip|install-chatgpt|install-codex|settings-general|settings-colors|settings-notifications) ;;
+    basic|overview|spark|bucket|four|codex-two|reset|panel|panel-codex-two|panel-tooltip|install-chatgpt|install-codex|settings-general|settings-colors|settings-notifications) ;;
     *)
         printf 'Unsupported variant: %s\n' "$variant" >&2
         exit 2
@@ -181,13 +181,16 @@ JSON.stringify((function(){
     function bucket(value){return {consumedPercent:value,complete:true,observed:true};}
     function creditBucket(value){return {consumed:value,complete:true,observed:true};}
     function historyWindow(id,label,duration,periods,values){periods["24h"]={consumedPercent:values.reduce(function(a,b){return a+b;},0),complete:true};return {id:id,label:label,durationMinutes:duration,trackedSince:now-8*86400,periods:periods,activity24h:values.map(bucket)};}
-    var codexLabel="Codex",sparkLabel="GPT-5.3-Codex-Spark",hasSpark="VARIANT"!=="codex-two";
-    var codexWindows=[win(10080,0,4*86400+5*3600)];
+    var codexLabel="Codex",sparkLabel="GPT-5.3-Codex-Spark",hasSpark="VARIANT"!=="codex-two"&&"VARIANT"!=="panel-codex-two";
+    // Use a healthy 7d baseline for the secondary README states; the primary
+    // overview below intentionally overrides this with the critical 0% case.
+    var codexWindows=[win(10080,76,6*86400+3*3600)];
     var sparkWindows=[win(300,82,3*3600+41*60),win(10080,76,6*86400+3*3600)];
-    if("VARIANT"==="four"||"VARIANT"==="codex-two")codexWindows.unshift(win(300,68,2*3600+13*60));
-    // Mirror the live fallback story: the last green quota bucket is the only
-    // mixed bucket; once the quota is exhausted, later buckets are credit-only.
-    var codexValues=[0,0,0,1,0,0,0,2,0,0,1,0,0,0,2,0,0,0,1,1,0,0,0,0];
+    if("VARIANT"==="four"||"VARIANT"==="codex-two"||"VARIANT"==="panel-codex-two")codexWindows.unshift(win(300,68,2*3600+13*60));
+    // Keep the credit story chronological: pink credit-only buckets are
+    // historical, then healthy quota activity resumes. The recent buckets
+    // stay green while the displayed 5h and 7d windows have capacity left.
+    var codexValues=[0,0,0,0,1,2,3,1,0,0,1,0,0,0,2,0,0,0,1,1,0,0,0,0];
     var sparkFiveValues=[0,0,0,0,0,0,1,0,0,0,0,0,0,2,0,0,0,0,1,0,0,0,0,0];
     var sparkWeeklyValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,1,0];
     if("VARIANT"==="basic"||"VARIANT"==="four"){
@@ -195,16 +198,16 @@ JSON.stringify((function(){
         sparkFiveValues=sparkFiveValues.map(function(){return 0;});
         sparkWeeklyValues=sparkWeeklyValues.map(function(){return 0;});
     }
-    var codexPeriods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:1,complete:true},today:{consumedPercent:8,complete:true}};
+    var codexPeriods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:4,complete:true},today:{consumedPercent:12,complete:true}};
     var sparkFivePeriods={"1h":{consumedPercent:3,complete:true},"4h":{consumedPercent:10,complete:true}};
     var sparkWeeklyPeriods={"1h":{consumedPercent:3,complete:true},"4h":{consumedPercent:10,complete:true},"12h":{consumedPercent:18,complete:true},today:{consumedPercent:18,complete:true}};
     var codexHistory=historyWindow("codex",codexLabel,10080,codexPeriods,codexValues);
     var sparkFiveHistory=historyWindow("spark",sparkLabel,300,sparkFivePeriods,sparkFiveValues);
     var sparkWeeklyHistory=historyWindow("spark",sparkLabel,10080,sparkWeeklyPeriods,sparkWeeklyValues);
-    var creditPeriods={"24h":{consumed:84.4,complete:true},"12h":{consumed:84.4,complete:true},"4h":{consumed:73.8,complete:true},"1h":{consumed:20.1,complete:true}};
-    var creditValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10.6,17.2,28.4,8.1,20.1];
+    var creditPeriods={"24h":{consumed:97.8,complete:true},"12h":{consumed:84.4,complete:true},"4h":{consumed:73.8,complete:true},"1h":{consumed:20.1,complete:true}};
+    var creditValues=[0,2.2,3.4,4.8,3.0,0,0,0,10.6,17.2,28.4,8.1,20.1,0,0,0,0,0,0,0,0,0,0,0];
     var historyWindows=[codexHistory];
-    if("VARIANT"==="four"||"VARIANT"==="codex-two")historyWindows.push(historyWindow("codex",codexLabel,300,{"1h":{consumedPercent:2,complete:true},"4h":{consumedPercent:5,complete:true}},[0,0,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,2,0,0]));
+    if("VARIANT"==="four"||"VARIANT"==="codex-two"||"VARIANT"==="panel-codex-two")historyWindows.push(historyWindow("codex",codexLabel,300,{"1h":{consumedPercent:2,complete:true},"4h":{consumedPercent:5,complete:true}},[0,0,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,2,0,0]));
     if(hasSpark)historyWindows.push(sparkFiveHistory,sparkWeeklyHistory);
     var limits=[{id:"codex",label:codexLabel,windows:codexWindows}];
     if(hasSpark)limits.push({id:"spark",label:sparkLabel,windows:sparkWindows});
@@ -219,7 +222,10 @@ JSON.stringify((function(){
         a._snapshot.limits[0].windows=[win(10080,0,6*86400+16*3600)];
         a._snapshot.credits={balance:"250.0",availableResetCount:1,nextResetExpiresAt:now+29*86400+13*3600,hasCredits:true,unlimited:false};
         a._snapshot.history.windows[0].periods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:30,complete:true},today:{consumedPercent:85,complete:true}};
-        a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,3,21,21,0,0,0,0,0,0,0,7,8,8,7,0,0,0,0].map(bucket);
+        // Keep the reset-boundary example in the primary README overview too:
+        // pink-only buckets lead into one mixed transition, then green quota
+        // activity; the later pink phase starts only after quota exhaustion.
+        a._snapshot.history.windows[0].activity24h=[0,0,0,0,1,3,5,3,2,4,3,2,21,21,0,7,8,8,0,0,0,0,0,0].map(bucket);
         a._snapshot.history.windows.slice(1).forEach(function(w){w.activity24h=w.activity24h.map(function(){return bucket(0);});});
     }
     var alertMode=GLib.getenv("QA_PANEL_ALERTS");
@@ -267,7 +273,7 @@ elif [[ "$variant" == install-* ]]; then
     else
         eval_cinnamon 'Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0]._codexButton.emit("clicked", 1)' >/dev/null
     fi
-elif [[ "$variant" == "panel" || "$variant" == "panel-tooltip" ]]; then
+elif [[ "$variant" == "panel" || "$variant" == "panel-codex-two" || "$variant" == "panel-tooltip" ]]; then
     :
 elif [[ "$variant" == "reset" ]]; then
     eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0];if(a.menu.isOpen)a.menu.close(false);a._showResetConfirmation();return {resetDialog:!!a._resetConfirmationDialog};})())' >/dev/null
@@ -360,7 +366,7 @@ elif [[ "$variant" == install-* ]]; then
     menu_geometry=$(eval_cinnamon 'JSON.stringify((function(){var d=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0]._installHelpDialog.dialogLayout,p=d.get_transformed_position(),s=d.get_transformed_size();return [Math.round(p[0]),Math.round(p[1]),Math.round(s[0]),Math.round(s[1])].join(",");})())' | grep -oE '[0-9]+,[0-9]+,[0-9]+,[0-9]+' | tail -1)
 elif [[ "$variant" == "panel-tooltip" ]]; then
     menu_geometry=$(eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0],d=a._applet_tooltip._tooltip,p=d.get_transformed_position(),s=d.get_transformed_size();return [Math.round(p[0]),Math.round(p[1]),Math.round(s[0]),Math.round(s[1])].join(",");})())' | grep -oE '[0-9]+,[0-9]+,[0-9]+,[0-9]+' | tail -1)
-elif [[ "$variant" == "panel" ]]; then
+elif [[ "$variant" == "panel" || "$variant" == "panel-codex-two" ]]; then
     menu_geometry='0,0,0,0'
 elif [[ "$variant" == "reset" ]]; then
     menu_geometry=$(eval_cinnamon 'JSON.stringify((function(){var a=Main.AppletManager.getRunningInstancesForUuid("chatgpt-usage@oss-singularity")[0],d=a._resetConfirmationDialog;if(!d||!d.dialogLayout||!d.dialogLayout.visible)throw new Error("reset dialog unavailable");var p=d.dialogLayout.get_transformed_position(),s=d.dialogLayout.get_transformed_size();return [Math.round(p[0]),Math.round(p[1]),Math.round(s[0]),Math.round(s[1])].join(",");})())' | grep -oE '[0-9]+,[0-9]+,[0-9]+,[0-9]+' | tail -1)

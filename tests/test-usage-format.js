@@ -59,6 +59,17 @@ assertEqual(summaries.length, 2, "Summary window count");
 assertEqual(summaries[0].durationMinutes, 300, "Shortest window first");
 assertEqual(summaries[0].remainingPercent, 100, "Five-hour remaining usage");
 assertEqual(summaries[1].remainingPercent, 87, "Most constrained weekly bucket");
+assertEqual(
+    UsageFormat.summarizeWindows([
+        {
+            id: "codex",
+            label: "Codex",
+            windows: [{ durationMinutes: 10080, remainingPercent: 87, lastResetAt: 123456 }]
+        }
+    ])[0].lastResetAt,
+    123456,
+    "Summary keeps an observed last-reset timestamp"
+);
 const quotaWindows = UsageFormat.listQuotaWindows([
     {
         id: "codex",
@@ -294,6 +305,29 @@ assertEqual(
     "Reset window: 7d\nElapsed: unavailable",
     "Invalid reset tooltip"
 );
+const exactLastResetTooltip = UsageFormat.formatLastResetTooltip(
+    { durationMinutes: 10080 },
+    1700000000,
+    true,
+    false
+);
+if (!exactLastResetTooltip.startsWith("Last 7d reset: ") || /estimated/.test(exactLastResetTooltip)) {
+    throw new Error(`Expected exact last-reset tooltip, got ${exactLastResetTooltip}`);
+}
+const estimatedLastResetTooltip = UsageFormat.formatLastResetTooltip(
+    { durationMinutes: 10080 },
+    1700000000,
+    true,
+    true
+);
+if (!estimatedLastResetTooltip.includes("(estimated from next reset)")) {
+    throw new Error(`Expected estimated last-reset tooltip, got ${estimatedLastResetTooltip}`);
+}
+assertEqual(
+    UsageFormat.formatLastResetTooltip({ durationMinutes: 10080 }, null),
+    "Last 7d reset: unavailable",
+    "Missing last-reset timestamp stays explicit"
+);
 const weeklyQuota = UsageFormat.buildQuotaIndicator({
     durationMinutes: 10080,
     remainingPercent: 60
@@ -523,6 +557,11 @@ assertEqual(
     "Credit balances show one decimal place"
 );
 assertEqual(
+    UsageFormat.formatCreditNumber("0.0"),
+    "0",
+    "Zero credit balance stays compact without a decimal place"
+);
+assertEqual(
     UsageFormat.formatCreditNumber("239.071181"),
     "239.1",
     "Fractional credit balances round to one decimal place"
@@ -539,8 +578,38 @@ assertEqual(
         "4h": { consumed: 2, complete: true },
         "1h": { consumed: 1, complete: true }
     }),
-    "24h 9  •  12h 4  •  4h 2  •  1h 1",
+    "24h 9  ·  12h 4  ·  4h 2  ·  1h 1",
     "Credit consumption periods use the requested order"
+);
+assertEqual(
+    UsageFormat.formatCreditConsumptionMarkup({
+        "24h": { consumed: 9, complete: true },
+        "12h": { consumed: 4, complete: true },
+        "4h": { consumed: 2, complete: true },
+        "1h": { consumed: 1, complete: true }
+    }, "periods"),
+    "<i>24h</i> 9&#160;&#160;·&#160;&#160;<i>12h</i> 4&#160;&#160;·&#160;&#160;<i>4h</i> 2&#160;&#160;·&#160;&#160;<i>1h</i> 1",
+    "Period labels can be italicized in the credit consumption markup"
+);
+assertEqual(
+    UsageFormat.formatCreditConsumptionMarkup({
+        "24h": { consumed: 9, complete: true },
+        "12h": { consumed: 4, complete: true },
+        "4h": { consumed: 2, complete: true },
+        "1h": { consumed: 1, complete: true }
+    }, "credits"),
+    "24h <i>9</i>&#160;&#160;·&#160;&#160;12h <i>4</i>&#160;&#160;·&#160;&#160;4h <i>2</i>&#160;&#160;·&#160;&#160;1h <i>1</i>",
+    "Credit values can be italicized in the credit consumption markup"
+);
+assertEqual(
+    UsageFormat.formatCreditConsumptionMarkup({
+        "24h": { consumed: 9, complete: true },
+        "12h": { consumed: 4, complete: true },
+        "4h": { consumed: 2, complete: true },
+        "1h": { consumed: 1, complete: true }
+    }, "numbers"),
+    "24h <span weight=\"bold\">9</span>&#160;&#160;·&#160;&#160;12h <span weight=\"bold\">4</span>&#160;&#160;·&#160;&#160;4h <span weight=\"bold\">2</span>&#160;&#160;·&#160;&#160;1h <span weight=\"bold\">1</span>",
+    "Credit-only emphasis keeps periods and label unbolded"
 );
 assertEqual(
     UsageFormat.formatCreditConsumption({
@@ -558,6 +627,23 @@ const creditActivityChart = UsageFormat.buildCreditActivityChart([
 ]);
 assertEqual(creditActivityChart.totalPercent, 3, "Credit activity total");
 assertEqual(creditActivityChart.bars[1].known, true, "Credit activity bucket is known");
+assertEqual(
+    UsageFormat.formatPeakCredits([
+        { consumed: 4.4, complete: true, observed: true },
+        { consumed: 13.4, complete: true, observed: true },
+        { consumed: 9.6, complete: true, observed: true }
+    ]),
+    "13",
+    "Peak credit consumption uses whole AIC values"
+);
+assertEqual(
+    UsageFormat.formatPeakCredits([
+        { consumed: 0, complete: true, observed: true },
+        { consumed: 0, complete: true, observed: true }
+    ]),
+    null,
+    "No recent credit consumption has no peak label"
+);
 assertEqual(
     UsageFormat.hasRecentActivity([
         { consumed: 0, complete: true, observed: true },
@@ -925,6 +1011,14 @@ assertEqual(
 
 const resetPrevious = notificationSnapshot(50, 60, 50, 70);
 const resetCurrent = notificationSnapshot(50, 100, 50, 100, 604800);
+const observedResets = UsageFormat.findObservedWeeklyResets(
+    { ...resetPrevious, updatedAt: 800000 },
+    { ...resetCurrent, updatedAt: 800060 }
+);
+assertEqual(observedResets.length, 2, "Observed reset helper finds both weekly resets");
+assertEqual(observedResets[0].resetAt, 700000, "Observed reset uses the previous window boundary");
+assertEqual(observedResets[0].nextResetAt, 1304800, "Observed reset keeps the next boundary");
+assertEqual(observedResets[0].observedAt, 800060, "Observed reset keeps the observation time");
 const resetEvents = UsageFormat.buildUsageNotificationEvents(
     resetPrevious,
     resetCurrent,

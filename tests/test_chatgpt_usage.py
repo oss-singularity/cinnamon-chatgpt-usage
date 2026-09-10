@@ -36,7 +36,10 @@ class ResetConsumeRequestTests(unittest.TestCase):
         )
 
     def test_consume_omits_missing_credit_id_and_rejects_empty_key(self) -> None:
-        with patch("chatgpt_usage._run_app_server_request", return_value={"outcome": "noCredit"}) as request:
+        with patch(
+            "chatgpt_usage._run_app_server_request",
+            return_value={"outcome": "noCredit"},
+        ) as request:
             consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-789")
             self.assertEqual(request.call_args.args[2]["params"], {"idempotencyKey": "attempt-789"})
             request.reset_mock()
@@ -106,6 +109,7 @@ class NormaliseRateLimitsTests(unittest.TestCase):
                         "usedPercent": 13,
                         "windowDurationMins": 10080,
                         "resetsAt": 1788452781,
+                        "lastResetAt": 1787847981,
                     },
                     "secondary": None,
                     "credits": {
@@ -133,8 +137,16 @@ class NormaliseRateLimitsTests(unittest.TestCase):
             "rateLimitResetCredits": {
                 "availableCount": 2,
                 "credits": [
-                    {"id": "reset-later", "status": "available", "expiresAt": 1791079502},
-                    {"id": "reset-next", "status": "available", "expiresAt": 1789000000},
+                    {
+                        "id": "reset-later",
+                        "status": "available",
+                        "expiresAt": 1791079502,
+                    },
+                    {
+                        "id": "reset-next",
+                        "status": "available",
+                        "expiresAt": 1789000000,
+                    },
                     {"id": "reset-used", "status": "redeemed", "expiresAt": 1788000000},
                 ],
             },
@@ -148,6 +160,10 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         )
         self.assertEqual(snapshot["limits"][0]["label"], "Codex")
         self.assertEqual(snapshot["limits"][0]["windows"][0]["remainingPercent"], 87)
+        self.assertEqual(
+            snapshot["limits"][0]["windows"][0]["lastResetAt"],
+            1787847981,
+        )
         self.assertEqual(snapshot["limits"][1]["label"], "Model limit")
         self.assertEqual(
             [window["remainingPercent"] for window in snapshot["limits"][1]["windows"]],
@@ -308,7 +324,9 @@ class UsageHistoryTests(unittest.TestCase):
         periods = build_usage_history(self.snapshot(now, 5, 200), samples)["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 5)
 
-    def test_credit_consumption_counts_balance_decreases_and_ignores_refills(self) -> None:
+    def test_credit_consumption_counts_balance_decreases_and_ignores_refills(
+        self,
+    ) -> None:
         now = 1_800_000_000
         samples = [
             self.sample(now - 13 * 3600, 10, credit_balance=20),
