@@ -22,15 +22,27 @@
 
 ## See it in action
 
-| Horizontal top bar with Spark + Codex panel indicators                                                     | 40 px vertical panel with Spark + Codex panel indicators                                                       |
-| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| ![Spark and Codex limits in a horizontal top bar with both panel indicators](docs/model-limits/topbar.png) | ![Spark and Codex limits in a vertical panel with both panel indicators](docs/model-limits/vertical-panel.png) |
+<p align="center"><strong>Common Codex-only two-window state</strong></p>
+
+| Horizontal top bar with Codex 5h + 7d panel indicators                                                  | 40 px vertical panel with Codex 5h + 7d panel indicators                                                      |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| ![Common Codex-only horizontal panel with 5h and 7d indicators](docs/model-limits/topbar-codex-two.png) | ![Common Codex-only vertical panel with 5h and 7d indicators](docs/model-limits/vertical-panel-codex-two.png) |
+
+<p align="center"><sub>Typical Plus and standard Business accounts show the two Codex quota windows; the 5x Business variant is a separate state. Pink credit buckets remain historical and end before the current healthy quota activity.</sub></p>
+
+<p align="center"><strong>Default panel with Codex 7d indicator</strong></p>
 
 | Default horizontal panel with Codex 7d indicator                                                      | 40 px vertical panel with Codex 7d indicator                                                                |
 | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | ![Default horizontal panel with only the Codex 7d indicator](docs/model-limits/topbar-codex-only.png) | ![Default vertical panel with only the Codex 7d indicator](docs/model-limits/vertical-panel-codex-only.png) |
 
 <p align="center"><sub>When model-specific limits are disabled, the compact default keeps the account-wide Codex 7d indicator in the panel.</sub></p>
+
+<p align="center"><strong>Codex 7d + Spark panel indicators</strong></p>
+
+| Horizontal top bar with Codex + Spark panel indicators                                                     | 40 px vertical panel with Codex + Spark panel indicators                                                       |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| ![Codex and Spark limits in a horizontal top bar with both panel indicators](docs/model-limits/topbar.png) | ![Codex and Spark limits in a vertical panel with both panel indicators](docs/model-limits/vertical-panel.png) |
 
 | Usage overview                                                                                          | Spark quotas and recent activity                                                                                                            |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -48,7 +60,7 @@
   <img src="docs/model-limits/usage-menu-four-rings.png" width="467" alt="Usage menu with account-wide Codex 5h and 7d plus Spark 5h and 7d quota rings and the vertical panel anchor visible">
 </p>
 
-<p align="center"><strong>Common Codex-only two-window state</strong></p>
+<p align="center"><strong>Common Codex-only two-window details</strong></p>
 <p align="center">
   <img src="docs/model-limits/usage-menu-codex-only.png" width="467" alt="Codex-only usage menu with 5h and 7d quota rings and the vertical panel anchor visible">
 </p>

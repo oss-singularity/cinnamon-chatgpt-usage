@@ -76,14 +76,14 @@ shows the master refresh option enabled and the low-limit options disabled, with
 the dependent reset switches shown as effectively enabled while disabled, and
 the threshold controls still visible in their native disabled state.
 
-`topbar.png` and `vertical-panel.png` are current all-visible-model panel
-anchors produced by the same native capture runner as the popup, tooltip,
-dialog and settings captures. `topbar-codex-only.png` and
-`vertical-panel-codex-only.png` use the same native path with
-model-specific limits disabled, matching the compact default configuration.
-Those two single-indicator anchors retain the common panel context crop
-(94×40 horizontally and 40×96 vertically), so the panel placement remains
-visible instead of isolating the icon too tightly.
+`topbar-codex-two.png` and `vertical-panel-codex-two.png` are the common Codex
+5h+7d two-window panel state, produced by the `panel-codex-two` fixture.
+`topbar-codex-only.png` and `vertical-panel-codex-only.png` use the same
+native path with model-specific limits disabled, matching the compact default
+configuration. `topbar.png` and `vertical-panel.png` are the current
+Codex+Spark all-visible-model anchors. All three panel-state pairs retain the
+common panel context crop (94×40 horizontally and 40×96 vertically), so the
+panel placement remains visible instead of isolating the icons too tightly.
 They must be regenerated when the applet icon or panel rendering changes, so
 the public anchors always show the current packaged artwork. A historical
 panel capture may be retained only when it is explicitly approved as a

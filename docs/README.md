@@ -4,8 +4,7 @@
 
 This is the maintainer and contributor hub for **ChatGPT Usage Monitor**. The
 root README is intentionally a visual product overview; implementation details,
-reproduction commands, release evidence and historical handoff material live
-here.
+reproduction commands and release evidence live here.
 
 ## Documentation map
 
@@ -26,18 +25,10 @@ here.
 ### Current evidence and release records
 
 - [Screenshot inventory](model-limits/inventory.json) — source hashes,
-  geometry, fixture state and output hashes for the 17 public captures.
+  geometry, fixture state and output hashes for the 19 public captures.
 - [Rights inventory](rights-inventory.json) — current raster/vector coverage,
   hashes, licenses and provenance evidence.
-- [Rights review](rights-review.md) — artwork, screenshot and backend-boundary
-  review; this is evidence documentation, not a legal opinion.
-- [Cinnamon Spices readiness](spices-readiness.md) — compatibility baseline,
-  review scope and upstream submission status.
-- [Release next steps](release-next-steps.md) — maintainer handoff and the
-  main-first publication order.
-- [Publication drafts](release-drafts.md) — deliberately unsent project,
-  release and forum wording.
-- [Historical release checkpoint](release-checkpoint.json) — the original
+- [Historical release checkpoint](releases/release-checkpoint.json) — the original
   1.0.0 validation checkpoint.
 
 Versioned receipts are kept together under [`releases/`](releases/):
@@ -47,9 +38,10 @@ Versioned receipts are kept together under [`releases/`](releases/):
 - [1.0.3 receipt](releases/release-1.0.3.json)
 - [1.0.4 receipt](releases/release-1.0.4.json)
 
-The receipts are immutable evidence records for the source commit, package
-bytes, screenshots, validator and publication gates of their respective
-version. A future 1.0.5 receipt belongs in the same directory.
+The receipts and historical checkpoint are immutable evidence records for the
+source commit, package bytes, screenshots, validator and publication gates of
+their respective versions. A future 1.0.5 receipt belongs in the same
+directory.
 
 ## Installation and backend configuration
 
@@ -191,11 +183,11 @@ retains external settings, history and unresolved-reset state.
 
 The [private capture guide](../tests/ui/README.md) is the source of truth for
 the isolated X11 workflow. Public captures use synthetic data, the current
-original project artwork and the reference transparent panel. The 17-image
-inventory covers popup states, settings, native dialogs and both two-indicator
-and Codex-only panel anchors. The two Codex-only anchors deliberately keep
-common context crops (94×40 horizontally and 40×96 vertically), so they remain
-directly comparable with the two-indicator anchors.
+original project artwork and the reference transparent panel. The 19-image
+inventory covers popup states, settings, native dialogs and three paired panel
+states: common Codex 5h+7d, compact Codex-only 7d, and Codex+Spark. All paired
+panel anchors deliberately keep common context crops (94×40 horizontally and
+40×96 vertically), so they remain directly comparable.
 
 When runtime visuals, schemas or fixture behavior change, regenerate the
 captures and update both [the screenshot inventory](model-limits/inventory.json)
@@ -205,9 +197,8 @@ pushing them.
 
 ## Release and Cinnamon Spices workflow
 
-The [readiness report](spices-readiness.md), [next-steps handoff](release-next-steps.md)
-and versioned [release receipts](releases/) are the authoritative evidence
-chain. The order is deliberately main-first:
+The versioned [release receipts](releases/) are the immutable evidence chain.
+The guarded publication order is deliberately main-first:
 
 1. Validate the isolated source tree, UI inventory, rights inventory and
    deterministic package.
@@ -228,9 +219,9 @@ none implies the others.
 
 The project is licensed under [GPL-3.0-or-later](../LICENSE). The bundled Yaru
 action icons retain their CC-BY-SA-4.0 license; see
-[icon attribution](../icons/ATTRIBUTION.md). The [rights review](rights-review.md)
-records current artwork and screenshot provenance, while the
-[rights inventory](rights-inventory.json) verifies exact asset hashes.
+[icon attribution](../icons/ATTRIBUTION.md). The
+[rights inventory](rights-inventory.json) records current artwork and
+screenshot provenance and verifies exact asset hashes.
 
 Report vulnerabilities privately as described in the
 [security policy](../SECURITY.md). OpenAI, ChatGPT and Codex are trademarks of

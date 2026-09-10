@@ -35,6 +35,8 @@ SPECS = [
         {"QA_MODEL_SPECIFIC_LIMITS": "off"},
         "context",
     ),
+    ("topbar-codex-two", "panel-codex-two", "horizontal", {}, "context"),
+    ("vertical-panel-codex-two", "panel-codex-two", "vertical", {}, "context"),
     ("reset-confirmation", "reset", "vertical", {}, "native"),
     ("install-chatgpt", "install-chatgpt", "vertical", {}, "native"),
     ("install-codex", "install-codex", "vertical", {}, "native"),
@@ -137,7 +139,7 @@ def main():
         alpha_match = re.search(r"private-panel-alpha=(\d+)", (output / f"{name}.log").read_text())
         if not alpha_match or int(alpha_match[1]) >= 255:
             raise ValueError("Native panel transparency was not verified")
-        if variant == "panel":
+        if variant in {"panel", "panel-codex-two"}:
             crop = [str(UI / "crop-panel.sh"), str(raw), str(panel), str(image), mode, panel_crop]
         else:
             crop = [str(UI / "crop-menu.sh"), str(raw), str(geometry), str(image), str(panel), mode]
@@ -164,14 +166,20 @@ def main():
         if is_popup and actor_geometry[2] != 419:
             raise RuntimeError(f"{name}: expected 419 px popup actor plus 1 px edge, got {actor_geometry[2]}")
         manifest[name + ".png"] = {
-            "surface": "popup" if is_popup else "panel" if variant == "panel" else "dialog-or-tooltip",
+            "surface": (
+                "popup" if is_popup else "panel" if variant in {"panel", "panel-codex-two"} else "dialog-or-tooltip"
+            ),
             "actorGeometry": actor_geometry,
             "panelGeometry": panel_geometry,
             "cropGeometry": crop_geometry,
             "backgroundCornerRgb": corner_rgb,
             "variant": variant,
             "panelScope": (
-                "codex-only" if capture_env.get("QA_MODEL_SPECIFIC_LIMITS") == "off" else "all-visible-models"
+                "codex-only-two-window"
+                if variant == "panel-codex-two"
+                else "codex-only"
+                if capture_env.get("QA_MODEL_SPECIFIC_LIMITS") == "off"
+                else "all-visible-models"
             ),
             "panelCrop": panel_crop,
             "panel": mode,
