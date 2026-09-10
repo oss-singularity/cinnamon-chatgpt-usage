@@ -22,9 +22,9 @@
 
 ## See it in action
 
-| Horizontal top bar with Spark + Codex panel indicators                                                             | 40 px vertical panel with Spark + Codex panel indicators                                                               |
-| ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| ![Spark and Codex limits in a horizontal top bar with both panel indicators](docs/model-limits/topbar.png?v=1.0.5) | ![Spark and Codex limits in a vertical panel with both panel indicators](docs/model-limits/vertical-panel.png?v=1.0.5) |
+| Horizontal top bar with Spark + Codex panel indicators                                                     | 40 px vertical panel with Spark + Codex panel indicators                                                       |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| ![Spark and Codex limits in a horizontal top bar with both panel indicators](docs/model-limits/topbar.png) | ![Spark and Codex limits in a vertical panel with both panel indicators](docs/model-limits/vertical-panel.png) |
 
 | Default horizontal panel with Codex 7d indicator                                                      | 40 px vertical panel with Codex 7d indicator                                                                |
 | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
