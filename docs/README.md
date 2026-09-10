@@ -37,11 +37,11 @@ Versioned receipts are kept together under [`releases/`](releases/):
 - [1.0.2 receipt](releases/release-1.0.2.json)
 - [1.0.3 receipt](releases/release-1.0.3.json)
 - [1.0.4 receipt](releases/release-1.0.4.json)
+- [1.0.5 receipt](releases/release-1.0.5.json)
 
 The receipts and historical checkpoint are immutable evidence records for the
 source commit, package bytes, screenshots, validator and publication gates of
-their respective versions. A future 1.0.5 receipt belongs in the same
-directory.
+their respective versions.
 
 ## Installation and backend configuration
 
