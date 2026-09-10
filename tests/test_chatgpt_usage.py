@@ -23,8 +23,12 @@ from chatgpt_usage import UsageError
 
 class ResetConsumeRequestTests(unittest.TestCase):
     def test_consume_sends_idempotent_request_with_selected_credit(self) -> None:
-        with patch("chatgpt_usage._run_app_server_request", return_value={"outcome": "reset"}) as request:
-            result = consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-123", "credit-456")
+        with patch(
+            "chatgpt_usage._run_app_server_request", return_value={"outcome": "reset"}
+        ) as request:
+            result = consume_rate_limit_reset(
+                "/usr/bin/codex", 5, "attempt-123", "credit-456"
+            )
         self.assertEqual(result["outcome"], "reset")
         self.assertEqual(
             request.call_args.args[2],
@@ -36,9 +40,14 @@ class ResetConsumeRequestTests(unittest.TestCase):
         )
 
     def test_consume_omits_missing_credit_id_and_rejects_empty_key(self) -> None:
-        with patch("chatgpt_usage._run_app_server_request", return_value={"outcome": "noCredit"}) as request:
+        with patch(
+            "chatgpt_usage._run_app_server_request",
+            return_value={"outcome": "noCredit"},
+        ) as request:
             consume_rate_limit_reset("/usr/bin/codex", 5, "attempt-789")
-            self.assertEqual(request.call_args.args[2]["params"], {"idempotencyKey": "attempt-789"})
+            self.assertEqual(
+                request.call_args.args[2]["params"], {"idempotencyKey": "attempt-789"}
+            )
             request.reset_mock()
             with self.assertRaises(UsageError):
                 consume_rate_limit_reset("/usr/bin/codex", 5, " ")
@@ -103,11 +112,11 @@ class NormaliseRateLimitsTests(unittest.TestCase):
                     "limitId": "codex",
                     "limitName": None,
                     "primary": {
-                    "usedPercent": 13,
-                    "windowDurationMins": 10080,
-                    "resetsAt": 1788452781,
-                    "lastResetAt": 1787847981,
-                },
+                        "usedPercent": 13,
+                        "windowDurationMins": 10080,
+                        "resetsAt": 1788452781,
+                        "lastResetAt": 1787847981,
+                    },
                     "secondary": None,
                     "credits": {
                         "hasCredits": False,
@@ -134,8 +143,16 @@ class NormaliseRateLimitsTests(unittest.TestCase):
             "rateLimitResetCredits": {
                 "availableCount": 2,
                 "credits": [
-                    {"id": "reset-later", "status": "available", "expiresAt": 1791079502},
-                    {"id": "reset-next", "status": "available", "expiresAt": 1789000000},
+                    {
+                        "id": "reset-later",
+                        "status": "available",
+                        "expiresAt": 1791079502,
+                    },
+                    {
+                        "id": "reset-next",
+                        "status": "available",
+                        "expiresAt": 1789000000,
+                    },
                     {"id": "reset-used", "status": "redeemed", "expiresAt": 1788000000},
                 ],
             },
@@ -209,13 +226,21 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         self.assertIsNone(snapshot["credits"]["resetCredits"])
 
     def test_reset_detail_rows_preserve_count_only_and_empty_states(self) -> None:
-        base = {"rateLimits": {"primary": {"usedPercent": 10, "windowDurationMins": 10080}}}
+        base = {
+            "rateLimits": {"primary": {"usedPercent": 10, "windowDurationMins": 10080}}
+        }
 
-        count_only = dict(base, rateLimitResetCredits={"availableCount": 2, "credits": None})
+        count_only = dict(
+            base, rateLimitResetCredits={"availableCount": 2, "credits": None}
+        )
         self.assertIsNone(normalise_rate_limits(count_only)["credits"]["resetCredits"])
 
-        no_details = dict(base, rateLimitResetCredits={"availableCount": 0, "credits": []})
-        self.assertEqual(normalise_rate_limits(no_details)["credits"]["resetCredits"], [])
+        no_details = dict(
+            base, rateLimitResetCredits={"availableCount": 0, "credits": []}
+        )
+        self.assertEqual(
+            normalise_rate_limits(no_details)["credits"]["resetCredits"], []
+        )
 
     def test_optional_five_hour_window_when_canonical_api_exposes_it(self) -> None:
         result = {
@@ -236,7 +261,9 @@ class NormaliseRateLimitsTests(unittest.TestCase):
 
         snapshot = normalise_rate_limits(result, now=789)
         windows = snapshot["limits"][0]["windows"]
-        self.assertEqual([window["durationMinutes"] for window in windows], [300, 10080])
+        self.assertEqual(
+            [window["durationMinutes"] for window in windows], [300, 10080]
+        )
         self.assertEqual([window["remainingPercent"] for window in windows], [80, 60])
 
 
@@ -291,10 +318,14 @@ class UsageHistoryTests(unittest.TestCase):
         self.assertEqual(len(history["windows"][0]["activity24h"]), 24)
         one_hour_end = dt.datetime.fromtimestamp(history["activityEndAt"]).astimezone()
         self.assertEqual((one_hour_end.minute, one_hour_end.second), (0, 0))
-        two_hour_history = build_usage_history(self.snapshot(now, 18), samples, bucket_minutes=120)
+        two_hour_history = build_usage_history(
+            self.snapshot(now, 18), samples, bucket_minutes=120
+        )
         self.assertEqual(two_hour_history["activityBucketMinutes"], 120)
         self.assertEqual(len(two_hour_history["windows"][0]["activity24h"]), 12)
-        two_hour_end = dt.datetime.fromtimestamp(two_hour_history["activityEndAt"]).astimezone()
+        two_hour_end = dt.datetime.fromtimestamp(
+            two_hour_history["activityEndAt"]
+        ).astimezone()
         self.assertEqual((two_hour_end.hour % 2, two_hour_end.minute), (0, 0))
         periods = history["windows"][0]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 8)
@@ -310,10 +341,14 @@ class UsageHistoryTests(unittest.TestCase):
             self.sample(now, 5, 200),
         ]
 
-        periods = build_usage_history(self.snapshot(now, 5, 200), samples)["windows"][0]["periods"]
+        periods = build_usage_history(self.snapshot(now, 5, 200), samples)["windows"][
+            0
+        ]["periods"]
         self.assertEqual(periods["1h"]["consumedPercent"], 5)
 
-    def test_credit_consumption_counts_balance_decreases_and_ignores_refills(self) -> None:
+    def test_credit_consumption_counts_balance_decreases_and_ignores_refills(
+        self,
+    ) -> None:
         now = 1_800_000_000
         samples = [
             self.sample(now - 13 * 3600, 10, credit_balance=20),
@@ -331,7 +366,9 @@ class UsageHistoryTests(unittest.TestCase):
         self.assertEqual(periods["12h"]["consumed"], 13)
         self.assertEqual(periods["4h"]["consumed"], 8)
         self.assertEqual(periods["1h"]["consumed"], 3)
-        self.assertEqual(sum(bucket["consumed"] for bucket in history["creditActivity24h"]), 13)
+        self.assertEqual(
+            sum(bucket["consumed"] for bucket in history["creditActivity24h"]), 13
+        )
 
     def test_credit_balance_samples_round_trip_through_history(self) -> None:
         now = 1_800_000_000
@@ -382,7 +419,9 @@ class UsageHistoryTests(unittest.TestCase):
             self.sample(now, 14),
         ]
 
-        periods = build_usage_history(self.snapshot(now, 14), samples)["windows"][0]["periods"]
+        periods = build_usage_history(self.snapshot(now, 14), samples)["windows"][0][
+            "periods"
+        ]
         self.assertEqual(periods["1h"]["consumedPercent"], 7)
 
     def test_partial_history_keeps_observed_activity(self) -> None:
@@ -410,7 +449,9 @@ class UsageHistoryTests(unittest.TestCase):
             self.sample(now, 15),
         ]
 
-        activity = build_usage_history(self.snapshot(now, 15), samples)["windows"][0]["activity24h"]
+        activity = build_usage_history(self.snapshot(now, 15), samples)["windows"][0][
+            "activity24h"
+        ]
         self.assertEqual(
             activity[-1],
             {"consumedPercent": 5, "complete": True, "observed": True},

@@ -38,7 +38,7 @@
     "status": "accepted"
   },
   "cinnamonVersions": ["6.6"],
-  "previousBaseline": "release-checkpoint.json",
+  "previousBaseline": "../release-checkpoint.json",
   "spicesSubmission": "https://github.com/linuxmint/cinnamon-spices-applets/pull/9024",
   "artifacts": {
     "install.zip": "f4cf4291721c61282280df93b071e375986019ef544f419689e315a7f1481fae",

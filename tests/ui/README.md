@@ -58,8 +58,9 @@ private fixture shows 25% warning and 10% critical values at the exact default
 boundaries, with the switch enabled or disabled. It does not alter live settings.
 
 Outputs include raw frames, geometry, cropped PNGs, diagnostic logs and
-`inventory.json`: variant, panel, theme, locale, scale, screen, producing base
-commit, exact source hashes, capture time, output dimensions and SHA-256.
+`inventory.json`: variant, panel, panel scope, theme, locale, scale, screen,
+producing base commit, exact source hashes, capture time, output dimensions and
+SHA-256.
 The producing tree can contain local changes; its hashes, not merely the base
 commit, identify it. Dates/countdowns are relative to the capture clock, and
 native rendering can differ by system font/theme version. Reproducibility here
@@ -75,11 +76,21 @@ shows the master refresh option enabled and the low-limit options disabled, with
 the dependent reset switches shown as effectively enabled while disabled, and
 the threshold controls still visible in their native disabled state.
 
-`topbar.png` and `vertical-panel.png` are intentionally frozen approved panel
-anchors from the 1.0.3 presentation. The capture runner carries their
-historical inventory records forward instead of regenerating them from a
-zero-percent demo; all popup, tooltip, dialog and settings captures continue
-to use the current source tree.
+`topbar.png` and `vertical-panel.png` are current all-visible-model panel
+anchors produced by the same native capture runner as the popup, tooltip,
+dialog and settings captures. `topbar-codex-only.png` and
+`vertical-panel-codex-only.png` use the same native path with
+model-specific limits disabled, matching the compact default configuration.
+Those two single-indicator anchors retain the common panel context crop
+(94×40 horizontally and 40×96 vertically), so the panel placement remains
+visible instead of isolating the icon too tightly.
+They must be regenerated when the applet icon or panel rendering changes, so
+the public anchors always show the current packaged artwork. A historical
+panel capture may be retained only when it is explicitly approved as a
+historical comparison and clearly marked in the inventory. Their dedicated
+panel fixtures keep every displayed remaining value above the warning
+threshold, so all four anchor sets remain fully white; do not use the critical
+0% overview fixture for these images.
 
 For native notification retention QA, run the private wrapper with
 `QA_NOTIFICATION_RETENTION=1`, an absolute `QA_NOTIFICATION_GEOMETRY` output

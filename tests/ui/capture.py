@@ -7,30 +7,42 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 UI = ROOT / "tests/ui"
 SPECS = [
-    ("usage-menu", "overview", "vertical"),
-    ("usage-menu-horizontal", "basic", "horizontal"),
-    ("usage-menu-spark", "spark", "vertical"),
-    ("usage-menu-four-rings", "four", "vertical"),
-    ("usage-menu-codex-only", "codex-two", "vertical"),
-    ("bucket-tooltip", "bucket", "vertical"),
-    ("topbar", "panel", "horizontal"),
-    ("vertical-panel", "panel", "vertical"),
-    ("reset-confirmation", "reset", "vertical"),
-    ("install-chatgpt", "install-chatgpt", "vertical"),
-    ("install-codex", "install-codex", "vertical"),
-    ("panel-tooltip", "panel-tooltip", "horizontal"),
-    ("settings-general", "settings-general", "vertical"),
-    ("settings-colors", "settings-colors", "vertical"),
-    ("settings-notifications", "settings-notifications", "vertical"),
+    ("usage-menu", "overview", "vertical", {}, "native"),
+    ("usage-menu-horizontal", "basic", "horizontal", {}, "native"),
+    ("usage-menu-spark", "spark", "vertical", {}, "native"),
+    ("usage-menu-four-rings", "four", "vertical", {}, "native"),
+    ("usage-menu-codex-only", "codex-two", "vertical", {}, "native"),
+    ("bucket-tooltip", "bucket", "vertical", {}, "native"),
+    ("topbar", "panel", "horizontal", {}, "native"),
+    ("vertical-panel", "panel", "vertical", {}, "native"),
+    (
+        "topbar-codex-only",
+        "panel",
+        "horizontal",
+        {"QA_MODEL_SPECIFIC_LIMITS": "off"},
+        "context",
+    ),
+    (
+        "vertical-panel-codex-only",
+        "panel",
+        "vertical",
+        {"QA_MODEL_SPECIFIC_LIMITS": "off"},
+        "context",
+    ),
+    ("reset-confirmation", "reset", "vertical", {}, "native"),
+    ("install-chatgpt", "install-chatgpt", "vertical", {}, "native"),
+    ("install-codex", "install-codex", "vertical", {}, "native"),
+    ("panel-tooltip", "panel-tooltip", "horizontal", {}, "native"),
+    ("settings-general", "settings-general", "vertical", {}, "native"),
+    ("settings-colors", "settings-colors", "vertical", {}, "native"),
+    ("settings-notifications", "settings-notifications", "vertical", {}, "native"),
 ]
-HISTORICAL_PANEL_ASSETS = ("topbar.png", "vertical-panel.png")
 
 
 def sha(path):
@@ -67,13 +79,6 @@ def main():
     subprocess.run([str(ROOT / "install.sh")], check=True, env={**os.environ, "XDG_DATA_HOME": str(stage)})
     manifest_path = output / "inventory.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
-    root_manifest = json.loads((ROOT / "docs/model-limits/inventory.json").read_text())
-    for name in HISTORICAL_PANEL_ASSETS:
-        source = ROOT / "docs/model-limits" / name
-        destination = output / name
-        if source.resolve() != destination.resolve():
-            shutil.copy2(source, destination)
-        manifest[name] = manifest.get(name, root_manifest[name])
     source_paths = [
         "applet.js",
         "chatgpt_usage.py",
@@ -89,10 +94,7 @@ def main():
         str(path.relative_to(ROOT)) for path in sorted((ROOT / "icons").iterdir()) if path.suffix in {".png", ".svg"}
     ]
     sources = {name: sha(ROOT / name) for name in source_paths}
-    for name, variant, mode in SPECS:
-        if f"{name}.png" in HISTORICAL_PANEL_ASSETS:
-            print(f"Preserved historical panel capture: {name}.png", flush=True)
-            continue
+    for name, variant, mode, capture_env, panel_crop in SPECS:
         if args.only and name not in args.only:
             continue
         raw = output / f"{name}.raw.png"
@@ -124,14 +126,19 @@ def main():
                 check=True,
                 stdout=log,
                 stderr=subprocess.STDOUT,
-                env={**os.environ, "QA_THEME": args.theme, "QA_REQUIRE_TRANSPARENT_PANEL": "1"},
+                env={
+                    **os.environ,
+                    **capture_env,
+                    "QA_THEME": args.theme,
+                    "QA_REQUIRE_TRANSPARENT_PANEL": "1",
+                },
                 cwd=ROOT,
             )
         alpha_match = re.search(r"private-panel-alpha=(\d+)", (output / f"{name}.log").read_text())
         if not alpha_match or int(alpha_match[1]) >= 255:
             raise ValueError("Native panel transparency was not verified")
         if variant == "panel":
-            crop = [str(UI / "crop-panel.sh"), str(raw), str(panel), str(image), mode]
+            crop = [str(UI / "crop-panel.sh"), str(raw), str(panel), str(image), mode, panel_crop]
         else:
             crop = [str(UI / "crop-menu.sh"), str(raw), str(geometry), str(image), str(panel), mode]
         subprocess.run(crop, check=True)
@@ -163,6 +170,10 @@ def main():
             "cropGeometry": crop_geometry,
             "backgroundCornerRgb": corner_rgb,
             "variant": variant,
+            "panelScope": (
+                "codex-only" if capture_env.get("QA_MODEL_SPECIFIC_LIMITS") == "off" else "all-visible-models"
+            ),
+            "panelCrop": panel_crop,
             "panel": mode,
             "theme": args.theme,
             "locale": "C.UTF-8; LC_TIME=de_DE.UTF-8",

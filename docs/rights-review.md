@@ -1,7 +1,7 @@
 # Rights review for the first Spices release
 
-Reviewed 2026-09-08. Scope: the current source tree, 24-file installed payload,
-submission screenshot, 15 documentation captures and social preview.
+Reviewed 2026-09-10. Scope: the current source tree, 25-file installed payload,
+submission screenshot, 17 documentation captures and social preview.
 This is an evidence review, not a legal opinion or a guarantee against claims.
 
 **Artwork disposition:** the maintainer chose replacement, with no permission
@@ -18,15 +18,15 @@ This records the maintainer's decision; it does not claim an OpenAI endorsement.
 
 ## Verified components
 
-| Component                             | Evidence and treatment                                                                                                                                                                                                         |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Project code and original SVGs        | Existing GPL-3.0-or-later declaration and full LICENSE; readable source shipped. Original geometric quota, chat and terminal robot designs replace third-party marks. No compiled backend or bundled dependency.               |
-| Adaptive panel approach               | ATTRIBUTION credits OSS Singularity's Adaptive System Monitor, whose LICENSE was checked as GPL v3. Existing GPL declaration and credit retained.                                                                              |
-| Four Yaru action SVGs                 | All four bytes match upstream commit `18b443818c0e5fed138bb4f43aff595b3e095951` (24.04.2), including resolved app aliases. Sam Hewitt credit, exact source revision, unchanged status and CC-BY-SA-4.0 license included.       |
-| Social background/layout              | ImageGen source PNG and original prompt retained; project rights, if any, offered under GPL-3.0-or-later. Existing background and layout preserved, former knot replaced.                                                      |
-| Noto Sans                             | Renderer font verified against local `fonts-noto-core` 20201225-2, OFL-1.1. Only rendered text distributed, no font binaries.                                                                                                  |
-| Native screenshots                    | Private synthetic state with original project artwork, Yaru icons and Mint-Y/Mint-Y-Dark-Aqua rendering. Project screenshot rights offered under CC-BY-SA-4.0 with notices. This does not relicense the depicted GPL software. |
-| Teal background and terminal proposal | Original SVG design sources retained under project GPL terms; the earlier terminal-only proposal is not shipped.                                                                                                               |
+| Component                            | Evidence and treatment                                                                                                                                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Project code and original SVGs       | Existing GPL-3.0-or-later declaration and full LICENSE; readable source shipped. Original geometric quota, chat and terminal robot designs replace third-party marks. No compiled backend or bundled dependency.               |
+| Adaptive panel approach              | ATTRIBUTION credits OSS Singularity's Adaptive System Monitor, whose LICENSE was checked as GPL v3. Existing GPL declaration and credit retained.                                                                              |
+| Four Yaru action SVGs                | All four bytes match upstream commit `18b443818c0e5fed138bb4f43aff595b3e095951` (24.04.2), including resolved app aliases. Sam Hewitt credit, exact source revision, unchanged status and CC-BY-SA-4.0 license included.       |
+| Social background/layout             | ImageGen source PNG and original prompt retained; project rights, if any, offered under GPL-3.0-or-later. Existing background and layout preserved, former knot replaced.                                                      |
+| Noto Sans                            | Renderer font verified against local `fonts-noto-core` 20201225-2, OFL-1.1. Only rendered text distributed, no font binaries.                                                                                                  |
+| Native screenshots                   | Private synthetic state with original project artwork, Yaru icons and Mint-Y/Mint-Y-Dark-Aqua rendering. Project screenshot rights offered under CC-BY-SA-4.0 with notices. This does not relicense the depicted GPL software. |
+| Teal background and terminal artwork | Original SVG design sources retained under project GPL terms; the retired terminal-only proposal is no longer part of the current tree.                                                                                        |
 
 Yaru's [icon-specific COPYING](https://github.com/ubuntu/yaru/blob/18b443818c0e5fed138bb4f43aff595b3e095951/icons/COPYING)
 offers GPL v3 or CC-BY-SA; this project retains its CC-BY-SA choice. The

@@ -73,7 +73,7 @@ erst beim freigegebenen Einreichungsschritt.
 - Die Beschreibung behält „usage beautifully in view“ und passt einzeilig
   in die geprüfte native Manager-Zeile.
 - Neues Installations- und Einreichungspaket besteht den offiziellen
-  Strukturvalidator; [genauer Paketbeleg](release-1.0.4.json).
+  Strukturvalidator; [genauer Paketbeleg](releases/release-1.0.4.json).
 
 ## Technischer Umfang und bewusste Grenzen
 
@@ -98,7 +98,7 @@ Die sechs geschützten **Remote-PR-Prüfungen** sind erfolgreich auf
 Auch beide Workflows nach dem Merge sind erfolgreich. Den aktuellen Status hält das
 [Release-Issue](https://github.com/oss-singularity/cinnamon-chatgpt-usage/issues/45) fest.
 Die [Readiness-Dokumentation](spices-readiness.md) und der
-[Paketbeleg](release-1.0.4.json) halten den genauen Umfang fest.
+[Paketbeleg](releases/release-1.0.4.json) halten den genauen Umfang fest.
 
 ## Reihenfolge ab hier
 

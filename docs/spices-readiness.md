@@ -22,7 +22,7 @@ unchanged.
 - [x] Maintainer identity, unchanged UUID and Cinnamon 5.8+ compatibility declared;
       native Cinnamon 6.6.9 support accepted.
 - [x] Public name and original artwork accepted; naming review closed.
-- [x] All 15 screenshots accepted by the maintainer.
+- [x] All 17 current documentation screenshots accepted by the maintainer.
 - [x] Local tests, native UI checks, linter and structural package validation passed.
 - [x] Package receipt reviewed; real archive and payload hashes recorded.
 
@@ -39,12 +39,12 @@ historical checkpoint, not the status of every later change.
 
 The current candidate builds on `f9d02b3`, adding credit consumption history,
 low-percentage precision and accessibility/layout fixes: 45 Python tests plus the
-JavaScript suites pass; all 15 screenshots match their producing sources;
+JavaScript suites pass; all 17 screenshots match their producing sources;
 the installed payload now has 25 files, including the native GTK path widget and POT.
 Reset acknowledgment, retained notifications, panel warning colors, global
 model visibility, dual installation-path hints and Recheck have additional
 unit/native evidence. A fresh package passes the official structural validator.
-[Artifact receipt](release-1.0.4.json) and
+[Artifact receipt](releases/release-1.0.4.json) and
 [unsent publication/contact drafts](release-drafts.md) are prepared.
 
 The upstream validator at current HEAD
@@ -79,7 +79,7 @@ the naming item on 2026-09-08. It is no longer an open release-planning gate.
 | 5. Rolling totals    | Independent `periods["24h"]`; chart remains wall-clock aligned                                                                  | Half-hour, 60/120-minute buckets, incomplete history, midnight and DST tests                                   |
 | 6. Invalid inputs    | Non-finite numbers rejected; invalid windows omitted; invalid history points ignored                                            | Legacy and named-limit robustness tests                                                                        |
 | 7. Themes            | Secondary/menu foregrounds, ring tracks and quota glyph tint derive from the menu theme                                         | Light/dark and large-font checks; other desktop configurations are outside the verified baseline below         |
-| 8. Screenshots       | Private capture scripts and 15-variant inventory, including Notifications                                                       | All 15 final images visually reviewed, source/hash verified and accepted                                       |
+| 8. Screenshots       | Private capture scripts and 17-variant inventory, including Notifications                                                       | All 17 final images visually reviewed, source/hash verified and accepted                                       |
 | 9. Documentation     | README, SECURITY and bug form updated; installed README is portable                                                             | Cinnamon 5.8–6.6 declared; native 6.6.9 evidence; post-1.0 policy confirmed                                    |
 | 10. Artwork          | Code/asset separation and full notices travel with package                                                                      | Original artwork, notices, final inventory and captures verified and accepted                                  |
 | 11. Discovery        | One Python discovery algorithm used by refresh and JS launch/version cache                                                      | CLI/app-only, explicit `~`, spaces, symlink-chain and precedence fixtures                                      |
@@ -192,6 +192,6 @@ After upstream acceptance, verify the actual catalog listing, downloaded
 archive, and installation/update from Cinnamon System Settings. Record accepted
 commit, package hashes and catalog version; only then call it an official Spice.
 
-The earlier terminal proposal remains historical design material. The shipped
-replacement is the original terminal robot under `icons/`, with editable source
-and no dependency on an OpenAI sprite.
+The earlier terminal proposal remains only in Git history as historical design
+material. The shipped replacement is the original terminal robot under `icons/`,
+with editable source and no dependency on an OpenAI sprite.
