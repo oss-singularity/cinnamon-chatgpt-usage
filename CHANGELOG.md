@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.5 — 2026-09-09
+
+- Show the peak credit consumption beside the 24-hour activity peak when
+  observed credit usage exists, while keeping consumed windows as whole AIC
+  values and the available balance at one decimal place.
+- Add a compact upper-left Copy Screenshot action that copies the visible
+  usage menu as PNG and briefly replaces the relative update label with its
+  exact local timestamp during capture.
+- Crop copied screenshots before the bottom action buttons and make the
+  outside of the rounded popup corner transparent. Add a 7d quota-ring tooltip
+  for the last observed reset, with a clearly marked next-reset estimate until
+  an observation exists, and retain that observation across reloads.
+- Keep the About description readable with an intentional companion line break.
+- Make the private demo cover a reset-boundary transition from a pink-only
+  credit bucket back to green quota usage, and preserve the approved 1.0.3
+  panel-anchor images for the README.
+
 ## 1.0.4 — 2026-09-09
 
 - Track observed credit-balance consumption over the last eight days and show

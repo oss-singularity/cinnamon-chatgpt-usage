@@ -103,10 +103,11 @@ class NormaliseRateLimitsTests(unittest.TestCase):
                     "limitId": "codex",
                     "limitName": None,
                     "primary": {
-                        "usedPercent": 13,
-                        "windowDurationMins": 10080,
-                        "resetsAt": 1788452781,
-                    },
+                    "usedPercent": 13,
+                    "windowDurationMins": 10080,
+                    "resetsAt": 1788452781,
+                    "lastResetAt": 1787847981,
+                },
                     "secondary": None,
                     "credits": {
                         "hasCredits": False,
@@ -148,6 +149,10 @@ class NormaliseRateLimitsTests(unittest.TestCase):
         )
         self.assertEqual(snapshot["limits"][0]["label"], "Codex")
         self.assertEqual(snapshot["limits"][0]["windows"][0]["remainingPercent"], 87)
+        self.assertEqual(
+            snapshot["limits"][0]["windows"][0]["lastResetAt"],
+            1787847981,
+        )
         self.assertEqual(snapshot["limits"][1]["label"], "Model limit")
         self.assertEqual(
             [window["remainingPercent"] for window in snapshot["limits"][1]["windows"]],

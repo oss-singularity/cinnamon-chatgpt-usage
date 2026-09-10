@@ -185,9 +185,12 @@ JSON.stringify((function(){
     var codexWindows=[win(10080,0,4*86400+5*3600)];
     var sparkWindows=[win(300,82,3*3600+41*60),win(10080,76,6*86400+3*3600)];
     if("VARIANT"==="four"||"VARIANT"==="codex-two")codexWindows.unshift(win(300,68,2*3600+13*60));
-    // Mirror the live fallback story: the last green quota bucket is the only
-    // mixed bucket; once the quota is exhausted, later buckets are credit-only.
-    var codexValues=[0,0,0,1,0,0,0,2,0,0,1,0,0,0,2,0,0,0,1,1,0,0,0,0];
+    // Keep both real-world credit stories visible: several early pink-only
+    // buckets belong to the tail of an exhausted short-window cycle. The last
+    // early pink bucket shares its slot with green quota activity, then the
+    // reset boundary continues with further green buckets. Near the present,
+    // the last green bucket is mixed and later buckets are credit-only.
+    var codexValues=[0,0,0,0,1,2,3,1,0,0,1,0,0,0,2,0,0,0,1,1,0,0,0,0];
     var sparkFiveValues=[0,0,0,0,0,0,1,0,0,0,0,0,0,2,0,0,0,0,1,0,0,0,0,0];
     var sparkWeeklyValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,1,0];
     if("VARIANT"==="basic"||"VARIANT"==="four"){
@@ -195,14 +198,14 @@ JSON.stringify((function(){
         sparkFiveValues=sparkFiveValues.map(function(){return 0;});
         sparkWeeklyValues=sparkWeeklyValues.map(function(){return 0;});
     }
-    var codexPeriods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:1,complete:true},today:{consumedPercent:8,complete:true}};
+    var codexPeriods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:4,complete:true},today:{consumedPercent:12,complete:true}};
     var sparkFivePeriods={"1h":{consumedPercent:3,complete:true},"4h":{consumedPercent:10,complete:true}};
     var sparkWeeklyPeriods={"1h":{consumedPercent:3,complete:true},"4h":{consumedPercent:10,complete:true},"12h":{consumedPercent:18,complete:true},today:{consumedPercent:18,complete:true}};
     var codexHistory=historyWindow("codex",codexLabel,10080,codexPeriods,codexValues);
     var sparkFiveHistory=historyWindow("spark",sparkLabel,300,sparkFivePeriods,sparkFiveValues);
     var sparkWeeklyHistory=historyWindow("spark",sparkLabel,10080,sparkWeeklyPeriods,sparkWeeklyValues);
-    var creditPeriods={"24h":{consumed:84.4,complete:true},"12h":{consumed:84.4,complete:true},"4h":{consumed:73.8,complete:true},"1h":{consumed:20.1,complete:true}};
-    var creditValues=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10.6,17.2,28.4,8.1,20.1];
+    var creditPeriods={"24h":{consumed:97.8,complete:true},"12h":{consumed:84.4,complete:true},"4h":{consumed:73.8,complete:true},"1h":{consumed:20.1,complete:true}};
+    var creditValues=[0,2.2,3.4,4.8,3.0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10.6,17.2,28.4,8.1,20.1];
     var historyWindows=[codexHistory];
     if("VARIANT"==="four"||"VARIANT"==="codex-two")historyWindows.push(historyWindow("codex",codexLabel,300,{"1h":{consumedPercent:2,complete:true},"4h":{consumedPercent:5,complete:true}},[0,0,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,2,0,0]));
     if(hasSpark)historyWindows.push(sparkFiveHistory,sparkWeeklyHistory);
@@ -219,7 +222,9 @@ JSON.stringify((function(){
         a._snapshot.limits[0].windows=[win(10080,0,6*86400+16*3600)];
         a._snapshot.credits={balance:"250.0",availableResetCount:1,nextResetExpiresAt:now+29*86400+13*3600,hasCredits:true,unlimited:false};
         a._snapshot.history.windows[0].periods={"1h":{consumedPercent:0,complete:true},"4h":{consumedPercent:0,complete:true},"12h":{consumedPercent:30,complete:true},today:{consumedPercent:85,complete:true}};
-        a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,3,21,21,0,0,0,0,0,0,0,7,8,8,7,0,0,0,0].map(bucket);
+        // Keep the reset-boundary example in the primary README overview too:
+        // the pink-only bucket at -20h is followed by green quota activity.
+        a._snapshot.history.windows[0].activity24h=[3,2,3,3,2,2,1,21,21,0,0,0,0,0,0,0,7,8,8,7,0,0,0,0].map(bucket);
         a._snapshot.history.windows.slice(1).forEach(function(w){w.activity24h=w.activity24h.map(function(){return bucket(0);});});
     }
     var alertMode=GLib.getenv("QA_PANEL_ALERTS");

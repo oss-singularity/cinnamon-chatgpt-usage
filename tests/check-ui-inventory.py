@@ -43,6 +43,12 @@ for name, record in manifest.items():
             raise SystemExit(f"Screenshot has no verified 420 px popup width (419 px actor + edge): {name}")
     if hashlib.sha256((DIRECTORY / name).read_bytes()).hexdigest() != record["sha256"]:
         raise SystemExit(f"Screenshot changed without a reviewed inventory: {name}")
+    if record.get("sourcePolicy") == "historical":
+        if name not in {"topbar.png", "vertical-panel.png"}:
+            raise SystemExit(f"Historical source policy is limited to panel anchors: {name}")
+        if not re.fullmatch(r"\d+\.\d+\.\d+", str(record.get("sourceRelease", ""))):
+            raise SystemExit(f"Historical screenshot is missing its source release: {name}")
+        continue
     for source, digest in record["sourceSha256"].items():
         # Descriptive documentation does not affect native rendering. Its old
         # hash remains useful provenance, but need not force new screenshots.

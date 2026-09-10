@@ -75,6 +75,12 @@ shows the master refresh option enabled and the low-limit options disabled, with
 the dependent reset switches shown as effectively enabled while disabled, and
 the threshold controls still visible in their native disabled state.
 
+`topbar.png` and `vertical-panel.png` are intentionally frozen approved panel
+anchors from the 1.0.3 presentation. The capture runner carries their
+historical inventory records forward instead of regenerating them from a
+zero-percent demo; all popup, tooltip, dialog and settings captures continue
+to use the current source tree.
+
 For native notification retention QA, run the private wrapper with
 `QA_NOTIFICATION_RETENTION=1`, an absolute `QA_NOTIFICATION_GEOMETRY` output
 path and `--settle-ms 24000`, using the `panel` driver variant. The helper
@@ -100,7 +106,9 @@ it and the settings hash, and rejects an opaque panel. These requirements apply
 only to documentation composition, not to users' applet installations.
 
 Set `QA_RELEASE_REVIEW=1` for native named-action, focus, animation and menu-stack
-checks on right/top/bottom/left panels. `QA_TEXT_SCALE=1.25` and
+checks on right/top/bottom/left panels. Add `QA_SCREENSHOT_COPY=1` to click the
+production Copy Screenshot action and verify that a PNG reaches Cinnamon's
+clipboard. `QA_TEXT_SCALE=1.25` and
 `QA_ANIMATIONS=false` exercise larger text and reduced motion. Use a 24-second
 capture delay for this review. `QA_SLOW_VERSION=1` adds a delayed fake version
 probe and verifies that Cinnamon's main loop keeps advancing until it completes.

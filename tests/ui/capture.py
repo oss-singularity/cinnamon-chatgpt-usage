@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -29,6 +30,7 @@ SPECS = [
     ("settings-colors", "settings-colors", "vertical"),
     ("settings-notifications", "settings-notifications", "vertical"),
 ]
+HISTORICAL_PANEL_ASSETS = ("topbar.png", "vertical-panel.png")
 
 
 def sha(path):
@@ -65,6 +67,13 @@ def main():
     subprocess.run([str(ROOT / "install.sh")], check=True, env={**os.environ, "XDG_DATA_HOME": str(stage)})
     manifest_path = output / "inventory.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    root_manifest = json.loads((ROOT / "docs/model-limits/inventory.json").read_text())
+    for name in HISTORICAL_PANEL_ASSETS:
+        source = ROOT / "docs/model-limits" / name
+        destination = output / name
+        if source.resolve() != destination.resolve():
+            shutil.copy2(source, destination)
+        manifest[name] = manifest.get(name, root_manifest[name])
     source_paths = [
         "applet.js",
         "chatgpt_usage.py",
@@ -81,6 +90,9 @@ def main():
     ]
     sources = {name: sha(ROOT / name) for name in source_paths}
     for name, variant, mode in SPECS:
+        if f"{name}.png" in HISTORICAL_PANEL_ASSETS:
+            print(f"Preserved historical panel capture: {name}.png", flush=True)
+            continue
         if args.only and name not in args.only:
             continue
         raw = output / f"{name}.raw.png"

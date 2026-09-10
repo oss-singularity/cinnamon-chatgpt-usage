@@ -78,12 +78,15 @@ def native_focus_checks(widget, settings):
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin=20)
     outside_label = Gtk.Label(label="Non-focusable text outside the custom settings widget")
     outside_button = Gtk.Button(label="Unrelated action")
-    outside_entry = Gtk.Entry()
+    outside_entry = Gtk.Entry(text="Keep this text")
+    outside_spin = Gtk.SpinButton.new_with_range(1, 60, 1)
+    outside_spin.set_value(17)
     toggle = Gtk.CheckButton(label="Unrelated setting")
     box.pack_start(outside_label, False, False, 0)
     box.pack_start(widget, False, False, 0)
     box.pack_start(outside_button, False, False, 0)
     box.pack_start(outside_entry, False, False, 0)
+    box.pack_start(outside_spin, False, False, 0)
     box.pack_start(toggle, False, False, 0)
     window.add(box)
     window.show_all()
@@ -120,7 +123,13 @@ def native_focus_checks(widget, settings):
     pointer(outside_entry)
     assert outside_entry.has_focus(), "Other text fields must retain normal focus behavior"
     pointer(outside_label)
-    assert outside_entry.has_focus(), "Do not change unrelated entries' focus policy"
+    assert not outside_entry.has_focus(), "Clicking outside an unrelated entry must release focus"
+    assert outside_entry.get_text() == "Keep this text", "Outside entry content must survive focus changes"
+    pointer(outside_spin)
+    assert outside_spin.has_focus(), "Other spinbutton fields must retain normal focus behavior"
+    pointer(outside_label)
+    assert not outside_spin.has_focus(), "Clicking outside a spinbutton must release focus"
+    assert outside_spin.get_value() == 17, "Spinbutton value must survive focus changes"
     pointer(app)
     subprocess.run(["/usr/bin/xdotool", "key", "Tab"], check=True)
     drain()
